@@ -1,0 +1,59 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  ADMIN
+  OPERATOR
+  VIEWER
+}
+
+enum MovementType {
+  INBOUND
+  OUTBOUND
+  TRANSFER
+}
+
+model User {
+  id        String     @id @default(cuid())
+  email     String     @unique
+  name      String
+  password  String
+  role      Role       @default(VIEWER)
+  createdAt DateTime   @default(now())
+  updatedAt DateTime   @updatedAt
+  movements Movement[]
+}
+
+model Material {
+  id          String     @id @default(cuid())
+  name        String
+  sku         String     @unique
+  description String?
+  quantity    Int        @default(0)
+  unit        String     @default("ea")
+  location    String?
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+  movements   Movement[]
+}
+
+model Movement {
+  id         String       @id @default(cuid())
+  type       MovementType
+  quantity   Int
+  note       String?
+  materialId String
+  userId     String
+  material   Material     @relation(fields: [materialId], references: [id])
+  user       User         @relation(fields: [userId], references: [id])
+}
