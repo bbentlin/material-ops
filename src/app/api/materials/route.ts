@@ -40,10 +40,10 @@ export async function POST(req: NextRequest) {
       },
     });
 
-    // Log the creation as a movement
+    // Log the creation as an inbound movement
     await prisma.movement.create({
       data: {
-        type: "IN",
+        type: "INBOUND",
         quantity: quantity ?? 0,
         note: `Initial creation by ${user!.email}`,
         materialId: material.id,
@@ -53,7 +53,7 @@ export async function POST(req: NextRequest) {
 
     return NextResponse.json(material, { status: 201 });
   } catch (err: unknown) {
-    const message = 
+    const message =
       err instanceof Error ? err.message : "Failed to create material";
     return NextResponse.json({ error: message }, { status: 500 });
   }

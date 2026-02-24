@@ -52,6 +52,7 @@ model Movement {
   type       MovementType
   quantity   Int
   note       String?
+  createdAt  DateTime     @default(now())
   materialId String
   userId     String
   material   Material     @relation(fields: [materialId], references: [id])

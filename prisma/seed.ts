@@ -1,3 +1,4 @@
+import "dotenv/config";
 import { PrismaClient } from "../src/generated/prisma";
 import { hashSync } from "bcryptjs";
 
@@ -18,6 +19,19 @@ async function main() {
     },
   });
   console.log("Admin user created:", admin.email);
+
+  // Create an operator user
+  const operator = await prisma.user.upsert({
+    where: { email: "operator@materialops.com" },
+    update: {},
+    create: {
+      email: "operator@materialops.com",
+      name: "Operator",
+      password: hashSync("operator123", 10),
+      role: "OPERATOR",
+    },
+  });
+  console.log("Operator user created:", operator.email);
 
   // Create sample materials
   const materials = [
@@ -56,15 +70,15 @@ async function main() {
     console.log("Material created:", material.name);
   }
 
-  // Create a sample movement
-  const firstMaterial =  await prisma.material.findUnique({
+  // Create sample movements
+  const firstMaterial = await prisma.material.findUnique({
     where: { sku: "MAT-001" },
   });
 
   if (firstMaterial) {
     await prisma.movement.create({
       data: {
-        type: "IN",
+        type: "INBOUND",
         quantity: 100,
         note: "Initial stock intake",
         materialId: firstMaterial.id,
