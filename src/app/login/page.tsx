@@ -33,12 +33,12 @@ export default function LoginPage() {
         action={handleSubmit}
         className="bg-white p-8 rounded-lg shadow-md w-96 flex flex-col gap-4"
       >
-        <h1 className="text-2xl font-bold text-center mb-2">MaterialOps</h1>
+        <h1 className="text-2xl font-bold text-center text-gray-900 mb-2">MaterialOps</h1>
         <p className="text-gray-500 text-center text-sm mb-4">Sign in to your account</p>
         <input
           type="email"
           placeholder="Email"
-          className="border border-gray-300 p-3 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+          className="border border-gray-300 p-3 rounded-md text-gray-900 bg-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 selection:bg-blue-200 selection:text-gray-900"
           value={email}
           onChange={(e) => setEmail(e.target.value)}
           required
@@ -46,7 +46,7 @@ export default function LoginPage() {
         <input
           type="password"
           placeholder="Password"
-          className="border border-gray-300 p-3 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+          className="border border-gray-300 p-3 rounded-md text-gray-900 bg-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 selection:bg-blue-200 selection:text-gray-900"
           value={password}
           onChange={(e) => setPassword(e.target.value)}
           required
