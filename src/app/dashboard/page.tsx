@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import AddMaterialModal from "@/components/AddMaterialModal";
 import MovementModal from "@/components/MovementModal";
+import EditMaterialModal from "@/components/EditMaterialModal";
 
 type Material = {
   id: string;
@@ -33,6 +34,7 @@ export default function DashboardPage() {
   const [error, setError] = useState("");
   const [showAddMaterial, setShowAddMaterial] = useState(false);
   const [showMovement, setShowMovement] = useState<string | null>(null);
+  const [editMaterial, setEditMaterial] = useState<Material | null>(null);
   const router = useRouter();
 
   function fetchMaterials() {
@@ -107,7 +109,7 @@ export default function DashboardPage() {
         {/* Stats Cards */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
           <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-200">
-            <div className="text-sm font-medium text-gray-500 mb-1">Total Unique Items</div>
+            <div className="text-sm font-medium text-gray-500 mb-1">Total Materials</div>
             <div className="text-3xl font-bold text-gray-900">{materials.length}</div>
           </div>
           <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-200">
@@ -167,6 +169,12 @@ export default function DashboardPage() {
                     <td className="px-5 py-4 text-gray-500">{mat.location}</td>
                     <td className="px-5 py-4">
                       <div className="flex gap-2">
+                        <button
+                          onClick={() => setEditMaterial(mat)}
+                          className="text-sm font-medium bg-gray-100 text-gray-700 px-3 py-1.5 rounded-lg hover:bg-gray-200 transition-colors"
+                        >
+                          ✏️ Edit
+                        </button>
                         <button
                           onClick={() => setShowMovement(mat.id)}
                           className="text-sm font-medium bg-green-600 text-white px-3 py-1.5 rounded-lg hover:bg-green-700 transition-colors"
@@ -256,6 +264,19 @@ export default function DashboardPage() {
           onCloseAction={() => setShowAddMaterial(false)}
           onSuccessAction={() => {
             setShowAddMaterial(false);
+            fetchMaterials();
+            fetchMovements();
+          }}
+        />
+      )}
+
+      {/* Edit Material Modal */}
+      {editMaterial && (
+        <EditMaterialModal
+          material={editMaterial}
+          onCloseAction={() => setEditMaterial(null)}
+          onSuccessAction={() => {
+            setEditMaterial(null);
             fetchMaterials();
             fetchMovements();
           }}
