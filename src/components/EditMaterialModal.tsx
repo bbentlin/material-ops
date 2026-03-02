@@ -1,8 +1,9 @@
 "use client";
 
 import { useState, useTransition } from "react";
+import DraggableModal from "./DraggableModal";
 
-const inputClass = 
+const inputClass =
   "border border-gray-300 p-2 rounded-md text-gray-900 bg-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 selection:bg-blue-200 selection:text-gray-900";
 
 type Material = {
@@ -35,7 +36,7 @@ export default function EditMaterialModal({
   function handleSubmit() {
     startTransition(async () => {
       setError("");
-      const res = await fetch(`api/materials/${material.id}`, {
+      const res = await fetch(`/api/materials/${material.id}`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ name, sku, description, unit, location }),
@@ -66,10 +67,10 @@ export default function EditMaterialModal({
   }
 
   return (
-    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+    <DraggableModal className="w-96">
       <form
         action={handleSubmit}
-        className="bg-white rounded-lg shadow-lg p-6 w-96 flex flex-col gap-3"
+        className="p-6 flex flex-col gap-3"
       >
         <h2 className="text-lg font-bold text-gray-900 mb-2">Edit Material</h2>
         <input
@@ -130,6 +131,6 @@ export default function EditMaterialModal({
           Delete Material
         </button>
       </form>
-    </div>
+    </DraggableModal>
   );
 }

@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useTransition } from "react";
+import DraggableModal from "./DraggableModal";
 
 const inputClass =
   "border border-gray-300 p-2 rounded-md text-gray-900 bg-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 selection:bg-blue-200 selection:text-gray-900";
@@ -39,10 +40,10 @@ export default function MovementModal({
   }
 
   return (
-    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+    <DraggableModal className="w-80">
       <form
         action={handleSubmit}
-        className="bg-white rounded-lg shadow-lg p-6 w-80 flex flex-col gap-3"
+        className="p-6 flex flex-col gap-3"
       >
         <h2 className="text-lg font-bold text-gray-900">
           {type === "INBOUND" ? "📦 Inbound" : "📤 Outbound"} Movement
@@ -84,6 +85,6 @@ export default function MovementModal({
           </button>
         </div>
       </form>
-    </div>
+    </DraggableModal>
   );
 }
