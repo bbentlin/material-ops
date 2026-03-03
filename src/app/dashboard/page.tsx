@@ -9,7 +9,7 @@ import EditMaterialModal from "@/components/EditMaterialModal";
 type Material = {
   id: string;
   name: string;
-  sku: string;
+  partNumber: string;
   description: string;
   quantity: number;
   unit?: string;
@@ -23,7 +23,7 @@ type Movement = {
   note?: string;
   type: string;
   createdAt: string;
-  material: { name: string; sku: string };
+  material: { name: string; partNumber: string };
   user: { name: string; email: string };
 };
 
@@ -35,6 +35,7 @@ export default function DashboardPage() {
   const [showAddMaterial, setShowAddMaterial] = useState(false);
   const [showMovement, setShowMovement] = useState<string | null>(null);
   const [editMaterial, setEditMaterial] = useState<Material | null>(null);
+  const [search, setSearch] = useState("");
   const router = useRouter();
 
   function fetchMaterials() {
@@ -76,6 +77,29 @@ export default function DashboardPage() {
     router.push("/login");
   }
 
+  const filteredMaterials = materials.filter((mat) => {
+    const q = search.toLowerCase();
+    return (
+      mat.name.toLowerCase().includes(q) ||
+      mat.partNumber.toLowerCase().includes(q) ||
+      (mat.description ?? "").toLowerCase().includes(q) ||
+      (mat.location ?? "").toLowerCase().includes(q) ||
+      (mat.unit ?? "").toLowerCase().includes(q)
+    );
+  });
+
+  const filteredMovements = movements.filter((mov) => {
+    if (!search) return true;
+    const q = search.toLowerCase();
+    return (
+      mov.material.name.toLowerCase().includes(q) ||
+      mov.material.partNumber.toLowerCase().includes(q) ||
+      mov.type.toLowerCase().includes(q) ||
+      (mov.note ?? "").toLowerCase().includes(q) ||
+      mov.user.name.toLowerCase().includes(q)
+    );
+  });
+
   if (loading) {
     return (
       <div className="min-h-screen bg-gray-100 flex items-center justify-center">
@@ -89,13 +113,46 @@ export default function DashboardPage() {
       {/* Header */}
       <header className="bg-white shadow-sm border-b border-gray-200">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex justify-between items-center">
-          <h1 className="text-xl font-bold text-gray-900">📦 MaterialOps</h1>
-          <button
-            onClick={handleLogout}
-            className="text-sm text-gray-500 hover:text-red-600 transition-colors px-3 py-1.5 rounded-md hover:bg-red-50"
-          >
-            Sign Out
-          </button>
+          <h1 className="text-xl font-bold text-gray-900">📦 LogiCore Inventory System</h1>
+          <div className="flex items-center gap-4">
+            {/* Search */}
+            <div className="relative">
+              <svg
+                className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
+                />
+              </svg>
+              <input
+                type="text"
+                placeholder="Search materials, part numbers, locations..."
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+                className="pl-10 pr-4 py-2 w-80 border border-gray-300 rounded-lg text-sm text-gray-900 bg-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              />
+              {search && (
+                <button
+                  onClick={() => setSearch("")}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                >
+                  ✕
+                </button>
+              )}
+            </div>
+            <button
+              onClick={handleLogout}
+              className="text-sm text-gray-500 hover:text-red-600 transition-colors px-3 py-1.5 rounded-md hover:bg-red-50"
+            >
+              Sign Out
+            </button>
+          </div>
         </div>
       </header>
 
@@ -103,6 +160,15 @@ export default function DashboardPage() {
         {error && (
           <div className="bg-red-50 border border-red-200 text-red-700 p-4 rounded-lg mb-6">
             {error}
+          </div>
+        )}
+
+        {/* Search results indicator */}
+        {search && (
+          <div className="mb-4 text-sm text-gray-500">
+            Showing {filteredMaterials.length} material{filteredMaterials.length !== 1 ? "s" : ""} and{" "}
+            {filteredMovements.length} movement{filteredMovements.length !== 1 ? "s" : ""} matching{" "}
+            &ldquo;<span className="font-medium text-gray-700">{search}</span>&rdquo;
           </div>
         )}
 
@@ -142,7 +208,7 @@ export default function DashboardPage() {
               <thead>
                 <tr className="bg-gray-50 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">
                   <th className="px-5 py-3">Name</th>
-                  <th className="px-5 py-3">SKU</th>
+                  <th className="px-5 py-3">Part Number</th>
                   <th className="px-5 py-3">Quantity</th>
                   <th className="px-5 py-3">Unit</th>
                   <th className="px-5 py-3">Location</th>
@@ -150,10 +216,10 @@ export default function DashboardPage() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-100">
-                {materials.map((mat) => (
+                {filteredMaterials.map((mat) => (
                   <tr key={mat.id} className="hover:bg-gray-50 transition-colors">
                     <td className="px-5 py-4 font-medium text-gray-900">{mat.name}</td>
-                    <td className="px-5 py-4 text-gray-500 font-mono text-sm">{mat.sku}</td>
+                    <td className="px-5 py-4 text-gray-500 font-mono text-sm">{mat.partNumber}</td>
                     <td className="px-5 py-4">
                       <span
                         className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-sm font-bold ${
@@ -191,10 +257,12 @@ export default function DashboardPage() {
                     </td>
                   </tr>
                 ))}
-                {materials.length === 0 && (
+                {filteredMaterials.length === 0 && (
                   <tr>
                     <td colSpan={6} className="px-5 py-12 text-center text-gray-400">
-                      No materials yet. Click &quot;+ Add Material&quot; to get started.
+                      {search
+                        ? `No materials matching "${search}"`
+                        : 'No materials yet. Click "+ Add Material" to get started.'}
                     </td>
                   </tr>
                 )}
@@ -221,7 +289,7 @@ export default function DashboardPage() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-100">
-                {movements.slice(0, 10).map((mov) => (
+                {filteredMovements.slice(0, 10).map((mov) => (
                   <tr key={mov.id} className="hover:bg-gray-50 transition-colors">
                     <td className="px-5 py-4 text-sm text-gray-500">
                       {new Date(mov.createdAt).toLocaleDateString()}
@@ -245,10 +313,12 @@ export default function DashboardPage() {
                     <td className="px-5 py-4 text-sm text-gray-500">{mov.user.name}</td>
                   </tr>
                 ))}
-                {movements.length === 0 && (
+                {filteredMovements.length === 0 && (
                   <tr>
                     <td colSpan={6} className="px-5 py-12 text-center text-gray-400">
-                      No movements yet. Record inbound or outbound stock above.
+                      {search
+                        ? `No movements matching "${search}"`
+                        : "No movements yet. Record inbound or outbound stock above."}
                     </td>
                   </tr>
                 )}

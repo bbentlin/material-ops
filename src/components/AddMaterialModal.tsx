@@ -14,7 +14,7 @@ export default function AddMaterialModal({
   onSuccessAction: () => void;
 }) {
   const [name, setName] = useState("");
-  const [sku, setSku] = useState("");
+  const [partNumber, setPartNumber] = useState("");
   const [description, setDescription] = useState("");
   const [quantity, setQuantity] = useState(0);
   const [unit, setUnit] = useState("pieces");
@@ -28,7 +28,7 @@ export default function AddMaterialModal({
       const res = await fetch("/api/materials", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name, sku, description, quantity, unit, location }),
+        body: JSON.stringify({ name, partNumber, description, quantity, unit, location }),
       });
       if (res.ok) {
         onSuccessAction();
@@ -54,10 +54,10 @@ export default function AddMaterialModal({
           required
         />
         <input
-          placeholder="SKU *"
+          placeholder="Part Number *"
           className={inputClass}
-          value={sku}
-          onChange={(e) => setSku(e.target.value)}
+          value={partNumber}
+          onChange={(e) => setPartNumber(e.target.value)}
           required
         />
         <input

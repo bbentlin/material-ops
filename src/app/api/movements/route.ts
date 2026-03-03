@@ -9,7 +9,7 @@ export async function GET() {
 
   const movements = await prisma.movement.findMany({
     include: {
-      material: { select: { name: true, sku: true } },
+      material: { select: { name: true, partNumber: true } },
       user: { select: { name: true, email: true } },
     },
     orderBy: { createdAt: "desc" },
@@ -71,7 +71,7 @@ export async function POST(req: NextRequest) {
           userId: user!.id,
         },
         include: {
-          material: { select: { name: true, sku: true } },
+          material: { select: { name: true, partNumber: true } },
           user: { select: { name: true, email: true } },
         },
       }),

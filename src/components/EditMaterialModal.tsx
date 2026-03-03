@@ -9,7 +9,7 @@ const inputClass =
 type Material = {
   id: string;
   name: string;
-  sku: string;
+  partNumber: string;
   description: string;
   quantity: number;
   unit?: string;
@@ -26,7 +26,7 @@ export default function EditMaterialModal({
   onSuccessAction: () => void;
 }) {
   const [name, setName] = useState(material.name);
-  const [sku, setSku] = useState(material.sku);
+  const [partNumber, setPartNumber] = useState(material.partNumber);
   const [description, setDescription] = useState(material.description ?? "");
   const [unit, setUnit] = useState(material.unit ?? "pieces");
   const [location, setLocation] = useState(material.location ?? "");
@@ -39,7 +39,7 @@ export default function EditMaterialModal({
       const res = await fetch(`/api/materials/${material.id}`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name, sku, description, unit, location }),
+        body: JSON.stringify({ name, partNumber, description, unit, location }),
       });
       if (res.ok) {
         onSuccessAction();
@@ -81,10 +81,10 @@ export default function EditMaterialModal({
           required
         />
         <input
-          placeholder="SKU *"
+          placeholder="Part Number *"
           className={inputClass}
-          value={sku}
-          onChange={(e) => setSku(e.target.value)}
+          value={partNumber}
+          onChange={(e) => setPartNumber(e.target.value)}
           required
         />
         <input

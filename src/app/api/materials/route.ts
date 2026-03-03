@@ -19,11 +19,11 @@ export async function POST(req: NextRequest) {
   const { error, user } = await requireAuth("OPERATOR");
   if (error) return error;
 
-  const { name, sku, description, quantity, unit, location } = await req.json();
+  const { name, partNumber, description, quantity, unit, location } = await req.json();
 
-  if (!name || !sku) {
+  if (!name || !partNumber) {
     return NextResponse.json(
-      { error: "Name and SKU are required" },
+      { error: "Name and part number are required" },
       { status: 400 }
     );
   }
@@ -32,7 +32,7 @@ export async function POST(req: NextRequest) {
     const material = await prisma.material.create({
       data: {
         name,
-        sku,
+        partNumber,
         description: description ?? "",
         quantity: quantity ?? 0,
         unit: unit ?? "pieces",

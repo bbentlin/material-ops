@@ -37,7 +37,7 @@ async function main() {
   const materials = [
     {
       name: "Steel Rod 10mm",
-      sku: "MAT-001",
+      partNumber: "MAT-001",
       description: "10mm diameter steel rod, 1m length",
       quantity: 100,
       unit: "pieces",
@@ -45,7 +45,7 @@ async function main() {
     },
     {
       name: "Copper Wire 2mm",
-      sku: "MAT-002",
+      partNumber: "MAT-002",
       description: "2mm copper wire, 50m spool",
       quantity: 50,
       unit: "spools",
@@ -53,7 +53,7 @@ async function main() {
     },
     {
       name: "Aluminum Sheet",
-      sku: "MAT-003",
+      partNumber: "MAT-003",
       description: "1mm thick aluminum sheet, 1m x 2m",
       quantity: 25,
       unit: "sheets",
@@ -63,7 +63,7 @@ async function main() {
 
   for (const mat of materials) {
     const material = await prisma.material.upsert({
-      where: { sku: mat.sku },
+      where: { partNumber: mat.partNumber },
       update: {},
       create: mat,
     });
@@ -72,7 +72,7 @@ async function main() {
 
   // Create sample movements
   const firstMaterial = await prisma.material.findUnique({
-    where: { sku: "MAT-001" },
+    where: { partNumber: "MAT-001" },
   });
 
   if (firstMaterial) {

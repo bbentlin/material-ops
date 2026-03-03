@@ -51,7 +51,7 @@ export async function PATCH(
       where: { id },
       data: {
         name: body.name ?? existing.name,
-        sku: body.sku ?? existing.sku,
+        partNumber: body.partNumber ?? existing.partNumber,
         description: body.description ?? existing.description,
         unit: body.unit ?? existing.unit,
         location: body.location ?? existing.location,
