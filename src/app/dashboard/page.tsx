@@ -14,6 +14,7 @@ type Material = {
   quantity: number;
   unit?: string;
   location?: string;
+  createdAt?: string;
 };
 
 type Movement = {
@@ -36,6 +37,8 @@ export default function DashboardPage() {
   const [showMovement, setShowMovement] = useState<string | null>(null);
   const [editMaterial, setEditMaterial] = useState<Material | null>(null);
   const [search, setSearch] = useState("");
+  const [dateFrom, setDateFrom] = useState("");
+  const [dateTo, setDateTo] = useState("");
   const router = useRouter();
 
   function fetchMaterials() {
@@ -77,28 +80,58 @@ export default function DashboardPage() {
     router.push("/login");
   }
 
+  function isInDateRange(dateStr: string | undefined): boolean {
+    if (!dateFrom && !dateTo) return true;
+    if (!dateStr) return false;
+    const date = new Date(dateStr);
+    if (dateFrom) {
+      const from = new Date(dateFrom);
+      from.setHours(0, 0, 0, 0);
+      if (date < from) return false;
+    }
+    if (dateTo) {
+      const to = new Date(dateTo);
+      to.setHours(23, 59, 59, 999);
+      if (date > to) return false;
+    }
+    return true;
+  }
+
+  const hasDateFilter = dateFrom || dateTo;
+  const hasAnyFilter = search || hasDateFilter;
+
   const filteredMaterials = materials.filter((mat) => {
     const q = search.toLowerCase();
-    return (
+    const matchesText =
       mat.name.toLowerCase().includes(q) ||
       mat.partNumber.toLowerCase().includes(q) ||
       (mat.description ?? "").toLowerCase().includes(q) ||
       (mat.location ?? "").toLowerCase().includes(q) ||
-      (mat.unit ?? "").toLowerCase().includes(q)
-    );
+      (mat.unit ?? "").toLowerCase().includes(q);
+    const matchesDate = isInDateRange(mat.createdAt);
+    return matchesText && matchesDate;
   });
 
   const filteredMovements = movements.filter((mov) => {
-    if (!search) return true;
-    const q = search.toLowerCase();
-    return (
-      mov.material.name.toLowerCase().includes(q) ||
-      mov.material.partNumber.toLowerCase().includes(q) ||
-      mov.type.toLowerCase().includes(q) ||
-      (mov.note ?? "").toLowerCase().includes(q) ||
-      mov.user.name.toLowerCase().includes(q)
-    );
+    const matchesText = !search || (() => {
+      const q = search.toLowerCase();
+      return (
+        mov.material.name.toLowerCase().includes(q) ||
+        mov.material.partNumber.toLowerCase().includes(q) ||
+        mov.type.toLowerCase().includes(q) ||
+        (mov.note ?? "").toLowerCase().includes(q) ||
+        mov.user.name.toLowerCase().includes(q)
+      );
+    })();
+    const matchesDate = isInDateRange(mov.createdAt);
+    return matchesText && matchesDate;
   });
+
+  function clearFilters() {
+    setSearch("");
+    setDateFrom("");
+    setDateTo("");
+  }
 
   if (loading) {
     return (
@@ -146,6 +179,33 @@ export default function DashboardPage() {
                 </button>
               )}
             </div>
+            {/* Date range */}
+            <div className="flex items-center gap-2">
+              <input
+                type="date"
+                value={dateFrom}
+                onChange={(e) => setDateFrom(e.target.value)}
+                className="border border-gray-300 rounded-lg text-sm text-gray-900 bg-white px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                title="From date"
+              />
+              <span className="text-gray-400 text-sm">→</span>
+              <input
+                type="date"
+                value={dateTo}
+                onChange={(e) => setDateTo(e.target.value)}
+                className="border border-gray-300 rounded-lg text-sm text-gray-900 bg-white px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                title="To date"
+              />
+              {hasDateFilter && (
+                <button
+                  onClick={() => { setDateFrom(""); setDateTo(""); }}
+                  className="text-gray-400 hover:text-gray-600 text-sm"
+                  title="Clear dates"
+                >
+                  ✕
+                </button>
+              )}
+            </div>
             <button
               onClick={handleLogout}
               className="text-sm text-gray-500 hover:text-red-600 transition-colors px-3 py-1.5 rounded-md hover:bg-red-50"
@@ -164,11 +224,33 @@ export default function DashboardPage() {
         )}
 
         {/* Search results indicator */}
-        {search && (
-          <div className="mb-4 text-sm text-gray-500">
-            Showing {filteredMaterials.length} material{filteredMaterials.length !== 1 ? "s" : ""} and{" "}
-            {filteredMovements.length} movement{filteredMovements.length !== 1 ? "s" : ""} matching{" "}
-            &ldquo;<span className="font-medium text-gray-700">{search}</span>&rdquo;
+        {hasAnyFilter && (
+          <div className="mb-4 text-sm text-gray-500 flex items-center gap-2">
+            <span>
+              Showing {filteredMaterials.length} material{filteredMaterials.length !== 1 ? "s" : ""} and{" "}
+              {filteredMovements.length} movement{filteredMovements.length !== 1 ? "s" : ""}
+              {search && (
+                <>
+                  {" "}matching &ldquo;<span className="font-medium text-gray-700">{search}</span>&rdquo;
+                </>
+              )}
+              {hasDateFilter && (
+                <span className="text-gray-500">
+                  {" "}
+                  {dateFrom && dateTo
+                    ? `from ${dateFrom} to ${dateTo}`
+                    : dateFrom
+                    ? `from ${dateFrom}`
+                    : `up to ${dateTo}`}
+                </span>
+              )}
+            </span>
+            <button
+              onClick={clearFilters}
+              className="text-blue-600 hover:text-blue-800 text-xs font-medium ml-2"
+            >
+              Clear all filters
+            </button>
           </div>
         )}
 
@@ -260,8 +342,8 @@ export default function DashboardPage() {
                 {filteredMaterials.length === 0 && (
                   <tr>
                     <td colSpan={6} className="px-5 py-12 text-center text-gray-400">
-                      {search
-                        ? `No materials matching "${search}"`
+                      {hasAnyFilter
+                        ? "No materials matching your filters"
                         : 'No materials yet. Click "+ Add Material" to get started.'}
                     </td>
                   </tr>
@@ -316,8 +398,8 @@ export default function DashboardPage() {
                 {filteredMovements.length === 0 && (
                   <tr>
                     <td colSpan={6} className="px-5 py-12 text-center text-gray-400">
-                      {search
-                        ? `No movements matching "${search}"`
+                      {hasAnyFilter
+                        ? "No movements matching your filters"
                         : "No movements yet. Record inbound or outbound stock above."}
                     </td>
                   </tr>

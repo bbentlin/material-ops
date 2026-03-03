@@ -28,6 +28,7 @@ export default function EditMaterialModal({
   const [name, setName] = useState(material.name);
   const [partNumber, setPartNumber] = useState(material.partNumber);
   const [description, setDescription] = useState(material.description ?? "");
+  const [quantity, setQuantity] = useState(material.quantity);
   const [unit, setUnit] = useState(material.unit ?? "pieces");
   const [location, setLocation] = useState(material.location ?? "");
   const [error, setError] = useState("");
@@ -39,7 +40,7 @@ export default function EditMaterialModal({
       const res = await fetch(`/api/materials/${material.id}`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name, partNumber, description, unit, location }),
+        body: JSON.stringify({ name, partNumber, description, quantity, unit, location }),
       });
       if (res.ok) {
         onSuccessAction();
@@ -81,7 +82,7 @@ export default function EditMaterialModal({
           required
         />
         <input
-          placeholder="Part Number *"
+          placeholder="Part # *"
           className={inputClass}
           value={partNumber}
           onChange={(e) => setPartNumber(e.target.value)}
@@ -93,12 +94,22 @@ export default function EditMaterialModal({
           value={description}
           onChange={(e) => setDescription(e.target.value)}
         />
-        <input
-          placeholder="Unit"
-          className={inputClass}
-          value={unit}
-          onChange={(e) => setUnit(e.target.value)}
-        />
+        <div className="flex gap-2">
+          <input
+            type="number"
+            min={0}
+            placeholder="Quantity"
+            className={`${inputClass} w-1/2`}
+            value={quantity}
+            onChange={(e) => setQuantity(Number(e.target.value))}
+          />
+          <input
+            placeholder="Unit"
+            className={`${inputClass} w-1/2`}
+            value={unit}
+            onChange={(e) => setUnit(e.target.value)}
+          />
+        </div>
         <input
           placeholder="Location"
           className={inputClass}

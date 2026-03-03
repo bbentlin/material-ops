@@ -41,7 +41,7 @@ export async function PATCH(
   const { id } = await params;
   const body = await req.json();
 
-  const existing = await prisma.material.findUnique({ where: { id }});
+  const existing = await prisma.material.findUnique({ where: { id } });
   if (!existing) {
     return NextResponse.json({ error: "Material not found" }, { status: 404 });
   }
@@ -53,6 +53,7 @@ export async function PATCH(
         name: body.name ?? existing.name,
         partNumber: body.partNumber ?? existing.partNumber,
         description: body.description ?? existing.description,
+        quantity: body.quantity !== undefined ? body.quantity : existing.quantity,
         unit: body.unit ?? existing.unit,
         location: body.location ?? existing.location,
       },
@@ -60,7 +61,7 @@ export async function PATCH(
 
     return NextResponse.json(material);
   } catch (err: unknown) {
-    const message = 
+    const message =
       err instanceof Error ? err.message : "Failed to update material";
     return NextResponse.json({ error: message }, { status: 500 });
   }
@@ -88,7 +89,7 @@ export async function DELETE(
 
     return NextResponse.json({ success: true });
   } catch (err: unknown) {
-    const message = 
+    const message =
       err instanceof Error ? err.message : "Failed to delete material";
     return NextResponse.json({ error: message }, { status: 500 });
   }
