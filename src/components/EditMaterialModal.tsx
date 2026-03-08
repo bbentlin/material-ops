@@ -18,10 +18,12 @@ type Material = {
 
 export default function EditMaterialModal({
   material,
+  canDelete = true,
   onCloseAction,
   onSuccessAction,
 }: {
   material: Material;
+  canDelete?: boolean;
   onCloseAction: () => void;
   onSuccessAction: () => void;
 }) {
@@ -172,14 +174,16 @@ export default function EditMaterialModal({
             {isPending ? "Saving..." : "Save"}
           </button>
         </div>
-        <button
-          type="button"
-          onClick={handleDelete}
-          disabled={isPending}
-          className="w-full text-sm text-red-500 hover:text-red-700 hover:bg-red-50 py-2 rounded transition-colors disabled:opacity-50 mt-1"
-        >
-          Delete Material
-        </button>
+        {canDelete && (
+          <button
+            type="button"
+            onClick={handleDelete}
+            disabled={isPending}
+            className="w-full text-sm text-red-500 hover:text-red-700 hover:bg-red-50 py-2 rounded transition-colors disabled:opacity-50 mt-1"
+          >
+            Delete Material
+          </button>
+        )}
       </form>
     </DraggableModal>
   );

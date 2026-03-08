@@ -40,7 +40,13 @@ export default function DashboardPage() {
   const [dateFrom, setDateFrom] = useState("");
   const [dateTo, setDateTo] = useState("");
   const [userRole, setUserRole] = useState<string | null>(null);
+  const [userName, setUserName] = useState<string | null>(null);
   const router = useRouter();
+
+  // Permission helpers
+  const canEdit = userRole === "ADMIN" || userRole === "OPERATOR";
+  const canDelete = userRole === "ADMIN";
+  const canManageUsers = userRole === "ADMIN";
 
   function fetchMaterials() {
     fetch("/api/materials")
@@ -73,8 +79,13 @@ export default function DashboardPage() {
 
   function fetchCurrentUser() {
     fetch("/api/auth/me")
-      .then((res) => res.ok ? res.json() : null)
-      .then((data) => { if (data) setUserRole(data.role); })
+      .then((res) => (res.ok ? res.json() : null))
+      .then((data) => {
+        if (data) {
+          setUserRole(data.role);
+          setUserName(data.name);
+        }
+      })
       .catch(() => {});
   }
 
@@ -122,16 +133,18 @@ export default function DashboardPage() {
   });
 
   const filteredMovements = movements.filter((mov) => {
-    const matchesText = !search || (() => {
-      const q = search.toLowerCase();
-      return (
-        mov.material.name.toLowerCase().includes(q) ||
-        mov.material.partNumber.toLowerCase().includes(q) ||
-        mov.type.toLowerCase().includes(q) ||
-        (mov.note ?? "").toLowerCase().includes(q) ||
-        mov.user.name.toLowerCase().includes(q)
-      );
-    })();
+    const matchesText =
+      !search ||
+      (() => {
+        const q = search.toLowerCase();
+        return (
+          mov.material.name.toLowerCase().includes(q) ||
+          mov.material.partNumber.toLowerCase().includes(q) ||
+          mov.type.toLowerCase().includes(q) ||
+          (mov.note ?? "").toLowerCase().includes(q) ||
+          mov.user.name.toLowerCase().includes(q)
+        );
+      })();
     const matchesDate = isInDateRange(mov.createdAt);
     return matchesText && matchesDate;
   });
@@ -141,6 +154,12 @@ export default function DashboardPage() {
     setDateFrom("");
     setDateTo("");
   }
+
+  const roleBadge: Record<string, string> = {
+    ADMIN: "bg-purple-100 text-purple-700",
+    OPERATOR: "bg-blue-100 text-blue-700",
+    VIEWER: "bg-gray-200 text-gray-600",
+  };
 
   if (loading) {
     return (
@@ -155,7 +174,9 @@ export default function DashboardPage() {
       {/* Header */}
       <header className="bg-white shadow-sm border-b border-gray-200">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex justify-between items-center">
-          <h1 className="text-xl font-bold text-gray-900">📦 LogiCore Inventory System</h1>
+          <h1 className="text-xl font-bold text-gray-900">
+            📦 LogiCore Inventory Management System
+          </h1>
           <div className="flex items-center gap-4">
             {/* Search */}
             <div className="relative">
@@ -207,7 +228,10 @@ export default function DashboardPage() {
               />
               {hasDateFilter && (
                 <button
-                  onClick={() => { setDateFrom(""); setDateTo(""); }}
+                  onClick={() => {
+                    setDateFrom("");
+                    setDateTo("");
+                  }}
                   className="text-gray-400 hover:text-gray-600 text-sm"
                   title="Clear dates"
                 >
@@ -215,8 +239,23 @@ export default function DashboardPage() {
                 </button>
               )}
             </div>
+            {/* User info + role badge */}
+            <div className="flex items-center gap-2 border-l border-gray-200 pl-4">
+              {userName && (
+                <span className="text-sm text-gray-700 font-medium">{userName}</span>
+              )}
+              {userRole && (
+                <span
+                  className={`text-xs font-semibold px-2 py-0.5 rounded-full ${
+                    roleBadge[userRole] || "bg-gray-200 text-gray-600"
+                  }`}
+                >
+                  {userRole}
+                </span>
+              )}
+            </div>
             {/* Admin link */}
-            {userRole === "ADMIN" && (
+            {canManageUsers && (
               <button
                 onClick={() => router.push("/admin")}
                 className="text-sm text-gray-600 hover:text-purple-700 transition-colors px-3 py-1.5 rounded-md hover:bg-purple-50 font-medium"
@@ -241,15 +280,31 @@ export default function DashboardPage() {
           </div>
         )}
 
+        {/* Read-only banner for viewers */}
+        {userRole === "VIEWER" && (
+          <div className="bg-blue-50 border border-blue-200 text-blue-700 p-4 rounded-lg mb-6 flex items-center gap-2 text-sm">
+            <span className="text-lg">👁️</span>
+            <span>
+              You have <strong>view-only</strong> access. Contact an administrator to
+              request edit permissions.
+            </span>
+          </div>
+        )}
+
         {/* Search results indicator */}
         {hasAnyFilter && (
           <div className="mb-4 text-sm text-gray-500 flex items-center gap-2">
             <span>
-              Showing {filteredMaterials.length} material{filteredMaterials.length !== 1 ? "s" : ""} and{" "}
-              {filteredMovements.length} movement{filteredMovements.length !== 1 ? "s" : ""}
+              Showing {filteredMaterials.length} material
+              {filteredMaterials.length !== 1 ? "s" : ""} and{" "}
+              {filteredMovements.length} movement
+              {filteredMovements.length !== 1 ? "s" : ""}
               {search && (
                 <>
-                  {" "}matching &ldquo;<span className="font-medium text-gray-700">{search}</span>&rdquo;
+                  {" "}
+                  matching &ldquo;
+                  <span className="font-medium text-gray-700">{search}</span>
+                  &rdquo;
                 </>
               )}
               {hasDateFilter && (
@@ -275,17 +330,25 @@ export default function DashboardPage() {
         {/* Stats Cards */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
           <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-200">
-            <div className="text-sm font-medium text-gray-500 mb-1">Total Materials</div>
-            <div className="text-3xl font-bold text-gray-900">{materials.length}</div>
+            <div className="text-sm font-medium text-gray-500 mb-1">
+              Total Materials
+            </div>
+            <div className="text-3xl font-bold text-gray-900">
+              {materials.length}
+            </div>
           </div>
           <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-200">
-            <div className="text-sm font-medium text-gray-500 mb-1">Total Stock</div>
+            <div className="text-sm font-medium text-gray-500 mb-1">
+              Total Stock
+            </div>
             <div className="text-3xl font-bold text-gray-900">
               {materials.reduce((sum, m) => sum + m.quantity, 0)}
             </div>
           </div>
           <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-200">
-            <div className="text-sm font-medium text-gray-500 mb-1">Low Stock (≤10)</div>
+            <div className="text-sm font-medium text-gray-500 mb-1">
+              Low Stock (≤10)
+            </div>
             <div className="text-3xl font-bold text-orange-600">
               {materials.filter((m) => m.quantity <= 10).length}
             </div>
@@ -296,12 +359,14 @@ export default function DashboardPage() {
         <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
           <div className="p-5 border-b border-gray-200 flex justify-between items-center">
             <h2 className="text-lg font-semibold text-gray-900">Materials</h2>
-            <button
-              onClick={() => setShowAddMaterial(true)}
-              className="bg-blue-600 text-white text-sm font-medium px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors shadow-sm"
-            >
-              + Add Material
-            </button>
+            {canEdit && (
+              <button
+                onClick={() => setShowAddMaterial(true)}
+                className="bg-blue-600 text-white text-sm font-medium px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors shadow-sm"
+              >
+                + Add Material
+              </button>
+            )}
           </div>
           <div className="overflow-x-auto">
             <table className="w-full">
@@ -312,14 +377,21 @@ export default function DashboardPage() {
                   <th className="px-5 py-3">Quantity</th>
                   <th className="px-5 py-3">Unit</th>
                   <th className="px-5 py-3">Location</th>
-                  <th className="px-5 py-3">Actions</th>
+                  {canEdit && <th className="px-5 py-3">Actions</th>}
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-100">
                 {filteredMaterials.map((mat) => (
-                  <tr key={mat.id} className="hover:bg-gray-50 transition-colors">
-                    <td className="px-5 py-4 font-medium text-gray-900">{mat.name}</td>
-                    <td className="px-5 py-4 text-gray-500 font-mono text-sm">{mat.partNumber}</td>
+                  <tr
+                    key={mat.id}
+                    className="hover:bg-gray-50 transition-colors"
+                  >
+                    <td className="px-5 py-4 font-medium text-gray-900">
+                      {mat.name}
+                    </td>
+                    <td className="px-5 py-4 text-gray-500 font-mono text-sm">
+                      {mat.partNumber}
+                    </td>
                     <td className="px-5 py-4">
                       <span
                         className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-sm font-bold ${
@@ -333,33 +405,38 @@ export default function DashboardPage() {
                     </td>
                     <td className="px-5 py-4 text-gray-500">{mat.unit}</td>
                     <td className="px-5 py-4 text-gray-500">{mat.location}</td>
-                    <td className="px-5 py-4">
-                      <div className="flex gap-2">
-                        <button
-                          onClick={() => setEditMaterial(mat)}
-                          className="text-sm font-medium bg-gray-100 text-gray-700 px-3 py-1.5 rounded-lg hover:bg-gray-200 transition-colors"
-                        >
-                          ✏️ Edit
-                        </button>
-                        <button
-                          onClick={() => setShowMovement(mat.id)}
-                          className="text-sm font-medium bg-green-600 text-white px-3 py-1.5 rounded-lg hover:bg-green-700 transition-colors"
-                        >
-                          + Inbound
-                        </button>
-                        <button
-                          onClick={() => setShowMovement(`out-${mat.id}`)}
-                          className="text-sm font-medium bg-orange-500 text-white px-3 py-1.5 rounded-lg hover:bg-orange-600 transition-colors"
-                        >
-                          − Outbound
-                        </button>
-                      </div>
-                    </td>
+                    {canEdit && (
+                      <td className="px-5 py-4">
+                        <div className="flex gap-2">
+                          <button
+                            onClick={() => setEditMaterial(mat)}
+                            className="text-sm font-medium bg-gray-100 text-gray-700 px-3 py-1.5 rounded-lg hover:bg-gray-200 transition-colors"
+                          >
+                            ✏️ Edit
+                          </button>
+                          <button
+                            onClick={() => setShowMovement(mat.id)}
+                            className="text-sm font-medium bg-green-600 text-white px-3 py-1.5 rounded-lg hover:bg-green-700 transition-colors"
+                          >
+                            + Inbound
+                          </button>
+                          <button
+                            onClick={() => setShowMovement(`out-${mat.id}`)}
+                            className="text-sm font-medium bg-orange-500 text-white px-3 py-1.5 rounded-lg hover:bg-orange-600 transition-colors"
+                          >
+                            − Outbound
+                          </button>
+                        </div>
+                      </td>
+                    )}
                   </tr>
                 ))}
                 {filteredMaterials.length === 0 && (
                   <tr>
-                    <td colSpan={6} className="px-5 py-12 text-center text-gray-400">
+                    <td
+                      colSpan={canEdit ? 6 : 5}
+                      className="px-5 py-12 text-center text-gray-400"
+                    >
                       {hasAnyFilter
                         ? "No materials matching your filters"
                         : 'No materials yet. Click "+ Add Material" to get started.'}
@@ -374,7 +451,9 @@ export default function DashboardPage() {
         {/* Recent Movements */}
         <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden mt-8">
           <div className="p-5 border-b border-gray-200">
-            <h2 className="text-lg font-semibold text-gray-900">Recent Movements</h2>
+            <h2 className="text-lg font-semibold text-gray-900">
+              Recent Movements
+            </h2>
           </div>
           <div className="overflow-x-auto">
             <table className="w-full">
@@ -390,11 +469,16 @@ export default function DashboardPage() {
               </thead>
               <tbody className="divide-y divide-gray-100">
                 {filteredMovements.slice(0, 10).map((mov) => (
-                  <tr key={mov.id} className="hover:bg-gray-50 transition-colors">
+                  <tr
+                    key={mov.id}
+                    className="hover:bg-gray-50 transition-colors"
+                  >
                     <td className="px-5 py-4 text-sm text-gray-500">
                       {new Date(mov.createdAt).toLocaleDateString()}
                     </td>
-                    <td className="px-5 py-4 font-medium text-gray-900">{mov.material.name}</td>
+                    <td className="px-5 py-4 font-medium text-gray-900">
+                      {mov.material.name}
+                    </td>
                     <td className="px-5 py-4">
                       <span
                         className={`inline-flex items-center text-xs font-semibold px-2.5 py-1 rounded-full ${
@@ -408,14 +492,23 @@ export default function DashboardPage() {
                         {mov.type}
                       </span>
                     </td>
-                    <td className="px-5 py-4 font-medium text-gray-900">{mov.quantity}</td>
-                    <td className="px-5 py-4 text-sm text-gray-500">{mov.note || "—"}</td>
-                    <td className="px-5 py-4 text-sm text-gray-500">{mov.user.name}</td>
+                    <td className="px-5 py-4 font-medium text-gray-900">
+                      {mov.quantity}
+                    </td>
+                    <td className="px-5 py-4 text-sm text-gray-500">
+                      {mov.note || "—"}
+                    </td>
+                    <td className="px-5 py-4 text-sm text-gray-500">
+                      {mov.user.name}
+                    </td>
                   </tr>
                 ))}
                 {filteredMovements.length === 0 && (
                   <tr>
-                    <td colSpan={6} className="px-5 py-12 text-center text-gray-400">
+                    <td
+                      colSpan={6}
+                      className="px-5 py-12 text-center text-gray-400"
+                    >
                       {hasAnyFilter
                         ? "No movements matching your filters"
                         : "No movements yet. Record inbound or outbound stock above."}
@@ -429,7 +522,7 @@ export default function DashboardPage() {
       </main>
 
       {/* Add Material Modal */}
-      {showAddMaterial && (
+      {showAddMaterial && canEdit && (
         <AddMaterialModal
           onCloseAction={() => setShowAddMaterial(false)}
           onSuccessAction={() => {
@@ -441,9 +534,10 @@ export default function DashboardPage() {
       )}
 
       {/* Edit Material Modal */}
-      {editMaterial && (
+      {editMaterial && canEdit && (
         <EditMaterialModal
           material={editMaterial}
+          canDelete={canDelete}
           onCloseAction={() => setEditMaterial(null)}
           onSuccessAction={() => {
             setEditMaterial(null);
@@ -454,7 +548,7 @@ export default function DashboardPage() {
       )}
 
       {/* Movement Modal */}
-      {showMovement && (
+      {showMovement && canEdit && (
         <MovementModal
           materialId={showMovement.replace("out-", "")}
           type={showMovement.startsWith("out-") ? "OUTBOUND" : "INBOUND"}
