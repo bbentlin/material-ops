@@ -382,16 +382,9 @@ export default function DashboardPage() {
               </thead>
               <tbody className="divide-y divide-gray-100">
                 {filteredMaterials.map((mat) => (
-                  <tr
-                    key={mat.id}
-                    className="hover:bg-gray-50 transition-colors"
-                  >
-                    <td className="px-5 py-4 font-medium text-gray-900">
-                      {mat.name}
-                    </td>
-                    <td className="px-5 py-4 text-gray-500 font-mono text-sm">
-                      {mat.partNumber}
-                    </td>
+                  <tr key={mat.id} className="hover:bg-gray-50 transition-colors">
+                    <td className="px-5 py-4 font-medium text-gray-900">{mat.name}</td>
+                    <td className="px-5 py-4 text-gray-500 font-mono text-sm">{mat.partNumber}</td>
                     <td className="px-5 py-4">
                       <span
                         className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-sm font-bold ${
@@ -451,9 +444,7 @@ export default function DashboardPage() {
         {/* Recent Movements */}
         <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden mt-8">
           <div className="p-5 border-b border-gray-200">
-            <h2 className="text-lg font-semibold text-gray-900">
-              Recent Movements
-            </h2>
+            <h2 className="text-lg font-semibold text-gray-900">Recent Movements</h2>
           </div>
           <div className="overflow-x-auto">
             <table className="w-full">
@@ -469,10 +460,7 @@ export default function DashboardPage() {
               </thead>
               <tbody className="divide-y divide-gray-100">
                 {filteredMovements.slice(0, 10).map((mov) => (
-                  <tr
-                    key={mov.id}
-                    className="hover:bg-gray-50 transition-colors"
-                  >
+                  <tr key={mov.id} className="hover:bg-gray-50 transition-colors">
                     <td className="px-5 py-4 text-sm text-gray-500">
                       {new Date(mov.createdAt).toLocaleDateString()}
                     </td>
@@ -492,23 +480,14 @@ export default function DashboardPage() {
                         {mov.type}
                       </span>
                     </td>
-                    <td className="px-5 py-4 font-medium text-gray-900">
-                      {mov.quantity}
-                    </td>
-                    <td className="px-5 py-4 text-sm text-gray-500">
-                      {mov.note || "—"}
-                    </td>
-                    <td className="px-5 py-4 text-sm text-gray-500">
-                      {mov.user.name}
-                    </td>
+                    <td className="px-5 py-4 font-medium text-gray-900">{mov.quantity}</td>
+                    <td className="px-5 py-4 text-sm text-gray-500">{mov.note || "—"}</td>
+                    <td className="px-5 py-4 text-sm text-gray-500">{mov.user.name}</td>
                   </tr>
                 ))}
                 {filteredMovements.length === 0 && (
                   <tr>
-                    <td
-                      colSpan={6}
-                      className="px-5 py-12 text-center text-gray-400"
-                    >
+                    <td colSpan={6} className="px-5 py-12 text-center text-gray-400">
                       {hasAnyFilter
                         ? "No movements matching your filters"
                         : "No movements yet. Record inbound or outbound stock above."}

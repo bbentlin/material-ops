@@ -225,7 +225,7 @@ export default function AdminPage() {
                 {filteredUsers.length === 0 && (
                   <tr>
                     <td colSpan={5} className="px-5 py-12 text-center text-gray-400">
-                      {search ? `No users matching "${search}` : "No users found."}
+                      {search ? `No users matching "${search}"` : "No users found."}
                     </td>
                   </tr>
                 )}

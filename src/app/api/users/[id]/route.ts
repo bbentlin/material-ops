@@ -6,9 +6,9 @@ import bcrypt from "bcryptjs";
 // PATCH update user (ADMIN ONLY)
 export async function PATCH(
   req: NextRequest,
-  { params }: { params: Promise<{ id: string }>}
+  { params }: { params: Promise<{ id: string }> }
 ) {
-  const  { error, payload } = await requireAuth("ADMIN");
+  const { error, user: currentUser } = await requireAuth("ADMIN");
   if (error) return error;
 
   const { id } = await params;
@@ -22,15 +22,15 @@ export async function PATCH(
   const validRoles = ["ADMIN", "OPERATOR", "VIEWER"];
   if (body.role && !validRoles.includes(body.role)) {
     return NextResponse.json(
-      { error: `Invalid role. Must be one of : ${validRoles.join(", ")}` },
+      { error: `Invalid role. Must be one of: ${validRoles.join(", ")}` },
       { status: 400 }
     );
   }
 
   // Prevent admin from demoting themselves
-  if (id === payload?.sub && body.role && body.role !== "ADMIN") {
+  if (id === currentUser!.id && body.role && body.role !== "ADMIN") {
     return NextResponse.json(
-      { error: "You cannot change your own role"},
+      { error: "You cannot change your own role" },
       { status: 400 }
     );
   }
@@ -64,15 +64,15 @@ export async function PATCH(
 // DELETE user (ADMIN ONLY)
 export async function DELETE(
   _req: NextRequest,
-  { params }: { params: Promise<{ id: string }>}
+  { params }: { params: Promise<{ id: string }> }
 ) {
-  const { error, payload } = await requireAuth("ADMIN");
+  const { error, user: currentUser } = await requireAuth("ADMIN");
   if (error) return error;
 
   const { id } = await params;
 
-  // Prevent admin from deleting themeselves
-  if (id === payload?.sub) {
+  // Prevent admin from deleting themselves
+  if (id === currentUser!.id) {
     return NextResponse.json(
       { error: "You cannot delete your own account" },
       { status: 400 }
