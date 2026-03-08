@@ -39,6 +39,7 @@ export default function DashboardPage() {
   const [search, setSearch] = useState("");
   const [dateFrom, setDateFrom] = useState("");
   const [dateTo, setDateTo] = useState("");
+  const [userRole, setUserRole] = useState<string | null>(null);
   const router = useRouter();
 
   function fetchMaterials() {
@@ -70,9 +71,17 @@ export default function DashboardPage() {
       .catch(() => setMovements([]));
   }
 
+  function fetchCurrentUser() {
+    fetch("/api/auth/me")
+      .then((res) => res.ok ? res.json() : null)
+      .then((data) => { if (data) setUserRole(data.role); })
+      .catch(() => {});
+  }
+
   useEffect(() => {
     fetchMaterials();
     fetchMovements();
+    fetchCurrentUser();
   }, []);
 
   async function handleLogout() {
@@ -206,6 +215,15 @@ export default function DashboardPage() {
                 </button>
               )}
             </div>
+            {/* Admin link */}
+            {userRole === "ADMIN" && (
+              <button
+                onClick={() => router.push("/admin")}
+                className="text-sm text-gray-600 hover:text-purple-700 transition-colors px-3 py-1.5 rounded-md hover:bg-purple-50 font-medium"
+              >
+                👥 Users
+              </button>
+            )}
             <button
               onClick={handleLogout}
               className="text-sm text-gray-500 hover:text-red-600 transition-colors px-3 py-1.5 rounded-md hover:bg-red-50"
