@@ -54,6 +54,7 @@ export async function PATCH(
         partNumber: body.partNumber ?? existing.partNumber,
         description: body.description ?? existing.description,
         quantity: body.quantity !== undefined ? body.quantity : existing.quantity,
+        minQuantity: body.minQuantity !== undefined ? body.minQuantity : existing.minQuantity,
         unit: body.unit ?? existing.unit,
         location: body.location ?? existing.location,
       },

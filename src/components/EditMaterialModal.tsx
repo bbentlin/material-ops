@@ -12,6 +12,7 @@ type Material = {
   partNumber: string;
   description: string;
   quantity: number;
+  minQuantity?: number;
   unit?: string;
   location?: string;
 };
@@ -31,6 +32,7 @@ export default function EditMaterialModal({
   const [partNumber, setPartNumber] = useState(material.partNumber);
   const [description, setDescription] = useState(material.description ?? "");
   const [quantity, setQuantity] = useState(material.quantity);
+  const [minQuantity, setMinQuantity] = useState(material.minQuantity ?? 10);
   const [unit, setUnit] = useState(material.unit ?? "pieces");
   const [location, setLocation] = useState(material.location ?? "");
   const [error, setError] = useState("");
@@ -42,7 +44,7 @@ export default function EditMaterialModal({
       const res = await fetch(`/api/materials/${material.id}`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name, partNumber, description, quantity, unit, location }),
+        body: JSON.stringify({ name, partNumber, description, quantity, unit, location, minQuantity }),
       });
       if (res.ok) {
         onSuccessAction();
@@ -155,6 +157,22 @@ export default function EditMaterialModal({
             value={location}
             onChange={(e) => setLocation(e.target.value)}
           />
+        </div>
+
+        <div className="flex flex-col gap-1">
+          <label htmlFor="edit-minQuantity" className="text-sm font-medium text-gray-700">
+            Low Stock Threshold
+          </label>
+          <input
+            id="edit-minQuantity"
+            type="number"
+            min={0}
+            placeholder="10"
+            className={inputClass}
+            value={minQuantity}
+            onChange={(e) => setMinQuantity(Number(e.target.value))}
+          />
+          <span className="text-xs text-gray-400">Alert when stock falls to or below this level</span>
         </div>
 
         {error && <div className="text-red-600 text-sm">{error}</div>}

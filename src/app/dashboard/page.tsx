@@ -12,6 +12,7 @@ type Material = {
   partNumber: string;
   description: string;
   quantity: number;
+  minQuantity?: number;
   unit?: string;
   location?: string;
   createdAt?: string;
@@ -347,10 +348,10 @@ export default function DashboardPage() {
           </div>
           <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-200">
             <div className="text-sm font-medium text-gray-500 mb-1">
-              Low Stock (≤10)
+              Low Stock 
             </div>
             <div className="text-3xl font-bold text-orange-600">
-              {materials.filter((m) => m.quantity <= 10).length}
+              {materials.filter((m) => m.quantity <= (m.minQuantity ?? 10)).length}
             </div>
           </div>
         </div>
@@ -388,12 +389,17 @@ export default function DashboardPage() {
                     <td className="px-5 py-4">
                       <span
                         className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-sm font-bold ${
-                          mat.quantity <= 10
+                          mat.quantity <= (mat.minQuantity ?? 10)
                             ? "bg-orange-100 text-orange-700"
                             : "bg-green-100 text-green-700"
                         }`}
                       >
                         {mat.quantity}
+                        {mat.quantity <= (mat.minQuantity ?? 10) && (
+                          <span className="text-xs text-orange-500 ml-1">
+                            (min: {mat.minQuantity ?? 10})
+                          </span>
+                        )}
                       </span>
                     </td>
                     <td className="px-5 py-4 text-gray-500">{mat.unit}</td>

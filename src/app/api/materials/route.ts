@@ -19,7 +19,7 @@ export async function POST(req: NextRequest) {
   const { error, user } = await requireAuth("OPERATOR");
   if (error) return error;
 
-  const { name, partNumber, description, quantity, unit, location } = await req.json();
+  const { name, partNumber, description, quantity, unit, location, minQuantity } = await req.json();
 
   if (!name || !partNumber) {
     return NextResponse.json(
@@ -35,6 +35,7 @@ export async function POST(req: NextRequest) {
         partNumber,
         description: description ?? "",
         quantity: quantity ?? 0,
+        minQuantity: minQuantity !== undefined ? minQuantity : 10,
         unit: unit ?? "pieces",
         location: location ?? "",
       },

@@ -17,6 +17,7 @@ export default function AddMaterialModal({
   const [partNumber, setPartNumber] = useState("");
   const [description, setDescription] = useState("");
   const [quantity, setQuantity] = useState(0);
+  const [minQuantity, setMinQuantity] = useState(10);
   const [unit, setUnit] = useState("pieces");
   const [location, setLocation] = useState("");
   const [error, setError] = useState("");
@@ -28,7 +29,7 @@ export default function AddMaterialModal({
       const res = await fetch("/api/materials", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name, partNumber, description, quantity, unit, location }),
+        body: JSON.stringify({ name, partNumber, description, quantity, unit, location, minQuantity }),
       });
       if (res.ok) {
         onSuccessAction();
@@ -125,6 +126,22 @@ export default function AddMaterialModal({
             value={location}
             onChange={(e) => setLocation(e.target.value)}
           />
+        </div>
+
+        <div className="flex flex-col gap-1">
+          <label htmlFor="add-minQuantity" className="text-sm font-medium text-gray-700">
+            Low Stock Threshold
+          </label>
+          <input
+            id="add-minQuantity"
+            type="number"
+            min={0}
+            placeholder="10"
+            className={inputClass}
+            value={minQuantity}
+            onChange={(e) => setMinQuantity(Number(e.target.value))}
+          />
+          <span className="text-xs text-gray-400">Alert when stock falls to or below this level</span>
         </div>
 
         {error && <div className="text-red-600 text-sm">{error}</div>}
