@@ -48,6 +48,8 @@ export default function AddUserModal({
           </label>
           <input
             id="adduser-name"
+            name="name"
+            autoComplete="name"
             placeholder="e.g. John Doe"
             className={inputClass}
             value={name}
@@ -62,7 +64,9 @@ export default function AddUserModal({
           </label>
           <input
             id="adduser-email"
+            name="email"
             type="email"
+            autoComplete="email"
             placeholder="e.g. john@example.com"
             className={inputClass}
             value={email}
@@ -78,6 +82,7 @@ export default function AddUserModal({
           <input
             id="adduser-password"
             type="password"
+            autoComplete="new-password"
             placeholder="Enter a password"
             className={inputClass}
             value={password}
