@@ -168,7 +168,7 @@ export default function AdminPage() {
 
         {/* Users Table */}
         <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
-          <div className="p-5 border-b border-gray-200 flex justify-baseline items-center">
+          <div className="p-5 border-b border-gray-200 flex justify-between items-center">
             <h2 className="text-lg font-semibold text-gray-900">Users</h2>
             <button
               onClick={() => setShowAddUser(true)}
