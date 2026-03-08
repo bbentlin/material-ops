@@ -3,7 +3,7 @@
 import { useState, useTransition } from "react";
 import DraggableModal from "./DraggableModal";
 
-const inputClass = 
+const inputClass =
   "border border-gray-300 p-2 rounded-md text-gray-900 bg-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 selection:bg-blue-200 selection:text-gray-900";
 
 export default function AddUserModal({
@@ -26,6 +26,7 @@ export default function AddUserModal({
       const res = await fetch("/api/users", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ name, email, password, role }),
       });
       if (res.ok) {
         onSuccessAction();
@@ -38,42 +39,71 @@ export default function AddUserModal({
 
   return (
     <DraggableModal className="w-96">
-      <form action={handleSubmit} className="p-6 flex flex-col gap-3">
-        <h2 className="text-lg font-bold text-gray-900 mb-2">Add New User</h2>
-        <input
-          placeholder="Name *"
-          className={inputClass}
-          value={name}
-          onChange={(e) => setName(e.target.value)}
-          required
-        />
-        <input
-          type="email"
-          placeholder="Email *"
-          className={inputClass}
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-          required
-        />
-        <input
-          type="password"
-          placeholder="Password *"
-          className={inputClass}
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-          required
-        />
-        <select
-          className={inputClass}
-          value={role}
-          onChange={(e) => setRole(e.target.value)}
-        >
-          <option value="VIEWER">Viewer</option>
-          <option value="OPERATOR">Operator</option>
-          <option value="ADMIN">Administrator</option>
-        </select>
+      <form action={handleSubmit} className="p-6 flex flex-col gap-4">
+        <h2 className="text-lg font-bold text-gray-900 mb-1">Add New User</h2>
+
+        <div className="flex flex-col gap-1">
+          <label htmlFor="adduser-name" className="text-sm font-medium text-gray-700">
+            Name <span className="text-red-500">*</span>
+          </label>
+          <input
+            id="adduser-name"
+            placeholder="e.g. John Doe"
+            className={inputClass}
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+            required
+          />
+        </div>
+
+        <div className="flex flex-col gap-1">
+          <label htmlFor="adduser-email" className="text-sm font-medium text-gray-700">
+            Email <span className="text-red-500">*</span>
+          </label>
+          <input
+            id="adduser-email"
+            type="email"
+            placeholder="e.g. john@example.com"
+            className={inputClass}
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            required
+          />
+        </div>
+
+        <div className="flex flex-col gap-1">
+          <label htmlFor="adduser-password" className="text-sm font-medium text-gray-700">
+            Password <span className="text-red-500">*</span>
+          </label>
+          <input
+            id="adduser-password"
+            type="password"
+            placeholder="Enter a password"
+            className={inputClass}
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            required
+          />
+        </div>
+
+        <div className="flex flex-col gap-1">
+          <label htmlFor="adduser-role" className="text-sm font-medium text-gray-700">
+            Role
+          </label>
+          <select
+            id="adduser-role"
+            className={inputClass}
+            value={role}
+            onChange={(e) => setRole(e.target.value)}
+          >
+            <option value="VIEWER">Viewer</option>
+            <option value="OPERATOR">Operator</option>
+            <option value="ADMIN">Admin</option>
+          </select>
+        </div>
+
         {error && <div className="text-red-600 text-sm">{error}</div>}
-        <div className="flex gap-2 mt-2">
+        <div className="flex gap-2 mt-1">
           <button
             type="button"
             onClick={onCloseAction}

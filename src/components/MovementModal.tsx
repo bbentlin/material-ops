@@ -28,43 +28,57 @@ export default function MovementModal({
       const res = await fetch("/api/movements", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ type, quantity, note, materialId }),
+        body: JSON.stringify({ materialId, type, quantity, note }),
       });
       if (res.ok) {
         onSuccessAction();
       } else {
         const data = await res.json();
-        setError(data.error || "Failed to create movement");
+        setError(data.error || "Failed to record movement");
       }
     });
   }
 
+  const isInbound = type === "INBOUND";
+
   return (
-    <DraggableModal className="w-80">
-      <form
-        action={handleSubmit}
-        className="p-6 flex flex-col gap-3"
-      >
-        <h2 className="text-lg font-bold text-gray-900">
-          {type === "INBOUND" ? "📦 Inbound" : "📤 Outbound"} Movement
+    <DraggableModal className="w-96">
+      <form action={handleSubmit} className="p-6 flex flex-col gap-4">
+        <h2 className="text-lg font-bold text-gray-900 mb-1">
+          {isInbound ? "📥 Record Inbound" : "📤 Record Outbound"}
         </h2>
-        <input
-          type="number"
-          min={1}
-          placeholder="Quantity"
-          className={inputClass}
-          value={quantity}
-          onChange={(e) => setQuantity(Number(e.target.value))}
-          required
-        />
-        <input
-          placeholder="Note (optional)"
-          className={inputClass}
-          value={note}
-          onChange={(e) => setNote(e.target.value)}
-        />
+
+        <div className="flex flex-col gap-1">
+          <label htmlFor="mov-quantity" className="text-sm font-medium text-gray-700">
+            Quantity <span className="text-red-500">*</span>
+          </label>
+          <input
+            id="mov-quantity"
+            type="number"
+            min={1}
+            placeholder="Enter quantity"
+            className={inputClass}
+            value={quantity}
+            onChange={(e) => setQuantity(Number(e.target.value))}
+            required
+          />
+        </div>
+
+        <div className="flex flex-col gap-1">
+          <label htmlFor="mov-note" className="text-sm font-medium text-gray-700">
+            Note
+          </label>
+          <input
+            id="mov-note"
+            placeholder="Optional note (e.g. PO #1234)"
+            className={inputClass}
+            value={note}
+            onChange={(e) => setNote(e.target.value)}
+          />
+        </div>
+
         {error && <div className="text-red-600 text-sm">{error}</div>}
-        <div className="flex gap-2 mt-2">
+        <div className="flex gap-2 mt-1">
           <button
             type="button"
             onClick={onCloseAction}
@@ -76,12 +90,16 @@ export default function MovementModal({
             type="submit"
             disabled={isPending}
             className={`flex-1 text-white py-2 rounded disabled:opacity-50 ${
-              type === "INBOUND"
+              isInbound
                 ? "bg-green-600 hover:bg-green-700"
                 : "bg-orange-500 hover:bg-orange-600"
             }`}
           >
-            {isPending ? "Saving..." : "Confirm"}
+            {isPending
+              ? "Recording..."
+              : isInbound
+              ? "Record Inbound"
+              : "Record Outbound"}
           </button>
         </div>
       </form>
