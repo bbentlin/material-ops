@@ -9,6 +9,7 @@ export async function GET() {
 
   const materials = await prisma.material.findMany({
     orderBy: { createdAt: "desc" },
+    include: { department: { select: { id: true, name: true, color: true } } },
   });
 
   return NextResponse.json(materials);
@@ -19,7 +20,7 @@ export async function POST(req: NextRequest) {
   const { error, user } = await requireAuth("OPERATOR");
   if (error) return error;
 
-  const { name, partNumber, description, quantity, unit, location, minQuantity } = await req.json();
+  const { name, partNumber, description, quantity, unit, location, minQuantity, departmentId } = await req.json();
 
   if (!name || !partNumber) {
     return NextResponse.json(
@@ -36,6 +37,7 @@ export async function POST(req: NextRequest) {
         description: description ?? "",
         quantity: quantity ?? 0,
         minQuantity: minQuantity !== undefined ? minQuantity : 10,
+        departmentId: departmentId || null,
         unit: unit ?? "pieces",
         location: location ?? "",
       },

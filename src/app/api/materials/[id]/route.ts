@@ -15,6 +15,7 @@ export async function GET(
   const material = await prisma.material.findUnique({
     where: { id },
     include: {
+      department: { select: { id: true, name: true, color: true } },
       movements: {
         orderBy: { createdAt: "desc" },
         take: 20,
@@ -55,6 +56,7 @@ export async function PATCH(
         description: body.description ?? existing.description,
         quantity: body.quantity !== undefined ? body.quantity : existing.quantity,
         minQuantity: body.minQuantity !== undefined ? body.minQuantity : existing.minQuantity,
+        departmentId: body.departmentId !== undefined ? (body.departmentId || null) : existing.departmentId,
         unit: body.unit ?? existing.unit,
         location: body.location ?? existing.location,
       },
