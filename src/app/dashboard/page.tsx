@@ -30,6 +30,9 @@ type Movement = {
   user: { name: string; email: string };
 };
 
+type SortKey = "name" | "partNumber" | "quantity" | "unit" | "location" | "department";
+type SortDir = "asc" | "desc";
+
 export default function DashboardPage() {
   const [materials, setMaterials] = useState<Material[]>([]);
   const [movements, setMovements] = useState<Movement[]>([]);
@@ -45,7 +48,14 @@ export default function DashboardPage() {
   const [userName, setUserName] = useState<string | null>(null);
   const [departments, setDepartments] = useState<{ id: string; name: string; color: string }[]>([]);
   const [departmentFilter, setDepartmentFilter] = useState("");
+  const [materialPage, setMaterialPage] = useState(1);
+  const [movementPage, setMovementPage] = useState(1);
+  const [sortKey, setSortKey] = useState<SortKey | null>(null);
+  const [sortDir, setSortDir] = useState<SortDir>("asc");
   const router = useRouter();
+
+  const materialsPerPage = 15;
+  const movementsPerPage = 10;
 
   // Permission helpers
   const canEdit = userRole === "ADMIN" || userRole === "OPERATOR";
@@ -104,6 +114,33 @@ export default function DashboardPage() {
     fetchDepartments();
   }, []);
 
+  // Reset to page 1 when filters change
+  useEffect(() => {
+    setMaterialPage(1);
+    setMovementPage(1);
+  }, [search, dateFrom, dateTo, departmentFilter]);
+
+  function toggleSort(key: SortKey) {
+    if (sortKey === key) {
+      if (sortDir === "asc") {
+        setSortDir("desc");
+      } else {
+        // Third click: clear sort
+        setSortKey(null);
+        setSortDir("asc");
+      }
+    } else {
+      setSortKey(key);
+      setSortDir("asc");
+    }
+    setMaterialPage(1);
+  }
+
+  function sortIndicator(key: SortKey) {
+    if (sortKey !== key) return <span className="text-gray-300 ml-1">↕</span>;
+    return <span className="ml-1">{sortDir === "asc" ? "↑" : "↓"}</span>;
+  }
+
   async function handleLogout() {
     await fetch("/api/auth", { method: "DELETE" });
     router.push("/login");
@@ -142,6 +179,26 @@ export default function DashboardPage() {
     return matchesText && matchesDate && matchesCategory;
   });
 
+  const sortedMaterials = sortKey
+    ? [...filteredMaterials].sort((a, b) => {
+        let aVal: string | number;
+        let bVal: string | number;
+        if (sortKey === "quantity") {
+          aVal = a.quantity;
+          bVal = b.quantity;
+        } else if (sortKey === "department") {
+          aVal = a.department?.name?.toLowerCase() ?? "";
+          bVal = b.department?.name?.toLowerCase() ?? "";
+        } else {
+          aVal = (a[sortKey] ?? "").toString().toLowerCase();
+          bVal = (b[sortKey] ?? "").toString().toLowerCase();
+        }
+        if (aVal < bVal) return sortDir === "asc" ? -1 : 1;
+        if (aVal > bVal) return sortDir === "asc" ? 1 : -1;
+        return 0;
+      })
+    : filteredMaterials;
+
   const filteredMovements = movements.filter((mov) => {
     const matchesText =
       !search ||
@@ -158,6 +215,19 @@ export default function DashboardPage() {
     const matchesDate = isInDateRange(mov.createdAt);
     return matchesText && matchesDate;
   });
+
+  // Pagination calculations
+  const totalMaterialPages = Math.max(1, Math.ceil(sortedMaterials.length / materialsPerPage));
+  const paginatedMaterials = sortedMaterials.slice(
+    (materialPage - 1) * materialsPerPage,
+    materialPage * materialsPerPage
+  );
+
+  const totalMovementPages = Math.max(1, Math.ceil(filteredMovements.length / movementsPerPage));
+  const paginatedMovements = filteredMovements.slice(
+    (movementPage - 1) * movementsPerPage,
+    movementPage * movementsPerPage
+  );
 
   function clearFilters() {
     setSearch("");
@@ -393,17 +463,29 @@ export default function DashboardPage() {
             <table className="w-full">
               <thead>
                 <tr className="bg-gray-50 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">
-                  <th className="px-5 py-3">Name</th>
-                  <th className="px-5 py-3">Part Number</th>
-                  <th className="px-5 py-3">Quantity</th>
-                  <th className="px-5 py-3">Unit</th>
-                  <th className="px-5 py-3">Location</th>
-                  <th className="px-5 py-3">Department</th>
+                  <th className="px-5 py-3 cursor-pointer hover:text-gray-700 select-none" onClick={() => toggleSort("name")}>
+                    Name{sortIndicator("name")}
+                  </th>
+                  <th className="px-5 py-3 cursor-pointer hover:text-gray-700 select-none" onClick={() => toggleSort("partNumber")}>
+                    Part Number{sortIndicator("partNumber")}
+                  </th>
+                  <th className="px-5 py-3 cursor-pointer hover:text-gray-700 select-none" onClick={() => toggleSort("quantity")}>
+                    Quantity{sortIndicator("quantity")}
+                  </th>
+                  <th className="px-5 py-3 cursor-pointer hover:text-gray-700 select-none" onClick={() => toggleSort("unit")}>
+                    Unit{sortIndicator("unit")}
+                  </th>
+                  <th className="px-5 py-3 cursor-pointer hover:text-gray-700 select-none" onClick={() => toggleSort("location")}>
+                    Location{sortIndicator("location")}
+                  </th>
+                  <th className="px-5 py-3 cursor-pointer hover:text-gray-700 select-none" onClick={() => toggleSort("department")}>
+                    Department{sortIndicator("department")}
+                  </th>
                   {canEdit && <th className="px-5 py-3">Actions</th>}
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-100">
-                {filteredMaterials.map((mat) => (
+                {paginatedMaterials.map((mat) => (
                   <tr key={mat.id} className="hover:bg-gray-50 transition-colors">
                     <td className="px-5 py-4 font-medium text-gray-900">{mat.name}</td>
                     <td className="px-5 py-4 text-gray-500 font-mono text-sm">{mat.partNumber}</td>
@@ -478,6 +560,34 @@ export default function DashboardPage() {
               </tbody>
             </table>
           </div>
+          {sortedMaterials.length > materialsPerPage && (
+            <div className="px-5 py-3 border-t border-gray-200 flex items-center justify-between text-sm">
+              <span className="text-gray-500">
+                Showing {(materialPage - 1) * materialsPerPage + 1}–
+                {Math.min(materialPage * materialsPerPage, sortedMaterials.length)} of{" "}
+                {sortedMaterials.length}
+              </span>
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={() => setMaterialPage((p) => Math.max(1, p - 1))}
+                  disabled={materialPage === 1}
+                  className="px-3 py-1.5 rounded-lg border border-gray-300 text-gray-700 hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed"
+                >
+                  ← Previous
+                </button>
+                <span className="text-gray-700 font-medium">
+                  Page {materialPage} of {totalMaterialPages}
+                </span>
+                <button
+                  onClick={() => setMaterialPage((p) => Math.min(totalMaterialPages, p + 1))}
+                  disabled={materialPage === totalMaterialPages}
+                  className="px-3 py-1.5 rounded-lg border border-gray-300 text-gray-700 hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed"
+                >
+                  Next →
+                </button>
+              </div>
+            </div>
+          )}
         </div>
 
         {/* Recent Movements */}
@@ -498,7 +608,7 @@ export default function DashboardPage() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-100">
-                {filteredMovements.slice(0, 10).map((mov) => (
+                {paginatedMovements.map((mov) => (
                   <tr key={mov.id} className="hover:bg-gray-50 transition-colors">
                     <td className="px-5 py-4 text-sm text-gray-500">
                       {new Date(mov.createdAt).toLocaleDateString()}
@@ -536,6 +646,34 @@ export default function DashboardPage() {
               </tbody>
             </table>
           </div>
+          {filteredMovements.length > movementsPerPage && (
+            <div className="px-5 py-3 border-t border-gray-200 flex items-center justify-between text-sm">
+              <span className="text-gray-500">
+                Showing {(movementPage - 1) * movementsPerPage + 1}–
+                {Math.min(movementPage * movementsPerPage, filteredMovements.length)} of{" "}
+                {filteredMovements.length}
+              </span>
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={() => setMovementPage((p) => Math.max(1, p - 1))}
+                  disabled={movementPage === 1}
+                  className="px-3 py-1.5 rounded-lg border border-gray-300 text-gray-700 hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed"
+                >
+                  ← Previous
+                </button>
+                <span className="text-gray-700 font-medium">
+                  Page {movementPage} of {totalMovementPages}
+                </span>
+                <button
+                  onClick={() => setMovementPage((p) => Math.min(totalMovementPages, p + 1))}
+                  disabled={movementPage === totalMovementPages}
+                  className="px-3 py-1.5 rounded-lg border border-gray-300 text-gray-700 hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed"
+                >
+                  Next →
+                </button>
+              </div>
+            </div>
+          )}
         </div>
       </main>
 
