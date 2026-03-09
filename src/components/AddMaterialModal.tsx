@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useTransition } from "react";
+import { useEffect, useState, useTransition } from "react";
 import DraggableModal from "./DraggableModal";
 
 const inputClass =
@@ -20,6 +20,8 @@ export default function AddMaterialModal({
   const [minQuantity, setMinQuantity] = useState(10);
   const [unit, setUnit] = useState("pieces");
   const [location, setLocation] = useState("");
+  const [departments, setDepartments] = useState<{ id: string; name: string }[]>([]);
+  const [departmentId, setDepartmentId] = useState("");
   const [error, setError] = useState("");
   const [isPending, startTransition] = useTransition();
 
@@ -29,7 +31,7 @@ export default function AddMaterialModal({
       const res = await fetch("/api/materials", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name, partNumber, description, quantity, unit, location, minQuantity }),
+        body: JSON.stringify({ name, partNumber, description, quantity, unit, location, minQuantity, departmentId: departmentId || null }),
       });
       if (res.ok) {
         onSuccessAction();
@@ -39,6 +41,10 @@ export default function AddMaterialModal({
       }
     });
   }
+
+  useEffect(() => {
+    fetch("/api/departments").then(r => r.ok ? r.json() : []).then(setDepartments).catch(() => {});
+  }, []);
 
   return (
     <DraggableModal className="w-96">
@@ -84,6 +90,23 @@ export default function AddMaterialModal({
             value={description}
             onChange={(e) => setDescription(e.target.value)}
           />
+        </div>
+
+        <div className="flex flex-col gap-1">
+          <label htmlFor="add-department" className="text-sm font-medium text-gray-700">
+            Department
+          </label>
+          <select
+            id="add-department"
+            className={inputClass}
+            value={departmentId}
+            onChange={(e) => setDepartmentId(e.target.value)}
+          >
+            <option value="">No department</option>
+            {departments.map((dept) => (
+              <option key={dept.id} value={dept.id}>{dept.name}</option>
+            ))}
+          </select>
         </div>
 
         <div className="flex gap-3">
