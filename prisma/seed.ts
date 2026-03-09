@@ -33,6 +33,35 @@ async function main() {
   });
   console.log("Operator user created:", operator.email);
 
+  // Create departments
+  const departments = [
+    { name: "Sidewalls", description: "Sidewall assembly", color: "#6366F1" },
+    { name: "Front Walls", description: "Front wall assembly", color: "#F59E0B" },
+    { name: "Rear Frames", description: "Assembly & welding rear frame components", color: "#10B981" },
+    { name: "Swing Doors", description: "Fab & assembly of rear/side swing doors", color: "#EF4444" },
+    { name: "Roofs", description: "Roof assembly", color: "#0EA5E9" },
+    { name: "Doors", description: "Rear roll up door assembly & installation", color: "#8B5CF6" },
+    { name: "Undercarriage", description: "Body undercarriage fab & welding", color: "#F43F5E" },
+    { name: "Floors", description: "Floor installation", color: "#F97316" },
+    { name: "Mounting/Liftgates", description: "Mounting of body to chassis and installation of liftgate", color: "#14B8A6" },
+    { name: "Skirts/Sliders", description: "Fab/installation custom skirting/slider doors", color: "#475569" },
+    { name: "Wiring", description: "Body wiring, camera, utility lighting installation, etc.", color: "#F8FAFC" },
+    { name: "Finishing", description: "Clean and finish bodies, sand & finish mover floors/Final inspection", color: "#1E293B" },
+    { name: "Maintenance", description: "Maintain and repair tools & equipment/groundskeeping" },
+    { name: "Janitorial", description: "Clean manufacturing facility", color: "#7C3AED"}
+  ];
+
+  const deptMap: Record<string, string> = {};
+  for (const dept of departments) {
+    const department = await prisma.department.upsert({
+      where: { name: dept.name },
+      update: {},
+      create: dept,
+    });
+    deptMap[dept.name] = department.id;
+    console.log("Department created:", department.name);
+  }
+
   // Create sample materials
   const materials = [
     {

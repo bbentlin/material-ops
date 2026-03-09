@@ -34,18 +34,29 @@ model User {
   movements Movement[]
 }
 
-model Material {
+model Department {
   id          String     @id @default(cuid())
-  name        String
-  partNumber  String     @unique
+  name        String     @unique
   description String?
-  quantity    Int        @default(0)
-  minQuantity Int        @default(10)
-  unit        String     @default("ea")
-  location    String?
+  color       String     @default("#6B7280")
   createdAt   DateTime   @default(now())
-  updatedAt   DateTime   @updatedAt
-  movements   Movement[]
+  materials   Material[]
+}
+
+model Material {
+  id           String      @id @default(cuid())
+  name         String
+  partNumber   String      @unique
+  description  String?
+  quantity     Int         @default(0)
+  minQuantity  Int         @default(10)
+  unit         String      @default("ea")
+  location     String?
+  departmentId String?
+  department   Department? @relation(fields: [departmentId], references: [id])
+  createdAt    DateTime    @default(now())
+  updatedAt    DateTime    @updatedAt
+  movements    Movement[]
 }
 
 model Movement {
