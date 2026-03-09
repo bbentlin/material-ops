@@ -16,6 +16,7 @@ type Material = {
   unit?: string;
   location?: string;
   createdAt?: string;
+  department?: { id: string; name: string; color: string } | null;
 };
 
 type Movement = {
@@ -42,6 +43,8 @@ export default function DashboardPage() {
   const [dateTo, setDateTo] = useState("");
   const [userRole, setUserRole] = useState<string | null>(null);
   const [userName, setUserName] = useState<string | null>(null);
+  const [departments, setDepartments] = useState<{ id: string; name: string; color: string }[]>([]);
+  const [departmentFilter, setDepartmentFilter] = useState("");
   const router = useRouter();
 
   // Permission helpers
@@ -90,10 +93,15 @@ export default function DashboardPage() {
       .catch(() => {});
   }
 
+  function fetchDepartments() {
+    fetch("/api/departments").then(r => r.ok ? r.json() : []).then(setDepartments).catch(() => {});
+  }
+
   useEffect(() => {
     fetchMaterials();
     fetchMovements();
     fetchCurrentUser();
+    fetchDepartments();
   }, []);
 
   async function handleLogout() {
@@ -119,7 +127,7 @@ export default function DashboardPage() {
   }
 
   const hasDateFilter = dateFrom || dateTo;
-  const hasAnyFilter = search || hasDateFilter;
+  const hasAnyFilter = search || hasDateFilter || departmentFilter;
 
   const filteredMaterials = materials.filter((mat) => {
     const q = search.toLowerCase();
@@ -130,7 +138,8 @@ export default function DashboardPage() {
       (mat.location ?? "").toLowerCase().includes(q) ||
       (mat.unit ?? "").toLowerCase().includes(q);
     const matchesDate = isInDateRange(mat.createdAt);
-    return matchesText && matchesDate;
+    const matchesCategory = !departmentFilter || mat.department?.id === departmentFilter;
+    return matchesText && matchesDate && matchesCategory;
   });
 
   const filteredMovements = movements.filter((mov) => {
@@ -154,6 +163,7 @@ export default function DashboardPage() {
     setSearch("");
     setDateFrom("");
     setDateTo("");
+    setDepartmentFilter("");
   }
 
   const roleBadge: Record<string, string> = {
@@ -240,6 +250,16 @@ export default function DashboardPage() {
                 </button>
               )}
             </div>
+            <select
+              value={departmentFilter}
+              onChange={(e) => setDepartmentFilter(e.target.value)}
+              className="border border-gray-300 rounded-lg text-sm text-gray-900 bg-white px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+            >
+              <option value="">All Departments</option>
+              {departments.map((dept) => (
+                <option key={dept.id} value={dept.id}>{dept.name}</option>
+              ))}
+            </select>
             {/* User info + role badge */}
             <div className="flex items-center gap-2 border-l border-gray-200 pl-4">
               {userName && (
@@ -378,6 +398,7 @@ export default function DashboardPage() {
                   <th className="px-5 py-3">Quantity</th>
                   <th className="px-5 py-3">Unit</th>
                   <th className="px-5 py-3">Location</th>
+                  <th className="px-5 py-3">Department</th>
                   {canEdit && <th className="px-5 py-3">Actions</th>}
                 </tr>
               </thead>
@@ -404,6 +425,18 @@ export default function DashboardPage() {
                     </td>
                     <td className="px-5 py-4 text-gray-500">{mat.unit}</td>
                     <td className="px-5 py-4 text-gray-500">{mat.location}</td>
+                    <td className="px-5 py-4">
+                      {mat.department ? (
+                        <span
+                          className="text-xs font-semibold px-2 py-0.5 rounded-full text-white"
+                          style={{ backgroundColor: mat.department.color }}
+                        >
+                          {mat.department.name}
+                        </span>
+                      ) : (
+                        <span className="text-xs text-gray-400">-</span>
+                      )}
+                    </td>
                     {canEdit && (
                       <td className="px-5 py-4">
                         <div className="flex gap-2">
@@ -433,7 +466,7 @@ export default function DashboardPage() {
                 {filteredMaterials.length === 0 && (
                   <tr>
                     <td
-                      colSpan={canEdit ? 6 : 5}
+                      colSpan={canEdit ? 7 : 6}
                       className="px-5 py-12 text-center text-gray-400"
                     >
                       {hasAnyFilter
