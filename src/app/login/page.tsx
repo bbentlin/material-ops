@@ -33,7 +33,7 @@ export default function LoginPage() {
         action={handleSubmit}
         className="bg-white p-8 rounded-lg shadow-md w-96 flex flex-col gap-4"
       >
-        <h1 className="text-2xl font-bold text-center text-gray-900 mb-2">MaterialOps</h1>
+        <h1 className="text-2xl font-bold text-center text-gray-900 mb-2">LogiCore Inventory Management System</h1>
         <p className="text-gray-500 text-center text-sm mb-4">Sign in to your account</p>
 
         <div className="flex flex-col gap-1">

@@ -18,7 +18,6 @@ export async function GET(
       department: { select: { id: true, name: true, color: true } },
       movements: {
         orderBy: { createdAt: "desc" },
-        take: 20,
         include: { user: { select: { name: true, email: true } } },
       },
     },

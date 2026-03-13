@@ -563,7 +563,7 @@ export default function DashboardPage() {
           {sortedMaterials.length > materialsPerPage && (
             <div className="px-5 py-3 border-t border-gray-200 flex items-center justify-between text-sm">
               <span className="text-gray-500">
-                Showing {(materialPage - 1) * materialsPerPage + 1}–
+                Showing {(materialPage - 1) * materialsPerPage + 1}– 
                 {Math.min(materialPage * materialsPerPage, sortedMaterials.length)} of{" "}
                 {sortedMaterials.length}
               </span>
