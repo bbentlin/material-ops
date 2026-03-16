@@ -70,18 +70,21 @@ export default function MaterialDetailPage() {
 
   if (loading) {
     return (
-      <div>
-        <div>Loading...</div>
+      <div className="min-h-screen bg-gray-100 flex items-center justify-center">
+        <div className="text-gray-500 text-lg">Loading...</div>
       </div>
     );
   }
 
   if (error || !material) {
     return (
-      <div>
-        <div>
-          <div>{error || "Material not found"}</div>
-          <button>
+      <div className="min-h-screen bg-gray-100 flex items-center justify-center">
+        <div className="text-center">
+          <div className="text-red-600 text-lg font-medium mb-4">{error || "Material not found"}</div>
+          <button
+            onClick={() => router.push("/dashboard")}
+            className="text-blue-600 hover:text-blue-800 font-medium"
+          >
             ← Back to Dashboard
           </button>
         </div>
@@ -102,43 +105,58 @@ export default function MaterialDetailPage() {
   const totalOutbound = movements.filter((m) => m.type === "OUTBOUND").reduce((s, m) => s + m.quantity, 0);
 
   return (
-    <div>
+    <div className="min-h-screeen bg-gray-100">
       {/* Header */}
-      <header>
-        <div>
-          <button>
+      <header className="bg-white shadow-sm border-b border-gray-200">
+        <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex items-center gap-4">
+          <button
+            onClick={() => router.push("/dashboard")}
+            className="text-gray-500 hover:text-gray-700 font-medium text-sm flex items-center gap-1"
+          >
             ← Dashboard
           </button>
-          <div/>
-          <h1>{material.name}</h1>
+          <div className="h-5 w-px bg-gray-300" />
+          <h1 className="text-xl font-bold text-gray-900 truncate">{material.name}</h1>
           {material.department && (
-            <span>
+            <span
+              className="text-xs font-semibold px-2 py-0.5 rounded-full text-white"
+              style={{ backgroundColor: material.department.color }}
+            >
               {material.department.name}
             </span>
           )}
         </div>
       </header>
 
-      <main>
+      <main className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Material Info Card */}
-        <div>
-          <div>
+        <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 mb-8">
+          <div className="flex justify-between items-start mb-6">
             <div>
-              <h2>{material.name}</h2>
-              <p>{material.partNumber}</p>
+              <h2 className="text-2xl font-bold text-gray-900">{material.name}</h2>
+              <p className="text-gray-500 font-mono text-sm mt-1">{material.partNumber}</p>
               {material.description && (
-                <p>{material.description}</p>
+                <p className="text-gray-600 mt-2">{material.description}</p>
               )}
             </div>
             {canEdit && (
-              <div>
-                <button>
+              <div className="flex gap-2">
+                <button
+                  onClick={() => setEditMaterial(true)}
+                  className="text-sm font-medium bg-gray-100 text-gray-700 px-4 py-2 rounded-lg hover:bg-gray-200 transition-colors"
+                >
                   ✏️ Edit
                 </button>
-                <button>
+                <button
+                  onClick={() => setShowMovement("INBOUND")}
+                  className="text-sm font-medium bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition-colors"
+                >
                   + Inbound
                 </button>
-                <button>
+                <button
+                  onClick={() => setShowMovement("OUTBOUND")}
+                  className="text-sm font-medium bg-orange-500 text-white px-4 py-2 rounded-lg hover:bg-orange-600 transition-colors"
+                >
                   - Outbound
                 </button>
               </div>
@@ -146,34 +164,38 @@ export default function MaterialDetailPage() {
           </div>
 
           {/* Info grid */}
-          <div>
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
             <div>
-              <div>Quantity</div>
-              <span>
+              <div className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1">Quantity</div>
+              <span
+                className={`inline-flex items-center px-3 py-1 rounded-full text-lg font-bold ${
+                  isLowStock ? "bg-orange-100 text-orange-700" : "bg-green-100 text-green-700"
+                }`}
+              >
                 {material.quantity}
               </span>
               {isLowStock && (
-                <div>
+                <div className="text-xs text-orange-600 mt-1">
                   ⚠ Below minimum ({material.minQuantity ?? 10})
                 </div>
               )}
             </div>
             <div>
-              <div>Min Quantity</div>
-              <div>{material.minQuantity ?? 10}</div>
+              <div className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1">Min Quantity</div>
+              <div className="text-lg font-semibold text-gray-900">{material.minQuantity ?? 10}</div>
             </div>
             <div>
-              <div>Unit</div>
-              <div>{material.unit || "-"}</div>
+              <div className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1">Unit</div>
+              <div className="text-lg font-semibold text-gray-900">{material.unit || "-"}</div>
             </div>
             <div>
-              <div>Location</div>
-              <div>{material.location || "-"}</div>
+              <div className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1">Location</div>
+              <div className="text-lg font-semibold text-gray-900">{material.location || "-"}</div>
             </div>
           </div>
 
           {/* Timestamps */}
-          <div>
+          <div className="mt-6 pt-4 border-t border-gray-100 flex gap-6 text-xs text-gray-400">
             {material.createdAt && (
               <span>Created: {new Date(material.createdAt).toLocaleString()}</span>
             )}
@@ -184,8 +206,127 @@ export default function MaterialDetailPage() {
         </div>
 
         {/* Movement Summary Cards */}
-        
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+          <div className="bg-white p-5 rounded-xl shadow-sm border border-gray-200">
+            <div className="text-sm font-medium text-gray-500 mb-1">Total Movements</div>
+            <div className="text-2xl font-bold text-gray-900">{movements.length}</div>
+          </div>
+          <div className="bg-white p-5 rounded-xl shadow-sm border border-gray-200">
+            <div className="text-sm font-medium text-gray-500 mb-1">Total Inbound</div>
+            <div className="text-2xl font-bold text-green-600">{totalInbound}</div>
+          </div>
+          <div className="bg-white p-5 rounded-xl shadow-sm border border-gray-200">
+            <div className="text-sm font-medium text-gray-500 mb-1">Total Outbound</div>
+            <div className="text-2xl font-bold text-orange-600">{totalOutbound}</div>
+          </div>
+        </div>
+
+        {/* Movement History Table */}
+        <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+          <div className="p-5 border-b border-gray-200">
+            <h2 className="text-lg font-semibold text-gray-900">Movement History</h2>
+          </div>
+          <div className="overflow-x-auto">
+            <table className="w-full">
+              <thead>
+                <tr className="bg-gray-50 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">
+                  <th className="px-5 py-3">Date</th>
+                  <th className="px-5 py-3">Type</th>
+                  <th className="px-5 py-3">Qty</th>
+                  <th className="px-5 py-3">Note</th>
+                  <th className="px-5 py-3">By</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-gray-100">
+                {paginatedMovements.map((mov) => (
+                  <tr key={mov.id} className="hover:bg-gray-50 transition-colors">
+                    <td className="px-5 py-4 text-sm text-gray-500">
+                      {new Date(mov.createdAt).toLocaleString()}
+                    </td>
+                    <td className="px-5 py-4">
+                      <span
+                        className={`inline-flex items-center text-xs font-semibold px-2.5 py-1 rounded-full ${
+                          mov.type === "INBOUND"
+                            ? "bg-green-100 text-green-700"
+                            : mov.type === "OUTBOUND"
+                            ? "bg-orange-100 text-orange-700"
+                            : "bg-blue-100 text-blue-700"
+                        }`}
+                      >
+                        {mov.type}
+                      </span>
+                    </td>
+                    <td className="px-5 py-4 font-medium text-gray-900">{mov.quantity}</td>
+                    <td className="px-5 py-4 text-sm text-gray-500">{mov.note || "-"}</td>
+                    <td className="px-5 py-4 text-sm text-gray-500">{mov.user.name}</td>
+                  </tr>
+                ))}
+                {movements.length === 0 && (
+                  <tr>
+                    <td colSpan={5} className="px-5 py-12 text-center text-gray-400">
+                      No movements recorded yet.
+                    </td>
+                  </tr>
+                )}
+              </tbody>
+            </table>
+          </div>
+          {movements.length > movementPage && (
+            <div className="px-5 py-3 border-t border-gray-200 flex items-center justify-between text-sm">
+              <span className="text-gray-500">
+                Showing {(movementPage - 1) * movementPage + 1}-
+                {Math.min(movementPage * movementsPerPage, movements.length)} of {movements.length}
+              </span>
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={() => setMovementPage((p) => Math.max(1, p - 1))}
+                  disabled={movementPage === 1}
+                  className="px-3 py-1.5 rounded-lg border border-gray-300 text-gray-700 hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed"
+                >
+                  ← Previous
+                </button>
+                <span className="text-gray-700 font-medium">
+                  Page {movementPage} of {totalPages}
+                </span>
+                <button
+                  onClick={() => setMovementPage((p) => Math.min(totalPages, p + 1))}
+                  disabled={movementPage === totalPages}
+                  className="px-3 py-1.5 rounded-lg border border-gray-300 text-gray-700 hover:bg-gray-50 disabled:opacity-40 disabled::cursor-not-allowed
+                  "
+                >
+                  Next →
+                </button>
+              </div>
+            </div>
+          )}
+        </div>
       </main>
+
+      {/* Edit Material Modal */}
+      {editMaterial && (
+        <EditMaterialModal
+          material={material}
+          canDelete={canDelete}
+          onCloseAction={() => setEditMaterial(false)}
+          onSuccessAction={() => {
+            setEditMaterial(false);
+            fetchMaterial();
+          }}
+        />
+      )}
+
+      {/* Movement Modal */}
+      {showMovement && (
+        <MovementModal
+          materialId={material.id}
+          type={showMovement}
+          onCloseAction={() => setShowMovement(null)}
+          onSuccessAction={() => {
+            setShowMovement(null);
+            fetchMaterial();
+          }}
+        />
+      )}
     </div>
-  )
+  );
 }
