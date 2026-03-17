@@ -487,7 +487,14 @@ export default function DashboardPage() {
               <tbody className="divide-y divide-gray-100">
                 {paginatedMaterials.map((mat) => (
                   <tr key={mat.id} className="hover:bg-gray-50 transition-colors">
-                    <td className="px-5 py-4 font-medium text-gray-900">{mat.name}</td>
+                    <td className="px-5 py-4">
+                      <button
+                        onClick={() => router.push(`/dashboard/materials/${mat.id}`)}
+                        className="font-medium text-blue-600 hover:text-blue-800 hover:underline text-left"
+                      >
+                        {mat.name}
+                      </button>
+                    </td>
                     <td className="px-5 py-4 text-gray-500 font-mono text-sm">{mat.partNumber}</td>
                     <td className="px-5 py-4">
                       <span
