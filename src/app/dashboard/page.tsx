@@ -236,6 +236,105 @@ export default function DashboardPage() {
     setDepartmentFilter("");
   }
 
+  function exportCSV() {
+    const headers = ["Name", "Part Number", "Description", "Quantity", "Min Quantity", "Unit", "Location", "Department"];
+    const rows = materials.map((m) => [
+      m.name,
+      m.partNumber,
+      m.description ?? "",
+      m.quantity.toString(),
+      (m.minQuantity ?? 10).toString(),
+      m.unit ?? "",
+      m.location ?? "",
+      m.department?.name ?? "",
+    ]);
+
+    const csvContent = [headers, ...rows]
+      .map((row) => row.map((cell) => `"${cell.replace(/"/g, '""')}"`).join(","))
+      .join("\n");
+
+    const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = `materials-${new Date().toISOString().slice(0, 10)}.csv`;
+    link.click();
+    URL.revokeObjectURL(url);
+  }
+
+  function handleImportCSV(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = async (event) => {
+      const text = event.target?.result as string;
+      const lines = text.split("\n").filter((line) => line.trim());
+      if (lines.length < 2) {
+        alert("CSV file is empty or has no data rows.");
+        return;
+      }
+
+      // Parse header
+      const headerLine = lines[0];
+      const headers = headerLine.split(",").map((h) => h.trim().replace(/^"|"$/g, "").toLowerCase());
+
+      const nameIdx = headers.findIndex((h) => h === "name");
+      const pnIdx = headers.findIndex((h) => h.includes("part"));
+      const descIdx = headers.findIndex((h) => h.includes("desc"));
+      const qtyIdx = headers.findIndex((h) => h === "quantity");
+      const minIdx = headers.findIndex((h) => h.includes("min"));
+      const unitIdx = headers.findIndex((h) => h === "unit");
+      const locIdx = headers.findIndex((h) => h.includes("location"));
+      const deptIdx = headers.findIndex((h) => h.includes("department"));
+
+      if (nameIdx === -1 || pnIdx === -1) {
+        alert('CSV must have "Name" and "Part Number" columns.');
+        return;
+      }
+
+      // Parse rows
+      const materials = lines.slice(1).map((line) => {
+        const cols = line.match(/(".*?"|[^",]+|(?<=,)(?=,))/g)?.map((c) => c.trim().replace(/^"|"$/g, "")) ?? [];
+        return {
+          name: cols[nameIdx] ?? "",
+          partNumber: cols[pnIdx] ?? "",
+          description: descIdx >= 0 ? cols[descIdx] ?? "" : "",
+          quantity: qtyIdx >= 0 ? cols[qtyIdx] ?? "0" : "0",
+          minQuantity: minIdx >= 0 ? cols[minIdx] ?? "10" : "10",
+          unit: unitIdx >= 0 ? cols[unitIdx] ?? "pieces" : "pieces",
+          location: locIdx >= 0 ? cols[locIdx] ?? "" : "",
+          department: deptIdx >= 0 ? cols[deptIdx] ?? "" : "",
+        };
+      });
+
+      if (!confirm(`Import ${materials.length} material(s) from CSV?`)) return;
+
+      try {
+        const res = await fetch("/api/materials/import", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ materials }),
+        });
+
+        if (!res.ok) {
+          const data = await res.json();
+          alert(data.error || "Import failed");
+          return;
+        }
+
+        const data = await res.json();
+        alert(`Import complete: ${data.created} created, ${data.skipped} skipped.`);
+        fetchMaterials();
+        fetchMovements();
+      } catch {
+        alert("Import failed. Please try again.");
+      }
+    };
+    reader.readAsText(file);
+    e.target.value = ""; // Reset so same file can be re-imported
+  }
+
   const roleBadge: Record<string, string> = {
     ADMIN: "bg-purple-100 text-purple-700",
     OPERATOR: "bg-blue-100 text-blue-700",
@@ -450,14 +549,33 @@ export default function DashboardPage() {
         <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
           <div className="p-5 border-b border-gray-200 flex justify-between items-center">
             <h2 className="text-lg font-semibold text-gray-900">Materials</h2>
-            {canEdit && (
+            <div className="flex items-center gap-2">
               <button
-                onClick={() => setShowAddMaterial(true)}
-                className="bg-blue-600 text-white text-sm font-medium px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors shadow-sm"
+                onClick={exportCSV}
+                className="text-sm font-medium text-gray-600 px-3 py-2 rounded-lg border border-gray-300 hover:bg-gray-50 transition-colors"
               >
-                + Add Material
+                ↓ Export CSV
               </button>
-            )}
+              {canEdit && (
+                <>
+                  <label className="text-sm font-medium text-gray-600 px-3 py-2 rounded-lg border border-gray-300 hover:bg-gray-50 transition-colors cursor-pointer">
+                    ↑ Import CSV
+                    <input
+                      type="file"
+                      accept=".csv"
+                      onChange={handleImportCSV}
+                      className="hidden"
+                    />
+                  </label>
+                  <button
+                    onClick={() => setShowAddMaterial(true)}
+                    className="bg-blue-600 text-white text-sm font-medium px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors shadow-sm"
+                  >
+                    + Add Material
+                  </button>
+                </>
+              )}
+            </div>
           </div>
           <div className="overflow-x-auto">
             <table className="w-full">
