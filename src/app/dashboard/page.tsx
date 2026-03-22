@@ -6,6 +6,7 @@ import AddMaterialModal from "@/components/AddMaterialModal";
 import MovementModal from "@/components/MovementModal";
 import EditMaterialModal from "@/components/EditMaterialModal";
 import TransferModal from "@/components/TransferModal";
+import Toast, { ToastMessage } from "@/components/Toast";
 
 type Material = {
   id: string;
@@ -54,6 +55,16 @@ export default function DashboardPage() {
   const [movementPage, setMovementPage] = useState(1);
   const [sortKey, setSortKey] = useState<SortKey | null>(null);
   const [sortDir, setSortDir] = useState<SortDir>("asc");
+  const [toasts, setToasts] = useState<ToastMessage[]>([]);
+
+  function addToast(text: string, type: ToastMessage["type"] = "success") {
+    setToasts((prev) => [...prev, { id: crypto.randomUUID(), text, type }]);
+  }
+
+  function dismissToast(id: string) {
+    setToasts((prev) => prev.filter((t) => t.id !== id));
+  }
+
   const router = useRouter();
 
   const materialsPerPage = 15;
@@ -364,16 +375,16 @@ export default function DashboardPage() {
 
         if (!res.ok) {
           const data = await res.json();
-          alert(data.error || "Import failed");
+          addToast(data.error || "Import failed", "error");
           return;
         }
 
         const data = await res.json();
-        alert(`Import complete: ${data.created} created, ${data.skipped} skipped.`);
+        addToast(`Import complete: ${data.created} created, ${data.skipped} skipped.`);
         fetchMaterials();
         fetchMovements();
       } catch {
-        alert("Import failed. Please try again.");
+        addToast("Import failed. Please try again.", "error");
       }
     };
     reader.readAsText(file);
@@ -933,6 +944,7 @@ export default function DashboardPage() {
             setShowAddMaterial(false);
             fetchMaterials();
             fetchMovements();
+            addToast("Material added succesfully");
           }}
         />
       )}
@@ -947,6 +959,7 @@ export default function DashboardPage() {
             setEditMaterial(null);
             fetchMaterials();
             fetchMovements();
+            addToast("Material updated successfully");
           }}
         />
       )}
@@ -961,6 +974,11 @@ export default function DashboardPage() {
             setShowMovement(null);
             fetchMaterials();
             fetchMovements();
+            addToast(
+              showMovement?.startsWith("out-")
+                ? "Outbound recorded"
+                : "Inbound recorded"
+            );
           }}
         />
       )}
@@ -974,9 +992,12 @@ export default function DashboardPage() {
             setShowTransfer(null);
             fetchMaterials();
             fetchMovements();
+            addToast("Transfer completed");
           }}
         />
       )}
+
+      <Toast messages={toasts} onDismissAction={dismissToast} />
     </div>
   );
 }
