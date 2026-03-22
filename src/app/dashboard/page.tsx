@@ -236,6 +236,49 @@ export default function DashboardPage() {
     setDepartmentFilter("");
   }
 
+  // --- Chart data ---
+  const stockByDepartment = departments 
+    .map((dept) => {
+      const total = materials
+        .filter((m) => m.department?.id === dept.id)
+        .reduce((sum, m) => sum + m.quantity, 0);
+      return { name: dept.name, color: dept.color, total };
+    })
+    .filter((d) => d.total > 0)
+    .sort((a, b) => b.total - a.total);
+
+  const unassignedStock = materials
+    .filter((m) => !m.department)
+    .reduce((sum, m) => sum + m.quantity, 0);
+  if (unassignedStock > 0) {
+    stockByDepartment.push({ name: "Unassigned", color: "#9CA3AF", total: unassignedStock });
+  }
+
+  const maxDeptStock = Math.max(...stockByDepartment.map((d) => d.total), 1);
+
+  // Movement trends: last 14 days
+  const today = new Date();
+  const trendDays = 14;
+  const movementTrend = Array.from({ length: trendDays }, (_, i) => {
+    const date = new Date(today);
+    date.setDate(date.getDate() - (trendDays - 1 - i));
+    const dateStr = date.toISOString().slice(0, 10);
+    const dayMovements = movements.filter(
+      (m) => m.createdAt.slice(0, 10) === dateStr
+    );
+    return {
+      label: date.toLocaleDateString(undefined, { month: "short", day: "numeric" }),
+      inbound: dayMovements
+        .filter((m) => m.type === "INBOUND")
+        .reduce((s, m) => s + m.quantity, 0),
+      outbound: dayMovements
+        .filter((m) => m.type === "OUTBOUND")
+        .reduce((s, m) => s + m.quantity, 0),
+    };
+  });
+
+  const maxTrend = Math.max(...movementTrend.map((d) => Math.max(d.inbound, d.outbound)), 1);
+
   function exportCSV() {
     const headers = ["Name", "Part Number", "Description", "Quantity", "Min Quantity", "Unit", "Location", "Department"];
     const rows = materials.map((m) => [
@@ -542,6 +585,78 @@ export default function DashboardPage() {
             <div className="text-3xl font-bold text-orange-600">
               {materials.filter((m) => m.quantity <= (m.minQuantity ?? 10)).length}
             </div>
+          </div>
+        </div>
+
+        {/* Charts */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+          {/* Stock by Department */}
+          <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-200">
+            <h3 className="text-sm font-semibold text-gray-900 mb-4">Stock by Department</h3>
+            {stockByDepartment.length === 0 ? (
+              <p className="text-sm text-gray-400 py-8 text-center">No stock data</p>
+            ) : (
+              <div className="space-y-3">
+                {stockByDepartment.map((dept) => (
+                  <div key={dept.name} className="flex items-center gap-3">
+                    <span className="text-xs text-gray-600 w-24 truncate text-right" title={dept.name}>
+                      {dept.name}
+                    </span>
+                    <div className="flex-1 bg-gray-100 rounded-full h-5 overflow-hidden">
+                      <div
+                        className="h-full rounded-full transition-all duration-500"
+                        style={{
+                          width: `${(dept.total / maxDeptStock) * 100}%`,
+                          backgroundColor: dept.color,
+                          minWidth: "2px",
+                        }}
+                      />
+                    </div>
+                    <span className="text-xs font-semibold text-gray-700 w-12 text-right">
+                      {dept.total.toLocaleString()}
+                    </span>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+
+          {/* Movement Trends */}
+          <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-200">
+            <h3 className="text-sm font-semibold text-gray-900 mb-1">Movement Trends (14 days)</h3>
+            <div className="flex items-center gap-4 mb-4 text-xs text-gray-500">
+              <span className="flex items-center gap-1">
+                <span className="inline-block w-3 h-3 rounded-sm bg-green-500" /> Inbound
+              </span>
+              <span className="flex items-center gap-1">
+                <span className="inline-block w-3 h-3 rounded-sm bg-orange-400" /> Outbound
+              </span>
+            </div>
+            {movementTrend.every((d) => d.inbound === 0 && d.outbound === 0) ? (
+              <p className="text-sm text-gray-400 py-8 text-center">No movements in the last 14 days</p>
+            ) : (
+              <div className="flex items-end gap-1 h-40">
+                {movementTrend.map((day, i) => (
+                  <div key={i} className="flex-1 flex flex-col items-center gap-0.5 h-full justify-end">
+                    {/* Inbound bar */}
+                    <div
+                      className="w-full rounded-t bg-green-500 transition-all duration-500"
+                      style={{ height: `${(day.inbound / maxTrend) * 100}%`, minHeight: day.inbound > 0 ? "2px" : "0" }}
+                      title={`${day.label}: ${day.inbound} inbound`}
+                    />
+                    {/* Outbound bar */}
+                    <div
+                      className="w-full rounded-t bg-orange-400 transition-all duration-500"
+                      style={{ height: `${(day.outbound / maxTrend) * 100}%`, minHeight: day.outbound > 0 ? "2px" : "0" }}
+                      title={`${day.label}: ${day.outbound} outbound`}
+                    />
+                    <span className="text-[9px] text-gray-400 mt-1 leading-none whitespace-nowrap overflow-hidden">
+                      {i % 2 === 0 ? day.label : ""}
+                    </span>
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
         </div>
 
