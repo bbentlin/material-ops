@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import AddMaterialModal from "@/components/AddMaterialModal";
 import MovementModal from "@/components/MovementModal";
 import EditMaterialModal from "@/components/EditMaterialModal";
+import TransferModal from "@/components/TransferModal";
 
 type Material = {
   id: string;
@@ -40,6 +41,7 @@ export default function DashboardPage() {
   const [error, setError] = useState("");
   const [showAddMaterial, setShowAddMaterial] = useState(false);
   const [showMovement, setShowMovement] = useState<string | null>(null);
+  const [showTransfer, setShowTransfer] = useState<string | null>(null);
   const [editMaterial, setEditMaterial] = useState<Material | null>(null);
   const [search, setSearch] = useState("");
   const [dateFrom, setDateFrom] = useState("");
@@ -780,6 +782,12 @@ export default function DashboardPage() {
                           >
                             − Outbound
                           </button>
+                          <button
+                            onClick={() => setShowTransfer(mat.id)}
+                            className="text-sm font-medium bg-blue-100 text-blue-700 px-3 py-1.5 rounded-lg hover:bg-blue-200 transition-colors"
+                          >
+                            🔄 Transfer
+                          </button>
                         </div>
                       </td>
                     )}
@@ -951,6 +959,19 @@ export default function DashboardPage() {
           onCloseAction={() => setShowMovement(null)}
           onSuccessAction={() => {
             setShowMovement(null);
+            fetchMaterials();
+            fetchMovements();
+          }}
+        />
+      )}
+
+      {/* Transfer Modal */}
+      {showTransfer && canEdit && (
+        <TransferModal
+          sourceMaterialId={showTransfer}
+          onCloseAction={() => setShowTransfer(null)}
+          onSuccessAction={() => {
+            setShowTransfer(null);
             fetchMaterials();
             fetchMovements();
           }}

@@ -23,7 +23,7 @@ export async function POST(req: NextRequest) {
   const { error, user } = await requireAuth("OPERATOR");
   if (error) return error;
 
-  const { type, quantity, note, materialId } = await req.json();
+  const { type, quantity, note, materialId, destinationMaterialId } = await req.json();
 
   if (!type || !quantity || !materialId) {
     return NextResponse.json(
@@ -59,8 +59,67 @@ export async function POST(req: NextRequest) {
     );
   }
 
+  // For transfer, validate destination and check sufficient stock
+  if (type === "TRANSFER") {
+    if (!destinationMaterialId) {
+      return NextResponse.json(
+        { error: "destinationMaterialId is required for transfers" },
+        { status: 400 }
+      );
+    }
+    if (destinationMaterialId === materialId) {
+      return NextResponse.json(
+        { error: "Source and destination must be different materials" },
+        { status: 400 }
+      );
+    }
+    const destination = await prisma.material.findUnique({
+      where: { id: destinationMaterialId },
+    });
+    if (!destination) {
+      return NextResponse.json(
+        { error: "Destination material not found" },
+        { status: 404 }
+      );
+    }
+    if (material.quantity < quantity) {
+      return NextResponse.json(
+        { error: `Insufficient stock. Available: ${material.quantity}` },
+      );
+    }
+  }
+
   try {
-    // Create the movement and update material quantity in a transaction
+    if (type === "TRANSFER") {
+      const [movement] = await prisma.$transaction([
+        prisma.movement.create({
+          data: {
+            type,
+            quantity,
+            note: note ?? "",
+            materialId,
+            userId: user!.id,
+          },
+          include: {
+            material: { select: { name: true, partNumber: true } },
+            user: { select: { name: true, email: true } },
+          },
+        }),
+        // Decrement source
+        prisma.material.update({
+          where: { id: materialId },
+          data: { quantity: { decrement: quantity } },
+        }),
+        // Increment destination
+        prisma.material.update({
+          where: { id: destinationMaterialId },
+          data: { quantity: { increment: quantity } },
+        }),
+      ]);
+      return NextResponse.json(movement, { status: 201 });
+    }
+
+    // INBOUND / OUTBOUND
     const [movement] = await prisma.$transaction([
       prisma.movement.create({
         data: {
@@ -87,7 +146,7 @@ export async function POST(req: NextRequest) {
 
     return NextResponse.json(movement, { status: 201 });
   } catch (err: unknown) {
-    const message =
+    const message = 
       err instanceof Error ? err.message : "Failed to create movement";
     return NextResponse.json({ error: message }, { status: 500 });
   }
