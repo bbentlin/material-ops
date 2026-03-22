@@ -56,6 +56,21 @@ export default function DashboardPage() {
   const [sortKey, setSortKey] = useState<SortKey | null>(null);
   const [sortDir, setSortDir] = useState<SortDir>("asc");
   const [toasts, setToasts] = useState<ToastMessage[]>([]);
+  const [darkMode, setDarkMode] = useState(false);
+
+  // Initialize dark mode from localStorage / system preference
+  useEffect(() => {
+    const stored = localStorage.getItem("theme");
+    const isDark = stored === "dark" || (!stored && window.matchMedia("(prefers-color-scheme: dark)").matches);
+    setDarkMode(isDark);
+  }, []);
+
+  function toggleDarkMode() {
+    const next = !darkMode;
+    setDarkMode(next);
+    document.documentElement.classList.toggle("dark", next);
+    localStorage.setItem("theme", next ? "dark" : "light");
+  }
 
   function addToast(text: string, type: ToastMessage["type"] = "success") {
     setToasts((prev) => [...prev, { id: crypto.randomUUID(), text, type }]);
@@ -392,25 +407,25 @@ export default function DashboardPage() {
   }
 
   const roleBadge: Record<string, string> = {
-    ADMIN: "bg-purple-100 text-purple-700",
-    OPERATOR: "bg-blue-100 text-blue-700",
-    VIEWER: "bg-gray-200 text-gray-600",
+    ADMIN: "bg-purple-100 dark:bg-purple-900 text-purple-700 dark:text-purple-300",
+    OPERATOR: "bg-blue-100 dark:bg-blue-900 text-blue-700 dark:text-blue-300",
+    VIEWER: "bg-gray-200 dark:bg-gray-700 text-gray-600 dark:text-gray-300",
   };
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gray-100 flex items-center justify-center">
-        <div className="text-gray-500 text-lg">Loading...</div>
+      <div className="min-h-screen bg-gray-100 dark:bg-gray-900 flex items-center justify-center">
+        <div className="text-gray-500 dark:text-gray-400 text-lg">Loading...</div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gray-100">
+    <div className="min-h-screen bg-gray-100 dark:bg-gray-900">
       {/* Header */}
-      <header className="bg-white shadow-sm border-b border-gray-200">
+      <header className="bg-white dark:bg-gray-800 shadow-sm border-b border-gray-200 dark:border-gray-700">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex justify-between items-center">
-          <h1 className="text-xl font-bold text-gray-900">
+          <h1 className="text-xl font-bold text-gray-900 dark:text-gray-100 px-4">
             📦 LogiCore Inventory Management System
           </h1>
           <div className="flex items-center gap-4">
@@ -434,12 +449,12 @@ export default function DashboardPage() {
                 placeholder="Search materials, part numbers, locations..."
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
-                className="pl-10 pr-4 py-2 w-80 border border-gray-300 rounded-lg text-sm text-gray-900 bg-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                className="pl-10 pr-4 py-2 w-80 border border-gray-300 dark:border-gray-600 rounded-lg text-sm text-gray-900 dark:text-gray-100 bg-white dark:bg-gray-700 placeholder-gray-400 dark:placeholder-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               />
               {search && (
                 <button
                   onClick={() => setSearch("")}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 dark:text-gray-200 hover:text-gray-600 dark:hover:text-gray-300"
                 >
                   ✕
                 </button>
@@ -451,15 +466,15 @@ export default function DashboardPage() {
                 type="date"
                 value={dateFrom}
                 onChange={(e) => setDateFrom(e.target.value)}
-                className="border border-gray-300 rounded-lg text-sm text-gray-900 bg-white px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                className="border border-gray-300 dark:border-gray-600 rounded-lg text-sm text-gray-900 dark:text-gray-100 bg-white dark:bg-gray-700 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                 title="From date"
               />
-              <span className="text-gray-400 text-sm">→</span>
+              <span className="text-gray-400 dark:text-gray-100 text-sm">→</span>
               <input
                 type="date"
                 value={dateTo}
                 onChange={(e) => setDateTo(e.target.value)}
-                className="border border-gray-300 rounded-lg text-sm text-gray-900 bg-white px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                className="border border-gray-300 dark:border-gray-600 rounded-lg text-sm text-gray-900 dark:text-gray-100 bg-white dark:bg-gray-700 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                 title="To date"
               />
               {hasDateFilter && (
@@ -478,7 +493,7 @@ export default function DashboardPage() {
             <select
               value={departmentFilter}
               onChange={(e) => setDepartmentFilter(e.target.value)}
-              className="border border-gray-300 rounded-lg text-sm text-gray-900 bg-white px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="border border-gray-300 dark:border-gray-600 rounded-lg text-sm text-gray-900 dark:text-gray-100 bg-white dark:bg-gray-800 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
             >
               <option value="">All Departments</option>
               {departments.map((dept) => (
@@ -486,9 +501,9 @@ export default function DashboardPage() {
               ))}
             </select>
             {/* User info + role badge */}
-            <div className="flex items-center gap-2 border-l border-gray-200 pl-4">
+            <div className="flex items-center gap-2 border-l border-gray-200 dark:border-gray-300 pl-4">
               {userName && (
-                <span className="text-sm text-gray-700 font-medium">{userName}</span>
+                <span className="text-sm text-gray-700 dark:text-gray-300 font-medium">{userName}</span>
               )}
               {userRole && (
                 <span
@@ -504,16 +519,23 @@ export default function DashboardPage() {
             {canManageUsers && (
               <button
                 onClick={() => router.push("/admin")}
-                className="text-sm text-gray-600 hover:text-purple-700 transition-colors px-3 py-1.5 rounded-md hover:bg-purple-50 font-medium"
+                className="text-sm text-gray-600 dark:text-gray-400 hover:text-purple-700 dark:hover:text-purple-200/95 transition-colors px-3 py-1.5 rounded-md hover:bg-purple-50 dark:hover:bg-purple-900/30 font-medium"
               >
                 👥 Users
               </button>
             )}
             <button
               onClick={handleLogout}
-              className="text-sm text-gray-500 hover:text-red-600 transition-colors px-3 py-1.5 rounded-md hover:bg-red-50"
+              className="text-sm text-gray-500 dark:text-gray-400 hover:text-red-600 dark:hover:text-red-400 transition-colors px-3 py-1.5 rounded-md hover:bg-red-50 dark:hover:bg-red-900/30"
             >
               Sign Out
+            </button>
+            <button
+              onClick={toggleDarkMode}
+              className="text-sm text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 transition-colors px-2 py-1.5 rounded-md hover:bg-gray-100 dark:hover:bg-gray-700"
+              title={darkMode ? "Switch to light mode" : "Switch to dark mode"}
+            >
+              {darkMode ? "☀️" : "🌙"}
             </button>
           </div>
         </div>
@@ -521,14 +543,14 @@ export default function DashboardPage() {
 
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {error && (
-          <div className="bg-red-50 border border-red-200 text-red-700 p-4 rounded-lg mb-6">
+          <div className="bg-red-50 dark:bg-red-900/30 border border-red-200 dark:border-red-800 text-red-700 dark:text-red-400 p-4 rounded-lg mb-6">
             {error}
           </div>
         )}
 
         {/* Read-only banner for viewers */}
         {userRole === "VIEWER" && (
-          <div className="bg-blue-50 border border-blue-200 text-blue-700 p-4 rounded-lg mb-6 flex items-center gap-2 text-sm">
+          <div className="bg-blue-50 dark:bg-blue-900/30 border border-blue-200 dark:border-blue-800 text-blue-700 dark:text-blue-300 p-4 rounded-lg mb-6 flex items-center gap-2 text-sm">
             <span className="text-lg">👁️</span>
             <span>
               You have <strong>view-only</strong> access. Contact an administrator to
@@ -539,7 +561,7 @@ export default function DashboardPage() {
 
         {/* Search results indicator */}
         {hasAnyFilter && (
-          <div className="mb-4 text-sm text-gray-500 flex items-center gap-2">
+          <div className="mb-4 text-sm text-gray-500 dark:text-gray-400 flex items-center gap-2">
             <span>
               Showing {filteredMaterials.length} material
               {filteredMaterials.length !== 1 ? "s" : ""} and{" "}
@@ -549,12 +571,12 @@ export default function DashboardPage() {
                 <>
                   {" "}
                   matching &ldquo;
-                  <span className="font-medium text-gray-700">{search}</span>
+                  <span className="font-medium text-gray-700 dark:text-gray-200">{search}</span>
                   &rdquo;
                 </>
               )}
               {hasDateFilter && (
-                <span className="text-gray-500">
+                <span className="text-gray-500 dark:text-gray-400">
                   {" "}
                   {dateFrom && dateTo
                     ? `from ${dateFrom} to ${dateTo}`
@@ -575,24 +597,24 @@ export default function DashboardPage() {
 
         {/* Stats Cards */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-          <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-200">
-            <div className="text-sm font-medium text-gray-500 mb-1">
+          <div className="bg-white dark:bg-gray-800 p-6 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700">
+            <div className="text-sm font-medium text-gray-500 dark:text-gray-400 mb-1">
               Total Materials
             </div>
-            <div className="text-3xl font-bold text-gray-900">
+            <div className="text-3xl font-bold text-gray-900 dark:text-gray-100">
               {materials.length}
             </div>
           </div>
-          <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-200">
-            <div className="text-sm font-medium text-gray-500 mb-1">
+          <div className="bg-white dark:bg-gray-800 p-6 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700">
+            <div className="text-sm font-medium text-gray-500 dark:text-gray-400 mb-1">
               Total Stock
             </div>
-            <div className="text-3xl font-bold text-gray-900">
+            <div className="text-3xl font-bold text-gray-900 dark:text-gray-100">
               {materials.reduce((sum, m) => sum + m.quantity, 0)}
             </div>
           </div>
-          <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-200">
-            <div className="text-sm font-medium text-gray-500 mb-1">
+          <div className="bg-white dark:bg-gray-800 p-6 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700">
+            <div className="text-sm font-medium text-gray-500 dark:text-gray-400 mb-1">
               Low Stock 
             </div>
             <div className="text-3xl font-bold text-orange-600">
@@ -604,18 +626,18 @@ export default function DashboardPage() {
         {/* Charts */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
           {/* Stock by Department */}
-          <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-200">
-            <h3 className="text-sm font-semibold text-gray-900 mb-4">Stock by Department</h3>
+          <div className="bg-white dark:bg-gray-800 p-6 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700">
+            <h3 className="text-sm font-semibold text-gray-900 dark:text-gray-100 mb-4">Stock by Department</h3>
             {stockByDepartment.length === 0 ? (
               <p className="text-sm text-gray-400 py-8 text-center">No stock data</p>
             ) : (
               <div className="space-y-3">
                 {stockByDepartment.map((dept) => (
                   <div key={dept.name} className="flex items-center gap-3">
-                    <span className="text-xs text-gray-600 w-24 truncate text-right" title={dept.name}>
+                    <span className="text-xs text-gray-600 dark:text-gray-200 w-24 truncate text-right" title={dept.name}>
                       {dept.name}
                     </span>
-                    <div className="flex-1 bg-gray-100 rounded-full h-5 overflow-hidden">
+                    <div className="flex-1 bg-gray-100 dark:bg-gray-700 rounded-full h-5 overflow-hidden">
                       <div
                         className="h-full rounded-full transition-all duration-500"
                         style={{
@@ -625,7 +647,7 @@ export default function DashboardPage() {
                         }}
                       />
                     </div>
-                    <span className="text-xs font-semibold text-gray-700 w-12 text-right">
+                    <span className="text-xs font-semibold text-gray-700 dark:text-gray-200 w-12 text-right">
                       {dept.total.toLocaleString()}
                     </span>
                   </div>
@@ -635,9 +657,9 @@ export default function DashboardPage() {
           </div>
 
           {/* Movement Trends */}
-          <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-200">
-            <h3 className="text-sm font-semibold text-gray-900 mb-1">Movement Trends (14 days)</h3>
-            <div className="flex items-center gap-4 mb-4 text-xs text-gray-500">
+          <div className="bg-white dark:bg-gray-800 p-6 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700">
+            <h3 className="text-sm font-semibold text-gray-900 dark:text-gray-100 mb-1">Movement Trends (14 days)</h3>
+            <div className="flex items-center gap-4 mb-4 text-xs text-gray-500 dark:text-gray-400">
               <span className="flex items-center gap-1">
                 <span className="inline-block w-3 h-3 rounded-sm bg-green-500" /> Inbound
               </span>
@@ -646,7 +668,7 @@ export default function DashboardPage() {
               </span>
             </div>
             {movementTrend.every((d) => d.inbound === 0 && d.outbound === 0) ? (
-              <p className="text-sm text-gray-400 py-8 text-center">No movements in the last 14 days</p>
+              <p className="text-sm text-gray-400 dark:text-gray-300 py-8 text-center">No movements in the last 14 days</p>
             ) : (
               <div className="flex items-end gap-1 h-40">
                 {movementTrend.map((day, i) => (
@@ -674,19 +696,19 @@ export default function DashboardPage() {
         </div>
 
         {/* Materials Table */}
-        <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
-          <div className="p-5 border-b border-gray-200 flex justify-between items-center">
-            <h2 className="text-lg font-semibold text-gray-900">Materials</h2>
+        <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 overflow-hidden">
+          <div className="p-5 border-b border-gray-200 dark:border-gray-700 flex justify-between items-center">
+            <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100">Materials</h2>
             <div className="flex items-center gap-2">
               <button
                 onClick={exportCSV}
-                className="text-sm font-medium text-gray-600 px-3 py-2 rounded-lg border border-gray-300 hover:bg-gray-50 transition-colors"
+                className="text-sm font-medium text-gray-600 dark:text-gray-200 px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-900 transition-colors"
               >
                 ↓ Export CSV
               </button>
               {canEdit && (
                 <>
-                  <label className="text-sm font-medium text-gray-600 px-3 py-2 rounded-lg border border-gray-300 hover:bg-gray-50 transition-colors cursor-pointer">
+                  <label className="text-sm font-medium text-gray-600 dark:text-gray-200 px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-900 transition-colors cursor-pointer">
                     ↑ Import CSV
                     <input
                       type="file"
@@ -697,7 +719,7 @@ export default function DashboardPage() {
                   </label>
                   <button
                     onClick={() => setShowAddMaterial(true)}
-                    className="bg-blue-600 text-white text-sm font-medium px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors shadow-sm"
+                    className="bg-blue-600 text-white text-sm font-medium px-4 py-2 rounded-lg hover:bg-blue-900 transition-colors shadow-sm"
                   >
                     + Add Material
                   </button>
@@ -708,40 +730,40 @@ export default function DashboardPage() {
           <div className="overflow-x-auto">
             <table className="w-full">
               <thead>
-                <tr className="bg-gray-50 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">
-                  <th className="px-5 py-3 cursor-pointer hover:text-gray-700 select-none" onClick={() => toggleSort("name")}>
+                <tr className="bg-gray-50 dark:bg-gray-700/50 text-left text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                  <th className="px-5 py-3 cursor-pointer hover:text-gray-700 dark:hover:text-gray-300 select-none" onClick={() => toggleSort("name")}>
                     Name{sortIndicator("name")}
                   </th>
-                  <th className="px-5 py-3 cursor-pointer hover:text-gray-700 select-none" onClick={() => toggleSort("partNumber")}>
+                  <th className="px-5 py-3 cursor-pointer hover:text-gray-700 dark:hover:text-gray-300 select-none" onClick={() => toggleSort("partNumber")}>
                     Part Number{sortIndicator("partNumber")}
                   </th>
-                  <th className="px-5 py-3 cursor-pointer hover:text-gray-700 select-none" onClick={() => toggleSort("quantity")}>
+                  <th className="px-5 py-3 cursor-pointer hover:text-gray-700 dark:hover:text-gray-300 select-none" onClick={() => toggleSort("quantity")}>
                     Quantity{sortIndicator("quantity")}
                   </th>
-                  <th className="px-5 py-3 cursor-pointer hover:text-gray-700 select-none" onClick={() => toggleSort("unit")}>
+                  <th className="px-5 py-3 cursor-pointer hover:text-gray-700 dark:hover:text-gray-300 select-none" onClick={() => toggleSort("unit")}>
                     Unit{sortIndicator("unit")}
                   </th>
-                  <th className="px-5 py-3 cursor-pointer hover:text-gray-700 select-none" onClick={() => toggleSort("location")}>
+                  <th className="px-5 py-3 cursor-pointer hover:text-gray-700 dark:hover:text-gray-300 select-none" onClick={() => toggleSort("location")}>
                     Location{sortIndicator("location")}
                   </th>
-                  <th className="px-5 py-3 cursor-pointer hover:text-gray-700 select-none" onClick={() => toggleSort("department")}>
+                  <th className="px-5 py-3 cursor-pointer hover:text-gray-700 dark:hover:text-gray-300 select-none" onClick={() => toggleSort("department")}>
                     Department{sortIndicator("department")}
                   </th>
                   {canEdit && <th className="px-5 py-3">Actions</th>}
                 </tr>
               </thead>
-              <tbody className="divide-y divide-gray-100">
+              <tbody className="divide-y divide-gray-100 dark:divide-gray-700">
                 {paginatedMaterials.map((mat) => (
-                  <tr key={mat.id} className="hover:bg-gray-50 transition-colors">
+                  <tr key={mat.id} className="hover:bg-gray-50 dark:hover:bg-gray-700/30 transition-colors">
                     <td className="px-5 py-4">
                       <button
                         onClick={() => router.push(`/dashboard/materials/${mat.id}`)}
-                        className="font-medium text-blue-600 hover:text-blue-800 hover:underline text-left"
+                        className="font-medium text-blue-600 hover:text-blue-500 hover:underline text-left"
                       >
                         {mat.name}
                       </button>
                     </td>
-                    <td className="px-5 py-4 text-gray-500 font-mono text-sm">{mat.partNumber}</td>
+                    <td className="px-5 py-4 text-gray-500 dark:text-gray-400 font-mono text-sm">{mat.partNumber}</td>
                     <td className="px-5 py-4">
                       <span
                         className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-sm font-bold ${
@@ -758,8 +780,8 @@ export default function DashboardPage() {
                         )}
                       </span>
                     </td>
-                    <td className="px-5 py-4 text-gray-500">{mat.unit}</td>
-                    <td className="px-5 py-4 text-gray-500">{mat.location}</td>
+                    <td className="px-5 py-4 text-gray-500 dark:text-gray-400">{mat.unit}</td>
+                    <td className="px-5 py-4 text-gray-500 dark:text-gray-400">{mat.location}</td>
                     <td className="px-5 py-4">
                       {mat.department ? (
                         <span
@@ -777,25 +799,25 @@ export default function DashboardPage() {
                         <div className="flex gap-2">
                           <button
                             onClick={() => setEditMaterial(mat)}
-                            className="text-sm font-medium bg-gray-100 text-gray-700 px-3 py-1.5 rounded-lg hover:bg-gray-200 transition-colors"
+                            className="text-sm font-medium bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 px-3 py-1.5 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors"
                           >
                             ✏️ Edit
                           </button>
                           <button
                             onClick={() => setShowMovement(mat.id)}
-                            className="text-sm font-medium bg-green-600 text-white px-3 py-1.5 rounded-lg hover:bg-green-700 transition-colors"
+                            className="text-sm font-medium bg-green-600 text-white px-3 py-1.5 rounded-lg hover:bg-green-700 dark:hover:bg-green-500 transition-colors"
                           >
                             + Inbound
                           </button>
                           <button
                             onClick={() => setShowMovement(`out-${mat.id}`)}
-                            className="text-sm font-medium bg-orange-500 text-white px-3 py-1.5 rounded-lg hover:bg-orange-600 transition-colors"
+                            className="text-sm font-medium bg-orange-500 text-white px-3 py-1.5 rounded-lg hover:bg-orange-600 dark:hover:bg-orange-400 transition-colors"
                           >
                             − Outbound
                           </button>
                           <button
                             onClick={() => setShowTransfer(mat.id)}
-                            className="text-sm font-medium bg-blue-100 text-blue-700 px-3 py-1.5 rounded-lg hover:bg-blue-200 transition-colors"
+                            className="text-sm font-medium bg-blue-100 text-blue-700 px-3 py-1.5 rounded-lg hover:bg-blue-200 dark:hover:bg-blue-300 transition-colors"
                           >
                             🔄 Transfer
                           </button>
@@ -820,8 +842,8 @@ export default function DashboardPage() {
             </table>
           </div>
           {sortedMaterials.length > materialsPerPage && (
-            <div className="px-5 py-3 border-t border-gray-200 flex items-center justify-between text-sm">
-              <span className="text-gray-500">
+            <div className="px-5 py-3 border-t border-gray-200 dark:border-gray-700 flex items-center justify-between text-sm">
+              <span className="text-gray-500 dark:text-gray-400">
                 Showing {(materialPage - 1) * materialsPerPage + 1}– 
                 {Math.min(materialPage * materialsPerPage, sortedMaterials.length)} of{" "}
                 {sortedMaterials.length}
@@ -830,17 +852,17 @@ export default function DashboardPage() {
                 <button
                   onClick={() => setMaterialPage((p) => Math.max(1, p - 1))}
                   disabled={materialPage === 1}
-                  className="px-3 py-1.5 rounded-lg border border-gray-300 text-gray-700 hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed"
+                  className="px-3 py-1.5 rounded-lg border border-gray-300 dark:border-gray-700 text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-800 disabled:opacity-40 disabled:cursor-not-allowed"
                 >
                   ← Previous
                 </button>
-                <span className="text-gray-700 font-medium">
+                <span className="text-gray-700 dark:text-gray-300 font-medium">
                   Page {materialPage} of {totalMaterialPages}
                 </span>
                 <button
                   onClick={() => setMaterialPage((p) => Math.min(totalMaterialPages, p + 1))}
                   disabled={materialPage === totalMaterialPages}
-                  className="px-3 py-1.5 rounded-lg border border-gray-300 text-gray-700 hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed"
+                  className="px-3 py-1.5 rounded-lg border border-gray-300 dark:border-gray-700 text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-800 disabled:opacity-40 disabled:cursor-not-allowed"
                 >
                   Next →
                 </button>
@@ -850,14 +872,14 @@ export default function DashboardPage() {
         </div>
 
         {/* Recent Movements */}
-        <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden mt-8">
-          <div className="p-5 border-b border-gray-200">
-            <h2 className="text-lg font-semibold text-gray-900">Recent Movements</h2>
+        <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 overflow-hidden mt-8">
+          <div className="p-5 border-b border-gray-200 dark:border-gray-700">
+            <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100">Recent Movements</h2>
           </div>
           <div className="overflow-x-auto">
             <table className="w-full">
               <thead>
-                <tr className="bg-gray-50 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">
+                <tr className="bg-gray-50 dark:bg-gray-700 text-left text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">
                   <th className="px-5 py-3">Date</th>
                   <th className="px-5 py-3">Material</th>
                   <th className="px-5 py-3">Type</th>
@@ -866,13 +888,13 @@ export default function DashboardPage() {
                   <th className="px-5 py-3">By</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-gray-100">
+              <tbody className="divide-y divide-gray-100 dark:divide-gray-700">
                 {paginatedMovements.map((mov) => (
-                  <tr key={mov.id} className="hover:bg-gray-50 transition-colors">
-                    <td className="px-5 py-4 text-sm text-gray-500">
+                  <tr key={mov.id} className="hover:bg-gray-50 dark:hover:bg-gray-700/30 transition-colors">
+                    <td className="px-5 py-4 text-sm text-gray-500 dark:text-gray-200">
                       {new Date(mov.createdAt).toLocaleDateString()}
                     </td>
-                    <td className="px-5 py-4 font-medium text-gray-900">
+                    <td className="px-5 py-4 font-medium text-gray-900 dark:text-gray-300">
                       {mov.material.name}
                     </td>
                     <td className="px-5 py-4">
@@ -888,9 +910,9 @@ export default function DashboardPage() {
                         {mov.type}
                       </span>
                     </td>
-                    <td className="px-5 py-4 font-medium text-gray-900">{mov.quantity}</td>
-                    <td className="px-5 py-4 text-sm text-gray-500">{mov.note || "—"}</td>
-                    <td className="px-5 py-4 text-sm text-gray-500">{mov.user.name}</td>
+                    <td className="px-5 py-4 font-medium text-gray-900 dark:text-gray-300">{mov.quantity}</td>
+                    <td className="px-5 py-4 text-sm text-gray-500 dark:text-gray-300">{mov.note || "—"}</td>
+                    <td className="px-5 py-4 text-sm text-gray-500 dark:text-gray-300">{mov.user.name}</td>
                   </tr>
                 ))}
                 {filteredMovements.length === 0 && (
@@ -906,8 +928,8 @@ export default function DashboardPage() {
             </table>
           </div>
           {filteredMovements.length > movementsPerPage && (
-            <div className="px-5 py-3 border-t border-gray-200 flex items-center justify-between text-sm">
-              <span className="text-gray-500">
+            <div className="px-5 py-3 border-t border-gray-200 dark:border-gray-700 flex items-center justify-between text-sm">
+              <span className="text-gray-500 dark:text-gray-400">
                 Showing {(movementPage - 1) * movementsPerPage + 1}–
                 {Math.min(movementPage * movementsPerPage, filteredMovements.length)} of{" "}
                 {filteredMovements.length}
@@ -916,17 +938,17 @@ export default function DashboardPage() {
                 <button
                   onClick={() => setMovementPage((p) => Math.max(1, p - 1))}
                   disabled={movementPage === 1}
-                  className="px-3 py-1.5 rounded-lg border border-gray-300 text-gray-700 hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed"
+                  className="px-3 py-1.5 rounded-lg border border-gray-300 dark:border-gray-700 text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-800 disabled:opacity-40 disabled:cursor-not-allowed"
                 >
                   ← Previous
                 </button>
-                <span className="text-gray-700 font-medium">
+                <span className="text-gray-700 dark:text-gray-300 font-medium">
                   Page {movementPage} of {totalMovementPages}
                 </span>
                 <button
                   onClick={() => setMovementPage((p) => Math.min(totalMovementPages, p + 1))}
                   disabled={movementPage === totalMovementPages}
-                  className="px-3 py-1.5 rounded-lg border border-gray-300 text-gray-700 hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed"
+                  className="px-3 py-1.5 rounded-lg border border-gray-300 dark:border-gray-700 text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-800 disabled:opacity-40 disabled:cursor-not-allowed"
                 >
                   Next →
                 </button>

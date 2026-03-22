@@ -28,23 +28,23 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-gray-100">
+    <div className="flex min-h-screen items-center justify-center bg-gray-100 dark:bg-gray-900">
       <form
         action={handleSubmit}
-        className="bg-white p-8 rounded-lg shadow-md w-96 flex flex-col gap-4"
+        className="bg-white p-8 rounded-lg shadow-md w-96 flex flex-col gap-4 dark:bg-gray-800"
       >
-        <h1 className="text-2xl font-bold text-center text-gray-900 mb-2">LogiCore Inventory Management System</h1>
-        <p className="text-gray-500 text-center text-sm mb-4">Sign in to your account</p>
+        <h1 className="text-2xl font-bold text-center text-gray-900 mb-2 dark:text-gray-100">LogiCore Inventory Management System</h1>
+        <p className="text-gray-500 text-center text-sm mb-4 dark:text-gray-400">Sign in to your account</p>
 
         <div className="flex flex-col gap-1">
-          <label htmlFor="login-email" className="text-sm font-medium text-gray-700">
+          <label htmlFor="login-email" className="text-sm font-medium text-gray-700 dark:text-gray-300">
             Email
           </label>
           <input
             id="login-email"
             type="email"
             placeholder="you@example.com"
-            className="border border-gray-300 p-3 rounded-md text-gray-900 bg-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 selection:bg-blue-200 selection:text-gray-900"
+            className="border border-gray-300 p-3 rounded-md text-gray-900 bg-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 selection:bg-blue-200 selection:text-gray-900 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100 dark:placeholder-gray-500"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             required
@@ -52,14 +52,14 @@ export default function LoginPage() {
         </div>
 
         <div className="flex flex-col gap-1">
-          <label htmlFor="login-password" className="text-sm font-medium text-gray-700">
+          <label htmlFor="login-password" className="text-sm font-medium text-gray-700 dark:text-gray-300">
             Password
           </label>
           <input
             id="login-password"
             type="password"
             placeholder="Enter your password"
-            className="border border-gray-300 p-3 rounded-md text-gray-900 bg-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 selection:bg-blue-200 selection:text-gray-900"
+            className="border border-gray-300 p-3 rounded-md text-gray-900 bg-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 selection:bg-blue-200 selection:text-gray-900 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100 dark:placeholder-gray-500"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
             required

@@ -57,11 +57,11 @@ export default function DraggableModal({
         style={{
           transform: `translate(${position.x}px, ${position.y}px)`,
         }}
-        className={`bg-white rounded-lg shadow-lg select-none ${className}`}
+        className={`bg-white rounded-lg shadow-lg dark:bg-gray-800 select-none ${className}`}
       >
         {/* Drag handle indicator */}
         <div className="flex justify-center pt-2 pb-0 cursor-grab active:cursor-grabbing">
-          <div className="w-10 h-1 bg-gray-300 rounded-full" />
+          <div className="w-10 h-1 bg-gray-300 rounded-full dark:bg-gray-600" />
         </div>
         {children}
       </div>

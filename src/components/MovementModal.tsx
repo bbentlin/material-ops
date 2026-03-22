@@ -4,7 +4,7 @@ import { useState, useTransition } from "react";
 import DraggableModal from "./DraggableModal";
 
 const inputClass =
-  "border border-gray-300 p-2 rounded-md text-gray-900 bg-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 selection:bg-blue-200 selection:text-gray-900";
+  "border border-gray-300 p-2 rounded-md text-gray-900 bg-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 selection:bg-blue-200 selection:text-gray-900 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100 dark:placeholder-gray-500";
 
 export default function MovementModal({
   materialId,
@@ -44,12 +44,12 @@ export default function MovementModal({
   return (
     <DraggableModal className="w-96">
       <form action={handleSubmit} className="p-6 flex flex-col gap-4">
-        <h2 className="text-lg font-bold text-gray-900 mb-1">
+        <h2 className="text-lg font-bold text-gray-900 dark:text-gray-100 mb-1">
           {isInbound ? "📥 Record Inbound" : "📤 Record Outbound"}
         </h2>
 
         <div className="flex flex-col gap-1">
-          <label htmlFor="mov-quantity" className="text-sm font-medium text-gray-700">
+          <label htmlFor="mov-quantity" className="text-sm font-medium text-gray-700 dark:text-gray-300">
             Quantity <span className="text-red-500">*</span>
           </label>
           <input
@@ -65,7 +65,7 @@ export default function MovementModal({
         </div>
 
         <div className="flex flex-col gap-1">
-          <label htmlFor="mov-note" className="text-sm font-medium text-gray-700">
+          <label htmlFor="mov-note" className="text-sm font-medium text-gray-700 dark:text-gray-300">
             Note
           </label>
           <input
@@ -82,7 +82,7 @@ export default function MovementModal({
           <button
             type="button"
             onClick={onCloseAction}
-            className="flex-1 border border-gray-300 text-gray-700 py-2 rounded hover:bg-gray-50"
+            className="flex-1 border border-gray-300 text-gray-700 py-2 rounded hover:bg-gray-50 dark:border-gray-600 dark:text-gray-300 dark:hover:bg-gray-700"
           >
             Cancel
           </button>

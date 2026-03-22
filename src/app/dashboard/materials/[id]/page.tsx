@@ -70,15 +70,15 @@ export default function MaterialDetailPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gray-100 flex items-center justify-center">
-        <div className="text-gray-500 text-lg">Loading...</div>
+      <div className="min-h-screen bg-gray-100 dark:bg-gray-900 flex items-center justify-center">
+        <div className="text-gray-500 dark:text-gray-400 text-lg">Loading...</div>
       </div>
     );
   }
 
   if (error || !material) {
     return (
-      <div className="min-h-screen bg-gray-100 flex items-center justify-center">
+      <div className="min-h-screen bg-gray-100 dark:bg-gray-900 flex items-center justify-center">
         <div className="text-center">
           <div className="text-red-600 text-lg font-medium mb-4">{error || "Material not found"}</div>
           <button
@@ -105,18 +105,18 @@ export default function MaterialDetailPage() {
   const totalOutbound = movements.filter((m) => m.type === "OUTBOUND").reduce((s, m) => s + m.quantity, 0);
 
   return (
-    <div className="min-h-screeen bg-gray-100">
+    <div className="min-h-screeen bg-gray-100 dark:bg-gray-900">
       {/* Header */}
-      <header className="bg-white shadow-sm border-b border-gray-200">
+      <header className="bg-white shadow-sm border-b border-gray-200 dark:bg-gray-800 dark:border-gray-700">
         <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex items-center gap-4">
           <button
             onClick={() => router.push("/dashboard")}
-            className="text-gray-500 hover:text-gray-700 font-medium text-sm flex items-center gap-1"
+            className="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 font-medium text-sm flex items-center gap-1"
           >
             ← Dashboard
           </button>
-          <div className="h-5 w-px bg-gray-300" />
-          <h1 className="text-xl font-bold text-gray-900 truncate">{material.name}</h1>
+          <div className="h-5 w-px bg-gray-300 dark:bg-gray-600" />
+          <h1 className="text-xl font-bold text-gray-900 dark:text-gray-100 truncate">{material.name}</h1>
           {material.department && (
             <span
               className="text-xs font-semibold px-2 py-0.5 rounded-full text-white"
@@ -130,20 +130,20 @@ export default function MaterialDetailPage() {
 
       <main className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Material Info Card */}
-        <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 mb-8">
+        <div className="bg-white rounded-xl shadow-sm border border-gray-200 dark:bg-gray-800 dark:border-gray-700 p-6 mb-8">
           <div className="flex justify-between items-start mb-6">
             <div>
-              <h2 className="text-2xl font-bold text-gray-900">{material.name}</h2>
-              <p className="text-gray-500 font-mono text-sm mt-1">{material.partNumber}</p>
+              <h2 className="text-2xl font-bold text-gray-900 dark:text-gray-100">{material.name}</h2>
+              <p className="text-gray-500 dark:text-gray-400 font-mono text-sm mt-1">{material.partNumber}</p>
               {material.description && (
-                <p className="text-gray-600 mt-2">{material.description}</p>
+                <p className="text-gray-600 dark:text-gray-400 mt-2">{material.description}</p>
               )}
             </div>
             {canEdit && (
               <div className="flex gap-2">
                 <button
                   onClick={() => setEditMaterial(true)}
-                  className="text-sm font-medium bg-gray-100 text-gray-700 px-4 py-2 rounded-lg hover:bg-gray-200 transition-colors"
+                  className="text-sm font-medium bg-gray-100 text-gray-700 px-4 py-2 rounded-lg hover:bg-gray-200 dark:bg-gray-800 dark:text-gray-200 dark:hover:bg-gray-700 transition-colors"
                 >
                   ✏️ Edit
                 </button>
@@ -166,7 +166,7 @@ export default function MaterialDetailPage() {
           {/* Info grid */}
           <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
             <div>
-              <div className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1">Quantity</div>
+              <div className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-1">Quantity</div>
               <span
                 className={`inline-flex items-center px-3 py-1 rounded-full text-lg font-bold ${
                   isLowStock ? "bg-orange-100 text-orange-700" : "bg-green-100 text-green-700"
@@ -181,21 +181,21 @@ export default function MaterialDetailPage() {
               )}
             </div>
             <div>
-              <div className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1">Min Quantity</div>
-              <div className="text-lg font-semibold text-gray-900">{material.minQuantity ?? 10}</div>
+              <div className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-1">Min Quantity</div>
+              <div className="text-lg font-semibold text-gray-900 dark:text-gray-100">{material.minQuantity ?? 10}</div>
             </div>
             <div>
-              <div className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1">Unit</div>
-              <div className="text-lg font-semibold text-gray-900">{material.unit || "-"}</div>
+              <div className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-1">Unit</div>
+              <div className="text-lg font-semibold text-gray-900 dark:text-gray-100">{material.unit || "-"}</div>
             </div>
             <div>
-              <div className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1">Location</div>
-              <div className="text-lg font-semibold text-gray-900">{material.location || "-"}</div>
+              <div className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-1">Location</div>
+              <div className="text-lg font-semibold text-gray-900 dark:text-gray-100">{material.location || "-"}</div>
             </div>
           </div>
 
           {/* Timestamps */}
-          <div className="mt-6 pt-4 border-t border-gray-100 flex gap-6 text-xs text-gray-400">
+          <div className="mt-6 pt-4 border-t border-gray-100 dark:border-gray-700 flex gap-6 text-xs text-gray-400 dark:text-gray-500">
             {material.createdAt && (
               <span>Created: {new Date(material.createdAt).toLocaleString()}</span>
             )}
@@ -207,29 +207,29 @@ export default function MaterialDetailPage() {
 
         {/* Movement Summary Cards */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-          <div className="bg-white p-5 rounded-xl shadow-sm border border-gray-200">
-            <div className="text-sm font-medium text-gray-500 mb-1">Total Movements</div>
-            <div className="text-2xl font-bold text-gray-900">{movements.length}</div>
+          <div className="bg-white dark:bg-gray-900 p-5 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700">
+            <div className="text-sm font-medium text-gray-500 dark:text-gray-400 mb-1">Total Movements</div>
+            <div className="text-2xl font-bold text-gray-900 dark:text-gray-100">{movements.length}</div>
           </div>
-          <div className="bg-white p-5 rounded-xl shadow-sm border border-gray-200">
-            <div className="text-sm font-medium text-gray-500 mb-1">Total Inbound</div>
-            <div className="text-2xl font-bold text-green-600">{totalInbound}</div>
+          <div className="bg-white dark:bg-gray-900 p-5 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700">
+            <div className="text-sm font-medium text-gray-500 dark:text-gray-400 mb-1">Total Inbound</div>
+            <div className="text-2xl font-bold text-green-600 dark:text-green-500">{totalInbound}</div>
           </div>
-          <div className="bg-white p-5 rounded-xl shadow-sm border border-gray-200">
-            <div className="text-sm font-medium text-gray-500 mb-1">Total Outbound</div>
-            <div className="text-2xl font-bold text-orange-600">{totalOutbound}</div>
+          <div className="bg-white dark:bg-gray-900 p-5 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700">
+            <div className="text-sm font-medium text-gray-500 dark:text-gray-400 mb-1">Total Outbound</div>
+            <div className="text-2xl font-bold text-orange-600 dark:text-orange-500">{totalOutbound}</div>
           </div>
         </div>
 
         {/* Movement History Table */}
-        <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
-          <div className="p-5 border-b border-gray-200">
-            <h2 className="text-lg font-semibold text-gray-900">Movement History</h2>
+        <div className="bg-white dark:bg-gray-900 rounded-xl shadow-sm border border-gray-200 dark:border-gray-900 overflow-hidden">
+          <div className="p-5 border-b border-gray-200 dark:border-gray-700">
+            <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100">Movement History</h2>
           </div>
           <div className="overflow-x-auto">
             <table className="w-full">
               <thead>
-                <tr className="bg-gray-50 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">
+                <tr className="bg-gray-50 dark:bg-gray-800 text-left text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">
                   <th className="px-5 py-3">Date</th>
                   <th className="px-5 py-3">Type</th>
                   <th className="px-5 py-3">Qty</th>
@@ -237,10 +237,10 @@ export default function MaterialDetailPage() {
                   <th className="px-5 py-3">By</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-gray-100">
+              <tbody className="divide-y divide-gray-100 dark:divide-gray-700">
                 {paginatedMovements.map((mov) => (
-                  <tr key={mov.id} className="hover:bg-gray-50 transition-colors">
-                    <td className="px-5 py-4 text-sm text-gray-500">
+                  <tr key={mov.id} className="hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors">
+                    <td className="px-5 py-4 text-sm text-gray-500 dark:text-gray-400">
                       {new Date(mov.createdAt).toLocaleString()}
                     </td>
                     <td className="px-5 py-4">
@@ -256,9 +256,9 @@ export default function MaterialDetailPage() {
                         {mov.type}
                       </span>
                     </td>
-                    <td className="px-5 py-4 font-medium text-gray-900">{mov.quantity}</td>
-                    <td className="px-5 py-4 text-sm text-gray-500">{mov.note || "-"}</td>
-                    <td className="px-5 py-4 text-sm text-gray-500">{mov.user.name}</td>
+                    <td className="px-5 py-4 font-medium text-gray-900 dark:text-gray-100">{mov.quantity}</td>
+                    <td className="px-5 py-4 text-sm text-gray-500 dark:text-gray-400">{mov.note || "-"}</td>
+                    <td className="px-5 py-4 text-sm text-gray-500 dark:text-gray-400">{mov.user.name}</td>
                   </tr>
                 ))}
                 {movements.length === 0 && (
@@ -272,8 +272,8 @@ export default function MaterialDetailPage() {
             </table>
           </div>
           {movements.length > movementPage && (
-            <div className="px-5 py-3 border-t border-gray-200 flex items-center justify-between text-sm">
-              <span className="text-gray-500">
+            <div className="px-5 py-3 border-t border-gray-200 dark:border-gray-700 flex items-center justify-between text-sm">
+              <span className="text-gray-500 dark:text-gray-500">
                 Showing {(movementPage - 1) * movementPage + 1}-
                 {Math.min(movementPage * movementsPerPage, movements.length)} of {movements.length}
               </span>
@@ -281,17 +281,17 @@ export default function MaterialDetailPage() {
                 <button
                   onClick={() => setMovementPage((p) => Math.max(1, p - 1))}
                   disabled={movementPage === 1}
-                  className="px-3 py-1.5 rounded-lg border border-gray-300 text-gray-700 hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed"
+                  className="px-3 py-1.5 rounded-lg border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-200 hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed"
                 >
                   ← Previous
                 </button>
-                <span className="text-gray-700 font-medium">
+                <span className="text-gray-700 dark:text-gray-200 font-medium">
                   Page {movementPage} of {totalPages}
                 </span>
                 <button
                   onClick={() => setMovementPage((p) => Math.min(totalPages, p + 1))}
                   disabled={movementPage === totalPages}
-                  className="px-3 py-1.5 rounded-lg border border-gray-300 text-gray-700 hover:bg-gray-50 disabled:opacity-40 disabled::cursor-not-allowed
+                  className="px-3 py-1.5 rounded-lg border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-200 hover:bg-gray-50 disabled:opacity-40 disabled::cursor-not-allowed
                   "
                 >
                   Next →
