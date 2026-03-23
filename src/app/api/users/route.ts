@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
 import { requireAuth } from "@/lib/permissions";
+import { logAudit } from "@/lib/audit";
 import bcrypt from "bcryptjs";
 
 // GET all users (ADMIN only)
@@ -24,7 +25,7 @@ export async function GET() {
 
 // POST create user (ADMIN only)
 export async function POST(req: NextRequest) {
-  const { error } = await requireAuth("ADMIN");
+  const { error, user: currentUser } = await requireAuth("ADMIN");
   if (error) return error;
 
   const { name, email, password, role } = await req.json();
@@ -68,6 +69,14 @@ export async function POST(req: NextRequest) {
         role: true,
         createdAt: true,
       },
+    });
+
+    await logAudit({
+      action: "CREATE_USER",
+      entity: "USER",
+      entityId: user.id,
+      userId: currentUser!.id,
+      details: JSON.stringify({ name, email, role: role || "VIEWER" }),
     });
 
     return NextResponse.json(user, { status: 201 });

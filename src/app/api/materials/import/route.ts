@@ -1,5 +1,6 @@
 import { prisma } from "@/lib/db";
 import { requireAuth } from "@/lib/permissions";
+import { logAudit } from "@/lib/audit";
 import { NextRequest, NextResponse } from "next/server";
 
 export async function POST(req: NextRequest) {
@@ -24,7 +25,7 @@ export async function POST(req: NextRequest) {
 
     if (!name || !partNumber) {
       results.push({ row: i + 1, name: name || "(empty)", status: "skipped", error: "Name and part number are required" });
-      continue
+      continue;
     }
 
     try {
@@ -81,6 +82,13 @@ export async function POST(req: NextRequest) {
 
   const created = results.filter((r) => r.status === "created").length;
   const skipped = results.filter((r) => r.status !== "created").length;
+
+  await logAudit({
+    action: "IMPORT_MATERIALS",
+    entity: "MATERIAL",
+    userId: user!.id,
+    details: JSON.stringify({ totalRows: materials.length, created, skipped }),
+  });
 
   return NextResponse.json({ created, skipped, results }, { status: 201 });
 }

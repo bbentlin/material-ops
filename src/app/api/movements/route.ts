@@ -1,5 +1,6 @@
 import { prisma } from "@/lib/db";
 import { requireAuth } from "@/lib/permissions";
+import { logAudit } from "@/lib/audit";
 import { NextRequest, NextResponse } from "next/server";
 
 // GET all movements
@@ -116,6 +117,20 @@ export async function POST(req: NextRequest) {
           data: { quantity: { increment: quantity } },
         }),
       ]);
+
+      const destMaterial = await prisma.material.findUnique({
+        where: { id: destinationMaterialId },
+        select: { name: true },
+      });
+
+      await logAudit({
+        action: "TRANSFER",
+        entity: "MOVEMENT",
+        entityId: movement.id,
+        userId: user!.id,
+        details: JSON.stringify({ from: material.name, to: destMaterial?.name, quantity }),
+      });
+
       return NextResponse.json(movement, { status: 201 });
     }
 
@@ -144,9 +159,17 @@ export async function POST(req: NextRequest) {
       }),
     ]);
 
+    await logAudit({
+      action: type,
+      entity: "MOVEMENT",
+      entityId: movement.id,
+      userId: user!.id,
+      details: JSON.stringify({ materialName: material.name, quantity }),
+    });
+
     return NextResponse.json(movement, { status: 201 });
   } catch (err: unknown) {
-    const message = 
+    const message =
       err instanceof Error ? err.message : "Failed to create movement";
     return NextResponse.json({ error: message }, { status: 500 });
   }

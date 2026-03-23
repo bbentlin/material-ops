@@ -1,11 +1,12 @@
 import { prisma } from "@/lib/db";
 import { requireAuth } from "@/lib/permissions";
+import { logAudit } from "@/lib/audit";
 import { NextRequest, NextResponse } from "next/server";
 
 // GET single material
 export async function GET(
   _req: NextRequest,
-  { params }: { params: Promise<{ id: string }> } 
+  { params }: { params: Promise<{ id: string }> }
 ) {
   const { error } = await requireAuth("VIEWER");
   if (error) return error;
@@ -35,7 +36,7 @@ export async function PATCH(
   req: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
-  const { error } = await requireAuth("OPERATOR");
+  const { error, user } = await requireAuth("OPERATOR");
   if (error) return error;
 
   const { id } = await params;
@@ -61,6 +62,24 @@ export async function PATCH(
       },
     });
 
+    // Build a list of what changed for the audit log
+    const changes: string[] = [];
+    if (body.name && body.name !== existing.name) changes.push(`name: "${existing.name}" → "${body.name}"`);
+    if (body.partNumber && body.partNumber !== existing.partNumber) changes.push(`partNumber: "${existing.partNumber}" → "${body.partNumber}"`);
+    if (body.quantity !== undefined && body.quantity !== existing.quantity) changes.push(`quantity: ${existing.quantity} → ${body.quantity}`);
+    if (body.minQuantity !== undefined && body.minQuantity !== existing.minQuantity) changes.push(`minQuantity: ${existing.minQuantity} → ${body.minQuantity}`);
+    if (body.unit && body.unit !== existing.unit) changes.push(`unit: "${existing.unit}" → "${body.unit}"`);
+    if (body.location !== undefined && body.location !== existing.location) changes.push(`location`);
+    if (body.departmentId !== undefined && body.departmentId !== existing.departmentId) changes.push(`department`);
+
+    await logAudit({
+      action: "UPDATE_MATERIAL",
+      entity: "MATERIAL",
+      entityId: id,
+      userId: user!.id,
+      details: JSON.stringify({ name: material.name, changes }),
+    });
+
     return NextResponse.json(material);
   } catch (err: unknown) {
     const message =
@@ -74,7 +93,7 @@ export async function DELETE(
   _req: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
-  const { error } = await requireAuth("ADMIN");
+  const { error, user } = await requireAuth("ADMIN");
   if (error) return error;
 
   const { id } = await params;
@@ -88,6 +107,14 @@ export async function DELETE(
     // Delete related movements first
     await prisma.movement.deleteMany({ where: { materialId: id } });
     await prisma.material.delete({ where: { id } });
+
+    await logAudit({
+      action: "DELETE_MATERIAL",
+      entity: "MATERIAL",
+      entityId: id,
+      userId: user!.id,
+      details: JSON.stringify({ name: existing.name, partNumber: existing.partNumber }),
+    });
 
     return NextResponse.json({ success: true });
   } catch (err: unknown) {

@@ -1,4 +1,5 @@
-import { authenticate } from "@/lib/auth";
+import { authenticate, getCurrentUser } from "@/lib/auth";
+import { logAudit } from "@/lib/audit";
 import { NextRequest, NextResponse } from "next/server";
 
 export async function POST(req: NextRequest) {
@@ -36,11 +37,30 @@ export async function POST(req: NextRequest) {
     path: "/",
   });
 
+  await logAudit({
+    action: "LOGIN",
+    entity: "AUTH",
+    userId: result.user.id,
+    details: JSON.stringify({ email: result.user.email }),
+  });
+
   return response;
 }
 
 export async function DELETE() {
+  const user = await getCurrentUser();
+
   const response = NextResponse.json({ success: true });
-  response.cookies.set("token", "", { maxAge: 0, path: "/"});
+  response.cookies.set("token", "", { maxAge: 0, path: "/" });
+
+  if (user) {
+    await logAudit({
+      action: "LOGOUT",
+      entity: "AUTH",
+      userId: user.id,
+      details: JSON.stringify({ email: user.email }),
+    });
+  }
+
   return response;
 }

@@ -35,6 +35,16 @@ type Movement = {
 type SortKey = "name" | "partNumber" | "quantity" | "unit" | "location" | "department";
 type SortDir = "asc" | "desc";
 
+type AuditEntry = {
+  id: string;
+  action: string;
+  entity: string;
+  entityId?: string;
+  details?: string;
+  createdAt: string;
+  user?: { name: string; email: string } | null;
+};
+
 export default function DashboardPage() {
   const [materials, setMaterials] = useState<Material[]>([]);
   const [movements, setMovements] = useState<Movement[]>([]);
@@ -57,6 +67,7 @@ export default function DashboardPage() {
   const [sortDir, setSortDir] = useState<SortDir>("asc");
   const [toasts, setToasts] = useState<ToastMessage[]>([]);
   const [darkMode, setDarkMode] = useState(false);
+  const [auditLogs, setAuditLogs] = useState<AuditEntry[]>([]);
 
   // Initialize dark mode from localStorage / system preference
   useEffect(() => {
@@ -135,11 +146,19 @@ export default function DashboardPage() {
     fetch("/api/departments").then(r => r.ok ? r.json() : []).then(setDepartments).catch(() => {});
   }
 
+  function fetchAuditLogs() {
+    fetch("/api/audit-logs?limit=10")
+      .then((r) => (r.ok ? r.json() : { logs: [] }))
+      .then((data) => setAuditLogs(data.logs || []))
+      .catch(() => {});
+  }
+
   useEffect(() => {
     fetchMaterials();
     fetchMovements();
     fetchCurrentUser();
     fetchDepartments();
+    fetchAuditLogs();
   }, []);
 
   // Reset to page 1 when filters change
@@ -306,6 +325,39 @@ export default function DashboardPage() {
   });
 
   const maxTrend = Math.max(...movementTrend.map((d) => Math.max(d.inbound, d.outbound)), 1);
+
+  function formatAuditAction(entry: AuditEntry): { icon: string; label: string; color: string } {
+    const map: Record<string, { icon: string; label: string; color: string }> = {
+      LOGIN: { icon: "🗝️", label: "Signed in", color: "text-blue-600 dark:text-blue-400" },
+      LOGOOUT: { icon: "🚪", label: "Signed out", color: "text-gray-500 dark:text-gray-400" },
+      CREATE_MATERIAL: { icon: "📦", label: "Created material", color: "text-green-600 dark:text-green-400" },
+      UPDATE_MATERIAL: { icon: "🖋️", label: "Updated material", color: "text-yellow-600 dark:text-yellow-400" },
+      DELETE_MATERIAL: { icon: "🗑️", label: "Deleted material", color: "text-red-600 dark:text-red-400" },
+      IMPORT_MATERIALS: { icon: "📥", label: "Imported materials", color: "text-purple-600 dark:text-purple-400" },
+      INBOUND: { icon: "📈", label: "Inbound", color: "text-green-600 dark:text-green-400" },
+      OUTBOUND: { icon: "📉", label: "Outbound", color: "text-orange-600 dark:text-orange-400" },
+      TRANSFER: { icon: "🔀", label: "Transfer", color: "text-blue-600 dark:text-blue-400" },
+      CREATE_USER: { icon: "👤➕", label: "Created user", color: "text-green-600 dark:text-green-400" },
+      UPDATE_USER: { icon: "👤✏️", label: "Updated user", color: "text-yellow-600 dark:text-yellow-400" },
+      DELETE_USER: { icon: "👤❌", label: "Deleted user", color: "text-red-600 dark:text-red-400" },
+    };
+    return map[entry.action] || { icon: "📋", label: entry.action, color: "text-gray-600"}
+  }
+
+  function getAuditDetail(entry: AuditEntry): string {
+    if (!entry.details) return "";
+    try {
+      const d = JSON.parse(entry.details);
+      if (entry.action === "LOGIN" || entry.action === "LOGOUT") return "";
+      if (entry.action === "IMPORT_MATERIALS") return `${d.created} created, ${d.skipped} skipped`;
+      if (entry.action === "TRANSFER") return `${d.from} → ${d.to} (${d.quantity})`;
+      if (d.materialName) return `${d.materialName} × ${d.quantity}`;
+      if (d.name) return d.name;
+      return "";
+    } catch {
+      return "";
+    }
+  }
 
   function exportCSV() {
     const headers = ["Name", "Part Number", "Description", "Quantity", "Min Quantity", "Unit", "Location", "Department"];
@@ -956,6 +1008,53 @@ export default function DashboardPage() {
             </div>
           )}
         </div>
+
+        {/* Activity Feed */}
+        <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 overflow-hidden mt-8">
+          <div className="p-5 border-b border-gray-200 dark:border-gray-700 flex justify-between items-center">
+            <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100">Recent Activity</h2>
+            <button
+              onClick={() => router.push("/dashboard/audit-log")}
+              className="text-sm text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300 font-medium"
+            >
+              View All →
+            </button>
+          </div>
+          <div className="divide-y divide-gray-100 dark:divide-gray-700">
+            {auditLogs.length === 0 ? (
+              <div className="px-5 py-12 text-center text-gray-400">No activity yet</div>
+            ) : (
+              auditLogs.map((entry) => {
+                const { icon, label, color } = formatAuditAction(entry);
+                const detail = getAuditDetail(entry);
+                return (
+                  <div key={entry.id} className="px-5 py-3 flex items-center gap-3 hover:bg-gray-50 dark:hover:bg-gray-700/30 transition-colors">
+                    <span className="text-lg shrink-0">{icon}</span>
+                    <div className="flex-1 min-w-0">
+                      <span className={`text-sm text-gray-500 dark:text-gray-400 ml-2`}>{label}</span>
+                      {detail && (
+                        <span className="text-sm text-gray-500 dark:text-gray-400 ml-2">{detail}</span>
+                      )}
+                    </div>
+                    <div className="flex items-center gap-3 shrink-0">
+                      <span className="text-xs text-gray-500 dark:text-gray-400">
+                        {entry.user?.name || "System"}
+                      </span>
+                      <span className="text-xs text-gray-400 dark:text-gray-500">
+                        {new Date(entry.createdAt).toLocaleDateString(undefined, {
+                          month: "short",
+                          day: "numeric",
+                          hour: "2-digit",
+                          minute: "2-digit",
+                        })}
+                      </span>
+                    </div>
+                  </div>
+                );
+              })
+            )}
+          </div>
+        </div>
       </main>
 
       {/* Add Material Modal */}
@@ -966,6 +1065,7 @@ export default function DashboardPage() {
             setShowAddMaterial(false);
             fetchMaterials();
             fetchMovements();
+            fetchAuditLogs();
             addToast("Material added succesfully");
           }}
         />
@@ -981,6 +1081,7 @@ export default function DashboardPage() {
             setEditMaterial(null);
             fetchMaterials();
             fetchMovements();
+            fetchAuditLogs();
             addToast("Material updated successfully");
           }}
         />
@@ -996,6 +1097,7 @@ export default function DashboardPage() {
             setShowMovement(null);
             fetchMaterials();
             fetchMovements();
+            fetchAuditLogs();
             addToast(
               showMovement?.startsWith("out-")
                 ? "Outbound recorded"
@@ -1014,6 +1116,7 @@ export default function DashboardPage() {
             setShowTransfer(null);
             fetchMaterials();
             fetchMovements();
+            fetchAuditLogs();
             addToast("Transfer completed");
           }}
         />

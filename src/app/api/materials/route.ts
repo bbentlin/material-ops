@@ -1,5 +1,6 @@
 import { prisma } from "@/lib/db";
 import { requireAuth } from "@/lib/permissions";
+import { logAudit } from "@/lib/audit";
 import { NextRequest, NextResponse } from "next/server";
 
 // GET all materials
@@ -52,6 +53,14 @@ export async function POST(req: NextRequest) {
         materialId: material.id,
         userId: user!.id,
       },
+    });
+
+    await logAudit({
+      action: "CREATE_MATERIAL",
+      entity: "MATERIAL",
+      entityId: material.id,
+      userId: user!.id,
+      details: JSON.stringify({ name, partNumber }),
     });
 
     return NextResponse.json(material, { status: 201 });

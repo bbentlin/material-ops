@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
 import { requireAuth } from "@/lib/permissions";
+import { logAudit } from "@/lib/audit";
 import bcrypt from "bcryptjs";
 
 // PATCH update user (ADMIN ONLY)
@@ -54,6 +55,20 @@ export async function PATCH(
       },
     });
 
+    const changes: string[] = [];
+    if (body.name && body.name !== existing.name) changes.push(`name: "${existing.name}" → "${body.name}"`);
+    if (body.email && body.email !== existing.email) changes.push(`email: "${existing.email}" → "${body.email}"`);
+    if (body.role && body.role !== existing.role) changes.push(`role: ${existing.role} → ${body.role}`);
+    if (body.password) changes.push("password changed");
+
+    await logAudit({
+      action: "UPDATE_USER",
+      entity: "USER",
+      entityId: id,
+      userId: currentUser!.id,
+      details: JSON.stringify({ name: user.name, changes }),
+    });
+
     return NextResponse.json(user);
   } catch (err: unknown) {
     const message = err instanceof Error ? err.message : "Failed to update user";
@@ -85,5 +100,14 @@ export async function DELETE(
   }
 
   await prisma.user.delete({ where: { id } });
+
+  await logAudit({
+    action: "DELETE_USER",
+    entity: "USER",
+    entityId: id,
+    userId: currentUser!.id,
+    details: JSON.stringify({ name: existing.name, email: existing.email }),
+  });
+
   return NextResponse.json({ success: true });
 }
