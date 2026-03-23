@@ -3,20 +3,60 @@ import { requireAuth } from "@/lib/permissions";
 import { logAudit } from "@/lib/audit";
 import { NextRequest, NextResponse } from "next/server";
 
-// GET all movements
-export async function GET() {
+// GET movements with server-side pagination and search
+export async function GET(req: NextRequest) {
   const { error } = await requireAuth("VIEWER");
   if (error) return error;
 
-  const movements = await prisma.movement.findMany({
-    include: {
-      material: { select: { name: true, partNumber: true } },
-      user: { select: { name: true, email: true } },
-    },
-    orderBy: { createdAt: "desc" },
-  });
+  const { searchParams } = new URL(req.url);
+  const page = Math.max(1, parseInt(searchParams.get("page") || "1", 10));
+  const limit = Math.min(100, Math.max(1, parseInt(searchParams.get("limit") || "10", 10)));
+  const search = searchParams.get("search") || "";
+  const dateFrom = searchParams.get("dateFrom") || "";
+  const dateTo = searchParams.get("dateTo") || "";
 
-  return NextResponse.json(movements);
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const where: any = {};
+
+  if (search) {
+    where.OR = [
+      { material: { name: { contains: search, mode: "insensitive" } } },
+      { material: { partNumber: { contains: search, mode: "insensitive" } } },
+      { type: { contains: search, mode: "insensitive" } },
+      { note: { contains: search, mode: "insensitive" } },
+      { user: { name: { contains: search, mode: "insensitive" } } },
+    ];
+  }
+
+  if (dateFrom || dateTo) {
+    where.createdAt = {};
+    if (dateFrom) {
+      const from = new Date(dateFrom);
+      from.setHours(0, 0, 0, 0);
+      where.createdAt.gte = from;
+    }
+    if (dateTo) {
+      const to = new Date(dateTo);
+      to.setHours(23, 59, 59, 999);
+      where.createdAt.lte = to;
+    }
+  }
+
+  const [movements, total] = await Promise.all([
+    prisma.movement.findMany({
+      where,
+      include: {
+        material: { select: { name: true, partNumber: true } },
+        user: { select: { name: true, email: true } },
+      },
+      orderBy: { createdAt: "desc" },
+      skip: (page - 1) * limit,
+      take: limit,
+    }),
+    prisma.movement.count({ where }),
+  ]);
+
+  return NextResponse.json({ movements, total, page, limit });
 }
 
 // POST create a movement (INBOUND or OUTBOUND)
