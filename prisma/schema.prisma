@@ -32,6 +32,7 @@ model User {
   createdAt DateTime   @default(now())
   updatedAt DateTime   @updatedAt
   movements Movement[]
+  auditLogs AuditLog[]
 }
 
 model Department {
@@ -69,4 +70,19 @@ model Movement {
   userId     String
   material   Material     @relation(fields: [materialId], references: [id])
   user       User         @relation(fields: [userId], references: [id])
+}
+
+model AuditLog {
+  id        String    @id @default(cuid())
+  action    String    // LOGIN, LOGOUT, CREATE_MATERIAL, UPDATE_MATERIAL, DELETE_MATERIAL, IMPORT_MATERIALS, INBOUND, OUTBOUND, TRANSFER, CREATE_USER, UPDATE_USER, DELETE_USER
+  entity    String    // AUTH, MATERIAL, MOVEMENT, USER 
+  entityId  String?
+  details   String?   // JSON string with context
+  userId    String? 
+  user      User?     @relation(fields: [userId], references: [id], onDelete: SetNull)
+  createdAt DateTime  @default(now())
+
+  @@index([entity])
+  @@index([createdAt])
+  @@index([userId])  
 }
