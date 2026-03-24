@@ -3,11 +3,15 @@
 import { useState, useRef, useCallback } from "react";
 
 export default function DraggableModal({
+  title,
   children,
   className = "",
+  onCloseAction,
 }: {
+  title?: string;
   children: React.ReactNode;
   className?: string;
+  onCloseAction?: () => void;
 }) {
   const [position, setPosition] = useState({ x: 0, y: 0 });
   const [isDragging, setIsDragging] = useState(false);
