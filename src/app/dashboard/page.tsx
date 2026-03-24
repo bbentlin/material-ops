@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import AddMaterialModal from "@/components/AddMaterialModal";
 import MovementModal from "@/components/MovementModal";
@@ -45,9 +45,38 @@ type AuditEntry = {
   user?: { name: string; email: string } | null;
 };
 
+type StatsData = {
+  totalMaterials: number;
+  totalStock: number;
+  lowStockCount: number;
+  stockByDepartment: { name: string; color: string; total: number }[];
+};
+
+type TrendDay = {
+  label: string;
+  inbound: number;
+  outbound: number;
+};
+
+type LowStockAlert = {
+  id: string;
+  name: string;
+  partNumber: string;
+  quantity: number;
+  minQuantity: number;
+  unit: string;
+  location?: string;
+  department?: { id: string; name: string; color: string } | null;
+  deficit: number;
+  severity: "CRITICAL" | "LOW";
+  percentOfThreshold: number;
+};
+
 export default function DashboardPage() {
   const [materials, setMaterials] = useState<Material[]>([]);
+  const [totalMaterials, setTotalMaterials] = useState(0);
   const [movements, setMovements] = useState<Movement[]>([]);
+  const [totalMovements, setTotalMovements] = useState(0);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [showAddMaterial, setShowAddMaterial] = useState(false);
@@ -55,6 +84,7 @@ export default function DashboardPage() {
   const [showTransfer, setShowTransfer] = useState<string | null>(null);
   const [editMaterial, setEditMaterial] = useState<Material | null>(null);
   const [search, setSearch] = useState("");
+  const [debouncedSearch, setDebouncedSearch] = useState("");
   const [dateFrom, setDateFrom] = useState("");
   const [dateTo, setDateTo] = useState("");
   const [userRole, setUserRole] = useState<string | null>(null);
@@ -68,6 +98,12 @@ export default function DashboardPage() {
   const [toasts, setToasts] = useState<ToastMessage[]>([]);
   const [darkMode, setDarkMode] = useState(false);
   const [auditLogs, setAuditLogs] = useState<AuditEntry[]>([]);
+  const [stats, setStats] = useState<StatsData | null>(null);
+  const [movementTrend, setMovementTrend] = useState<TrendDay[]>([]);
+  const [lowStockAlerts, setLowStockAlerts] = useState<LowStockAlert[]>([]);
+  const [showAlerts, setShowAlerts] = useState(true);
+  const [lowStockOnly, setLowStockOnly] = useState(false);
+  const debounceRef = useRef<ReturnType<typeof setTimeout>>(null);
 
   // Initialize dark mode from localStorage / system preference
   useEffect(() => {
@@ -101,8 +137,41 @@ export default function DashboardPage() {
   const canDelete = userRole === "ADMIN";
   const canManageUsers = userRole === "ADMIN";
 
-  function fetchMaterials() {
-    fetch("/api/materials")
+  // Debounce search — wait 300ms after typing stops
+  useEffect(() => {
+    if (debounceRef.current) clearTimeout(debounceRef.current);
+    debounceRef.current = setTimeout(() => {
+      setDebouncedSearch(search);
+      setMaterialPage(1);
+      setMovementPage(1);
+    }, 300);
+    return () => {
+      if (debounceRef.current) clearTimeout(debounceRef.current);
+    };
+  }, [search]);
+
+  // Reset to page 1 when filters change (non-search)
+  useEffect(() => {
+    setMaterialPage(1);
+    setMovementPage(1);
+  }, [dateFrom, dateTo, departmentFilter, lowStockOnly]);
+
+  // Fetch materials (server-side paginated)
+  const fetchMaterials = useCallback(() => {
+    const params = new URLSearchParams();
+    params.set("page", String(materialPage));
+    params.set("limit", String(materialsPerPage));
+    if (debouncedSearch) params.set("search", debouncedSearch);
+    if (sortKey) {
+      params.set("sortKey", sortKey);
+      params.set("sortDir", sortDir);
+    }
+    if (departmentFilter) params.set("departmentId", departmentFilter);
+    if (dateFrom) params.set("dateFrom", dateFrom);
+    if (dateTo) params.set("dateTo", dateTo);
+    if (lowStockOnly) params.set("lowStock", "true");
+
+    fetch(`/api/materials?${params}`)
       .then((res) => {
         if (res.status === 401) {
           router.push("/login");
@@ -111,24 +180,37 @@ export default function DashboardPage() {
         if (!res.ok) throw new Error("Failed to fetch materials");
         return res.json();
       })
-      .then(setMaterials)
+      .then((data) => {
+        setMaterials(data.materials || []);
+        setTotalMaterials(data.total || 0);
+      })
       .catch((e) => setError(e.message))
       .finally(() => setLoading(false));
-  }
+  }, [materialPage, debouncedSearch, sortKey, sortDir, departmentFilter, dateFrom, dateTo, lowStockOnly, router]);
 
-  function fetchMovements() {
-    fetch("/api/movements")
+  // Fetch movements (server-side paginated)
+  const fetchMovements = useCallback(() => {
+    const params = new URLSearchParams();
+    params.set("page", String(movementPage));
+    params.set("limit", String(movementsPerPage));
+    if (debouncedSearch) params.set("search", debouncedSearch);
+    if (dateFrom) params.set("dateFrom", dateFrom);
+    if (dateTo) params.set("dateTo", dateTo);
+
+    fetch(`/api/movements?${params}`)
       .then((res) => {
         if (!res.ok) throw new Error("Failed to fetch movements");
         return res.json();
       })
       .then((data) => {
-        if (Array.isArray(data)) {
-          setMovements(data);
-        }
+        setMovements(data.movements || []);
+        setTotalMovements(data.total || 0);
       })
-      .catch(() => setMovements([]));
-  }
+      .catch(() => {
+        setMovements([]);
+        setTotalMovements(0);
+      });
+  }, [movementPage, debouncedSearch, dateFrom, dateTo]);
 
   function fetchCurrentUser() {
     fetch("/api/auth/me")
@@ -153,26 +235,62 @@ export default function DashboardPage() {
       .catch(() => {});
   }
 
+  function fetchStats() {
+    fetch("/api/materials/stats")
+      .then((r) => (r.ok ? r.json() : null))
+      .then((data) => { if (data) setStats(data); })
+      .catch(() => {});
+  }
+
+  function fetchMovementTrend() {
+    fetch("/api/movements/trends")
+      .then((r) => (r.ok ? r.json() : []))
+      .then(setMovementTrend)
+      .catch(() => {});
+  }
+
+  function fetchLowStockAlerts() {
+    fetch("/api/materials/alerts")
+      .then((r) => (r.ok ? r.json() : []))
+      .then(setLowStockAlerts)
+      .catch(() => {});
+  }
+
+  // Re-fetch materials when filters/sort/page change
   useEffect(() => {
     fetchMaterials();
+  }, [fetchMaterials]);
+
+  // Re-fetch movements when filters/page change
+  useEffect(() => {
     fetchMovements();
+  }, [fetchMovements]);
+
+  // Initial load — static data
+  useEffect(() => {
     fetchCurrentUser();
     fetchDepartments();
     fetchAuditLogs();
+    fetchStats();
+    fetchMovementTrend();
+    fetchLowStockAlerts();
   }, []);
 
-  // Reset to page 1 when filters change
-  useEffect(() => {
-    setMaterialPage(1);
-    setMovementPage(1);
-  }, [search, dateFrom, dateTo, departmentFilter]);
+  // Refresh helper — called after mutations
+  function refreshAll() {
+    fetchMaterials();
+    fetchMovements();
+    fetchStats();
+    fetchMovementTrend();
+    fetchAuditLogs();
+    fetchLowStockAlerts();
+  }
 
   function toggleSort(key: SortKey) {
     if (sortKey === key) {
       if (sortDir === "asc") {
         setSortDir("desc");
       } else {
-        // Third click: clear sort
         setSortKey(null);
         setSortDir("asc");
       }
@@ -193,138 +311,32 @@ export default function DashboardPage() {
     router.push("/login");
   }
 
-  function isInDateRange(dateStr: string | undefined): boolean {
-    if (!dateFrom && !dateTo) return true;
-    if (!dateStr) return false;
-    const date = new Date(dateStr);
-    if (dateFrom) {
-      const from = new Date(dateFrom);
-      from.setHours(0, 0, 0, 0);
-      if (date < from) return false;
-    }
-    if (dateTo) {
-      const to = new Date(dateTo);
-      to.setHours(23, 59, 59, 999);
-      if (date > to) return false;
-    }
-    return true;
-  }
-
   const hasDateFilter = dateFrom || dateTo;
-  const hasAnyFilter = search || hasDateFilter || departmentFilter;
-
-  const filteredMaterials = materials.filter((mat) => {
-    const q = search.toLowerCase();
-    const matchesText =
-      mat.name.toLowerCase().includes(q) ||
-      mat.partNumber.toLowerCase().includes(q) ||
-      (mat.description ?? "").toLowerCase().includes(q) ||
-      (mat.location ?? "").toLowerCase().includes(q) ||
-      (mat.unit ?? "").toLowerCase().includes(q);
-    const matchesDate = isInDateRange(mat.createdAt);
-    const matchesCategory = !departmentFilter || mat.department?.id === departmentFilter;
-    return matchesText && matchesDate && matchesCategory;
-  });
-
-  const sortedMaterials = sortKey
-    ? [...filteredMaterials].sort((a, b) => {
-        let aVal: string | number;
-        let bVal: string | number;
-        if (sortKey === "quantity") {
-          aVal = a.quantity;
-          bVal = b.quantity;
-        } else if (sortKey === "department") {
-          aVal = a.department?.name?.toLowerCase() ?? "";
-          bVal = b.department?.name?.toLowerCase() ?? "";
-        } else {
-          aVal = (a[sortKey] ?? "").toString().toLowerCase();
-          bVal = (b[sortKey] ?? "").toString().toLowerCase();
-        }
-        if (aVal < bVal) return sortDir === "asc" ? -1 : 1;
-        if (aVal > bVal) return sortDir === "asc" ? 1 : -1;
-        return 0;
-      })
-    : filteredMaterials;
-
-  const filteredMovements = movements.filter((mov) => {
-    const matchesText =
-      !search ||
-      (() => {
-        const q = search.toLowerCase();
-        return (
-          mov.material.name.toLowerCase().includes(q) ||
-          mov.material.partNumber.toLowerCase().includes(q) ||
-          mov.type.toLowerCase().includes(q) ||
-          (mov.note ?? "").toLowerCase().includes(q) ||
-          mov.user.name.toLowerCase().includes(q)
-        );
-      })();
-    const matchesDate = isInDateRange(mov.createdAt);
-    return matchesText && matchesDate;
-  });
-
-  // Pagination calculations
-  const totalMaterialPages = Math.max(1, Math.ceil(sortedMaterials.length / materialsPerPage));
-  const paginatedMaterials = sortedMaterials.slice(
-    (materialPage - 1) * materialsPerPage,
-    materialPage * materialsPerPage
-  );
-
-  const totalMovementPages = Math.max(1, Math.ceil(filteredMovements.length / movementsPerPage));
-  const paginatedMovements = filteredMovements.slice(
-    (movementPage - 1) * movementsPerPage,
-    movementPage * movementsPerPage
-  );
+  const hasAnyFilter = debouncedSearch || hasDateFilter || departmentFilter || lowStockOnly;
 
   function clearFilters() {
     setSearch("");
+    setDebouncedSearch("");
     setDateFrom("");
     setDateTo("");
     setDepartmentFilter("");
+    setLowStockOnly(false);
   }
 
-  // --- Chart data ---
-  const stockByDepartment = departments 
-    .map((dept) => {
-      const total = materials
-        .filter((m) => m.department?.id === dept.id)
-        .reduce((sum, m) => sum + m.quantity, 0);
-      return { name: dept.name, color: dept.color, total };
-    })
-    .filter((d) => d.total > 0)
-    .sort((a, b) => b.total - a.total);
-
-  const unassignedStock = materials
-    .filter((m) => !m.department)
-    .reduce((sum, m) => sum + m.quantity, 0);
-  if (unassignedStock > 0) {
-    stockByDepartment.push({ name: "Unassigned", color: "#9CA3AF", total: unassignedStock });
-  }
-
+  // Chart data from stats
+  const stockByDepartment = stats?.stockByDepartment || [];
   const maxDeptStock = Math.max(...stockByDepartment.map((d) => d.total), 1);
 
-  // Movement trends: last 14 days
-  const today = new Date();
-  const trendDays = 14;
-  const movementTrend = Array.from({ length: trendDays }, (_, i) => {
-    const date = new Date(today);
-    date.setDate(date.getDate() - (trendDays - 1 - i));
-    const dateStr = date.toISOString().slice(0, 10);
-    const dayMovements = movements.filter(
-      (m) => m.createdAt.slice(0, 10) === dateStr
-    );
-    return {
-      label: date.toLocaleDateString(undefined, { month: "short", day: "numeric" }),
-      inbound: dayMovements
-        .filter((m) => m.type === "INBOUND")
-        .reduce((s, m) => s + m.quantity, 0),
-      outbound: dayMovements
-        .filter((m) => m.type === "OUTBOUND")
-        .reduce((s, m) => s + m.quantity, 0),
-    };
-  });
-
+  // Movement trend chart
   const maxTrend = Math.max(...movementTrend.map((d) => Math.max(d.inbound, d.outbound)), 1);
+
+  // Pagination calculations
+  const totalMaterialPages = Math.max(1, Math.ceil(totalMaterials / materialsPerPage));
+  const totalMovementPages = Math.max(1, Math.ceil(totalMovements / movementsPerPage));
+
+  // Low stock alert counts
+  const criticalCount = lowStockAlerts.filter((a) => a.severity === "CRITICAL").length;
+  const lowCount = lowStockAlerts.filter((a) => a.severity === "LOW").length;
 
   function formatAuditAction(entry: AuditEntry): { icon: string; label: string; color: string } {
     const map: Record<string, { icon: string; label: string; color: string }> = {
@@ -341,7 +353,7 @@ export default function DashboardPage() {
       UPDATE_USER: { icon: "👤✏️", label: "Updated user", color: "text-yellow-600 dark:text-yellow-400" },
       DELETE_USER: { icon: "👤❌", label: "Deleted user", color: "text-red-600 dark:text-red-400" },
     };
-    return map[entry.action] || { icon: "📋", label: entry.action, color: "text-gray-600"}
+    return map[entry.action] || { icon: "📋", label: entry.action, color: "text-gray-600" };
   }
 
   function getAuditDetail(entry: AuditEntry): string {
@@ -360,29 +372,48 @@ export default function DashboardPage() {
   }
 
   function exportCSV() {
-    const headers = ["Name", "Part Number", "Description", "Quantity", "Min Quantity", "Unit", "Location", "Department"];
-    const rows = materials.map((m) => [
-      m.name,
-      m.partNumber,
-      m.description ?? "",
-      m.quantity.toString(),
-      (m.minQuantity ?? 10).toString(),
-      m.unit ?? "",
-      m.location ?? "",
-      m.department?.name ?? "",
-    ]);
+    const params = new URLSearchParams();
+    params.set("all", "true");
+    if (debouncedSearch) params.set("search", debouncedSearch);
+    if (sortKey) {
+      params.set("sortKey", sortKey);
+      params.set("sortDir", sortDir);
+    }
+    if (departmentFilter) params.set("departmentId", departmentFilter);
+    if (dateFrom) params.set("dateFrom", dateFrom);
+    if (dateTo) params.set("dateTo", dateTo);
 
-    const csvContent = [headers, ...rows]
-      .map((row) => row.map((cell) => `"${cell.replace(/"/g, '""')}"`).join(","))
-      .join("\n");
+    fetch(`/api/materials?${params}`)
+      .then((res) => {
+        if (!res.ok) throw new Error("Export failed");
+        return res.json();
+      })
+      .then((allMaterials: Material[]) => {
+        const headers = ["Name", "Part Number", "Description", "Quantity", "Min Quantity", "Unit", "Location", "Department"];
+        const rows = allMaterials.map((m) => [
+          m.name,
+          m.partNumber,
+          m.description ?? "",
+          m.quantity.toString(),
+          (m.minQuantity ?? 10).toString(),
+          m.unit ?? "",
+          m.location ?? "",
+          m.department?.name ?? "",
+        ]);
 
-    const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement("a");
-    link.href = url;
-    link.download = `materials-${new Date().toISOString().slice(0, 10)}.csv`;
-    link.click();
-    URL.revokeObjectURL(url);
+        const csvContent = [headers, ...rows]
+          .map((row) => row.map((cell) => `"${cell.replace(/"/g, '""')}"`).join(","))
+          .join("\n");
+
+        const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement("a");
+        link.href = url;
+        link.download = `materials-${new Date().toISOString().slice(0, 10)}.csv`;
+        link.click();
+        URL.revokeObjectURL(url);
+      })
+      .catch(() => addToast("Export failed", "error"));
   }
 
   function handleImportCSV(e: React.ChangeEvent<HTMLInputElement>) {
@@ -398,7 +429,6 @@ export default function DashboardPage() {
         return;
       }
 
-      // Parse header
       const headerLine = lines[0];
       const headers = headerLine.split(",").map((h) => h.trim().replace(/^"|"$/g, "").toLowerCase());
 
@@ -416,8 +446,7 @@ export default function DashboardPage() {
         return;
       }
 
-      // Parse rows
-      const materials = lines.slice(1).map((line) => {
+      const importMaterials = lines.slice(1).map((line) => {
         const cols = line.match(/(".*?"|[^",]+|(?<=,)(?=,))/g)?.map((c) => c.trim().replace(/^"|"$/g, "")) ?? [];
         return {
           name: cols[nameIdx] ?? "",
@@ -431,13 +460,13 @@ export default function DashboardPage() {
         };
       });
 
-      if (!confirm(`Import ${materials.length} material(s) from CSV?`)) return;
+      if (!confirm(`Import ${importMaterials.length} material(s) from CSV?`)) return;
 
       try {
         const res = await fetch("/api/materials/import", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ materials }),
+          body: JSON.stringify({ materials: importMaterials }),
         });
 
         if (!res.ok) {
@@ -448,14 +477,13 @@ export default function DashboardPage() {
 
         const data = await res.json();
         addToast(`Import complete: ${data.created} created, ${data.skipped} skipped.`);
-        fetchMaterials();
-        fetchMovements();
+        refreshAll();
       } catch {
         addToast("Import failed. Please try again.", "error");
       }
     };
     reader.readAsText(file);
-    e.target.value = ""; // Reset so same file can be re-imported
+    e.target.value = "";
   }
 
   const roleBadge: Record<string, string> = {
@@ -615,15 +643,15 @@ export default function DashboardPage() {
         {hasAnyFilter && (
           <div className="mb-4 text-sm text-gray-500 dark:text-gray-400 flex items-center gap-2">
             <span>
-              Showing {filteredMaterials.length} material
-              {filteredMaterials.length !== 1 ? "s" : ""} and{" "}
-              {filteredMovements.length} movement
-              {filteredMovements.length !== 1 ? "s" : ""}
-              {search && (
+              Showing {totalMaterials} material
+              {totalMaterials !== 1 ? "s" : ""} and{" "}
+              {totalMovements} movement
+              {totalMovements !== 1 ? "s" : ""}
+              {debouncedSearch && (
                 <>
                   {" "}
                   matching &ldquo;
-                  <span className="font-medium text-gray-700 dark:text-gray-200">{search}</span>
+                  <span className="font-medium text-gray-700 dark:text-gray-200">{debouncedSearch}</span>
                   &rdquo;
                 </>
               )}
@@ -636,6 +664,9 @@ export default function DashboardPage() {
                     ? `from ${dateFrom}`
                     : `up to ${dateTo}`}
                 </span>
+              )}
+              {lowStockOnly && (
+                <span className="text-orange-600 dark:text-orange-400 font-medium"> — low stock only</span>
               )}
             </span>
             <button
@@ -654,7 +685,7 @@ export default function DashboardPage() {
               Total Materials
             </div>
             <div className="text-3xl font-bold text-gray-900 dark:text-gray-100">
-              {materials.length}
+              {stats?.totalMaterials ?? 0}
             </div>
           </div>
           <div className="bg-white dark:bg-gray-800 p-6 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700">
@@ -662,18 +693,163 @@ export default function DashboardPage() {
               Total Stock
             </div>
             <div className="text-3xl font-bold text-gray-900 dark:text-gray-100">
-              {materials.reduce((sum, m) => sum + m.quantity, 0)}
+              {stats?.totalStock ?? 0}
             </div>
           </div>
-          <div className="bg-white dark:bg-gray-800 p-6 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700">
-            <div className="text-sm font-medium text-gray-500 dark:text-gray-400 mb-1">
-              Low Stock 
+          {/* Low Stock card — clickable to toggle filter */}
+          <button
+            onClick={() => {
+              setLowStockOnly((prev) => !prev);
+              setMaterialPage(1);
+            }}
+            className={`text-left bg-white dark:bg-gray-800 p-6 rounded-xl shadow-sm border-2 transition-all ${
+              lowStockOnly
+                ? "border-orange-400 dark:border-orange-500 ring-2 ring-orange-200 dark:ring-orange-900"
+                : "border-gray-200 dark:border-gray-700 hover:border-orange-300 dark:hover:border-orange-600"
+            }`}
+          >
+            <div className="flex items-center justify-between mb-1">
+              <span className="text-sm font-medium text-gray-500 dark:text-gray-400">
+                Low Stock
+              </span>
+              {(stats?.lowStockCount ?? 0) > 0 && (
+                <span className="relative flex h-3 w-3">
+                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-orange-400 opacity-75" />
+                  <span className="relative inline-flex rounded-full h-3 w-3 bg-orange-500" />
+                </span>
+              )}
             </div>
-            <div className="text-3xl font-bold text-orange-600">
-              {materials.filter((m) => m.quantity <= (m.minQuantity ?? 10)).length}
+            <div className="flex items-baseline gap-2">
+              <span className="text-3xl font-bold text-orange-600">
+                {stats?.lowStockCount ?? 0}
+              </span>
+              {lowStockOnly && (
+                <span className="text-xs text-orange-500 font-medium">Filter active</span>
+              )}
             </div>
-          </div>
+            {(stats?.lowStockCount ?? 0) > 0 && (
+              <div className="text-xs text-gray-400 dark:text-gray-500 mt-1">
+                {criticalCount > 0 && (
+                  <span className="text-red-500 dark:text-red-400 font-medium">{criticalCount} critical</span>
+                )}
+                {criticalCount > 0 && lowCount > 0 && " · "}
+                {lowCount > 0 && (
+                  <span className="text-orange-500 dark:text-orange-400">{lowCount} low</span>
+                )}
+                {" · Click to "}
+                {lowStockOnly ? "show all" : "filter"}
+              </div>
+            )}
+          </button>
         </div>
+
+        {/* Low Stock Alerts Panel */}
+        {lowStockAlerts.length > 0 && (
+          <div className="mb-8 bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-orange-200 dark:border-orange-900/50 overflow-hidden">
+            <button
+              onClick={() => setShowAlerts((prev) => !prev)}
+              className="w-full p-4 flex items-center justify-between hover:bg-orange-50/50 dark:hover:bg-orange-900/10 transition-colors"
+            >
+              <div className="flex items-center gap-3">
+                <span className="text-lg">⚠️</span>
+                <h3 className="text-sm font-semibold text-gray-900 dark:text-gray-100">
+                  Low Stock Alerts
+                </h3>
+                <span className="text-xs font-medium bg-orange-100 dark:bg-orange-900 text-orange-700 dark:text-orange-300 px-2 py-0.5 rounded-full">
+                  {lowStockAlerts.length} item{lowStockAlerts.length !== 1 ? "s" : ""}
+                </span>
+                {criticalCount > 0 && (
+                  <span className="text-xs font-medium bg-red-100 dark:bg-red-900 text-red-700 dark:text-red-300 px-2 py-0.5 rounded-full">
+                    {criticalCount} critical
+                  </span>
+                )}
+              </div>
+              <span className="text-gray-400 text-sm">{showAlerts ? "▲ Hide" : "▼ Show"}</span>
+            </button>
+            {showAlerts && (
+              <div className="border-t border-orange-100 dark:border-orange-900/30">
+                <div className="divide-y divide-gray-100 dark:divide-gray-700">
+                  {lowStockAlerts.map((alert) => (
+                    <div
+                      key={alert.id}
+                      className={`px-5 py-3 flex items-center gap-4 ${
+                        alert.severity === "CRITICAL"
+                          ? "bg-red-50/50 dark:bg-red-900/10"
+                          : ""
+                      }`}
+                    >
+                      {/* Severity badge */}
+                      <span
+                        className={`text-xs font-bold px-2 py-0.5 rounded-full shrink-0 ${
+                          alert.severity === "CRITICAL"
+                            ? "bg-red-100 dark:bg-red-900 text-red-700 dark:text-red-300"
+                            : "bg-orange-100 dark:bg-orange-900 text-orange-700 dark:text-orange-300"
+                        }`}
+                      >
+                        {alert.severity === "CRITICAL" ? "CRITICAL" : "LOW"}
+                      </span>
+                      {/* Material info */}
+                      <div className="flex-1 min-w-0">
+                        <button
+                          onClick={() => router.push(`/dashboard/materials/${alert.id}`)}
+                          className="text-sm font-medium text-blue-600 hover:text-blue-500 hover:underline truncate block"
+                        >
+                          {alert.name}
+                        </button>
+                        <span className="text-xs text-gray-400 font-mono">{alert.partNumber}</span>
+                      </div>
+                      {/* Stock level bar */}
+                      <div className="w-32 shrink-0">
+                        <div className="flex items-center justify-between text-xs mb-0.5">
+                          <span className={`font-bold ${
+                            alert.severity === "CRITICAL" ? "text-red-600 dark:text-red-400" : "text-orange-600 dark:text-orange-400"
+                          }`}>
+                            {alert.quantity}
+                          </span>
+                          <span className="text-gray-400">/ {alert.minQuantity} {alert.unit}</span>
+                        </div>
+                        <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-1.5">
+                          <div
+                            className={`h-full rounded-full transition-all ${
+                              alert.severity === "CRITICAL" ? "bg-red-500" : "bg-orange-400"
+                            }`}
+                            style={{ width: `${Math.min(alert.percentOfThreshold, 100)}%`, minWidth: alert.quantity > 0 ? "2px" : "0" }}
+                          />
+                        </div>
+                      </div>
+                      {/* Deficit */}
+                      <span className="text-xs text-gray-500 dark:text-gray-400 shrink-0 w-20 text-right">
+                        Need {alert.deficit} more
+                      </span>
+                      {/* Department */}
+                      <span className="shrink-0">
+                        {alert.department ? (
+                          <span
+                            className="text-xs font-semibold px-2 py-0.5 rounded-full text-white"
+                            style={{ backgroundColor: alert.department.color }}
+                          >
+                            {alert.department.name}
+                          </span>
+                        ) : (
+                          <span className="text-xs text-gray-400">—</span>
+                        )}
+                      </span>
+                      {/* Quick restock button */}
+                      {canEdit && (
+                        <button
+                          onClick={() => setShowMovement(alert.id)}
+                          className="text-xs font-medium bg-green-600 text-white px-3 py-1.5 rounded-lg hover:bg-green-700 transition-colors shrink-0"
+                        >
+                          + Restock
+                        </button>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
+        )}
 
         {/* Charts */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
@@ -719,19 +895,17 @@ export default function DashboardPage() {
                 <span className="inline-block w-3 h-3 rounded-sm bg-orange-400" /> Outbound
               </span>
             </div>
-            {movementTrend.every((d) => d.inbound === 0 && d.outbound === 0) ? (
+            {movementTrend.length === 0 || movementTrend.every((d) => d.inbound === 0 && d.outbound === 0) ? (
               <p className="text-sm text-gray-400 dark:text-gray-300 py-8 text-center">No movements in the last 14 days</p>
             ) : (
               <div className="flex items-end gap-1 h-40">
                 {movementTrend.map((day, i) => (
                   <div key={i} className="flex-1 flex flex-col items-center gap-0.5 h-full justify-end">
-                    {/* Inbound bar */}
                     <div
                       className="w-full rounded-t bg-green-500 transition-all duration-500"
                       style={{ height: `${(day.inbound / maxTrend) * 100}%`, minHeight: day.inbound > 0 ? "2px" : "0" }}
                       title={`${day.label}: ${day.inbound} inbound`}
                     />
-                    {/* Outbound bar */}
                     <div
                       className="w-full rounded-t bg-orange-400 transition-all duration-500"
                       style={{ height: `${(day.outbound / maxTrend) * 100}%`, minHeight: day.outbound > 0 ? "2px" : "0" }}
@@ -750,7 +924,20 @@ export default function DashboardPage() {
         {/* Materials Table */}
         <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 overflow-hidden">
           <div className="p-5 border-b border-gray-200 dark:border-gray-700 flex justify-between items-center">
-            <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100">Materials</h2>
+            <div className="flex items-center gap-3">
+              <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100">Materials</h2>
+              {lowStockOnly && (
+                <span className="text-xs font-medium bg-orange-100 dark:bg-orange-900 text-orange-700 dark:text-orange-300 px-2 py-0.5 rounded-full flex items-center gap-1">
+                  ⚠️ Low stock only
+                  <button
+                    onClick={() => setLowStockOnly(false)}
+                    className="hover:text-orange-900 dark:hover:text-orange-100 ml-1"
+                  >
+                    ✕
+                  </button>
+                </span>
+              )}
+            </div>
             <div className="flex items-center gap-2">
               <button
                 onClick={exportCSV}
@@ -805,7 +992,7 @@ export default function DashboardPage() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-100 dark:divide-gray-700">
-                {paginatedMaterials.map((mat) => (
+                {materials.map((mat) => (
                   <tr key={mat.id} className="hover:bg-gray-50 dark:hover:bg-gray-700/30 transition-colors">
                     <td className="px-5 py-4">
                       <button
@@ -820,13 +1007,15 @@ export default function DashboardPage() {
                       <span
                         className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-sm font-bold ${
                           mat.quantity <= (mat.minQuantity ?? 10)
-                            ? "bg-orange-100 text-orange-700"
-                            : "bg-green-100 text-green-700"
+                            ? mat.quantity === 0
+                              ? "bg-red-100 text-red-700 dark:bg-red-900/50 dark:text-red-400"
+                              : "bg-orange-100 text-orange-700 dark:bg-orange-900/50 dark:text-orange-400"
+                            : "bg-green-100 text-green-700 dark:bg-green-900/50 dark:text-green-400"
                         }`}
                       >
                         {mat.quantity}
                         {mat.quantity <= (mat.minQuantity ?? 10) && (
-                          <span className="text-xs text-orange-500 ml-1">
+                          <span className={`text-xs ml-1 ${mat.quantity === 0 ? "text-red-500" : "text-orange-500"}`}>
                             (min: {mat.minQuantity ?? 10})
                           </span>
                         )}
@@ -878,7 +1067,7 @@ export default function DashboardPage() {
                     )}
                   </tr>
                 ))}
-                {filteredMaterials.length === 0 && (
+                {materials.length === 0 && (
                   <tr>
                     <td
                       colSpan={canEdit ? 7 : 6}
@@ -893,12 +1082,12 @@ export default function DashboardPage() {
               </tbody>
             </table>
           </div>
-          {sortedMaterials.length > materialsPerPage && (
+          {totalMaterials > materialsPerPage && (
             <div className="px-5 py-3 border-t border-gray-200 dark:border-gray-700 flex items-center justify-between text-sm">
               <span className="text-gray-500 dark:text-gray-400">
-                Showing {(materialPage - 1) * materialsPerPage + 1}– 
-                {Math.min(materialPage * materialsPerPage, sortedMaterials.length)} of{" "}
-                {sortedMaterials.length}
+                Showing {(materialPage - 1) * materialsPerPage + 1}–
+                {Math.min(materialPage * materialsPerPage, totalMaterials)} of{" "}
+                {totalMaterials}
               </span>
               <div className="flex items-center gap-2">
                 <button
@@ -941,7 +1130,7 @@ export default function DashboardPage() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-100 dark:divide-gray-700">
-                {paginatedMovements.map((mov) => (
+                {movements.map((mov) => (
                   <tr key={mov.id} className="hover:bg-gray-50 dark:hover:bg-gray-700/30 transition-colors">
                     <td className="px-5 py-4 text-sm text-gray-500 dark:text-gray-200">
                       {new Date(mov.createdAt).toLocaleDateString()}
@@ -967,7 +1156,7 @@ export default function DashboardPage() {
                     <td className="px-5 py-4 text-sm text-gray-500 dark:text-gray-300">{mov.user.name}</td>
                   </tr>
                 ))}
-                {filteredMovements.length === 0 && (
+                {movements.length === 0 && (
                   <tr>
                     <td colSpan={6} className="px-5 py-12 text-center text-gray-400">
                       {hasAnyFilter
@@ -979,12 +1168,12 @@ export default function DashboardPage() {
               </tbody>
             </table>
           </div>
-          {filteredMovements.length > movementsPerPage && (
+          {totalMovements > movementsPerPage && (
             <div className="px-5 py-3 border-t border-gray-200 dark:border-gray-700 flex items-center justify-between text-sm">
               <span className="text-gray-500 dark:text-gray-400">
                 Showing {(movementPage - 1) * movementsPerPage + 1}–
-                {Math.min(movementPage * movementsPerPage, filteredMovements.length)} of{" "}
-                {filteredMovements.length}
+                {Math.min(movementPage * movementsPerPage, totalMovements)} of{" "}
+                {totalMovements}
               </span>
               <div className="flex items-center gap-2">
                 <button
@@ -1031,7 +1220,7 @@ export default function DashboardPage() {
                   <div key={entry.id} className="px-5 py-3 flex items-center gap-3 hover:bg-gray-50 dark:hover:bg-gray-700/30 transition-colors">
                     <span className="text-lg shrink-0">{icon}</span>
                     <div className="flex-1 min-w-0">
-                      <span className={`text-sm text-gray-500 dark:text-gray-400 ml-2`}>{label}</span>
+                      <span className={`text-sm ${color}`}>{label}</span>
                       {detail && (
                         <span className="text-sm text-gray-500 dark:text-gray-400 ml-2">{detail}</span>
                       )}
@@ -1041,7 +1230,7 @@ export default function DashboardPage() {
                         {entry.user?.name || "System"}
                       </span>
                       <span className="text-xs text-gray-400 dark:text-gray-500">
-                        {new Date(entry.createdAt).toLocaleDateString(undefined, {
+                        {new Date(entry.createdAt).toLocaleString(undefined, {
                           month: "short",
                           day: "numeric",
                           hour: "2-digit",
@@ -1063,10 +1252,8 @@ export default function DashboardPage() {
           onCloseAction={() => setShowAddMaterial(false)}
           onSuccessAction={() => {
             setShowAddMaterial(false);
-            fetchMaterials();
-            fetchMovements();
-            fetchAuditLogs();
-            addToast("Material added succesfully");
+            refreshAll();
+            addToast("Material added successfully");
           }}
         />
       )}
@@ -1079,9 +1266,7 @@ export default function DashboardPage() {
           onCloseAction={() => setEditMaterial(null)}
           onSuccessAction={() => {
             setEditMaterial(null);
-            fetchMaterials();
-            fetchMovements();
-            fetchAuditLogs();
+            refreshAll();
             addToast("Material updated successfully");
           }}
         />
@@ -1095,9 +1280,7 @@ export default function DashboardPage() {
           onCloseAction={() => setShowMovement(null)}
           onSuccessAction={() => {
             setShowMovement(null);
-            fetchMaterials();
-            fetchMovements();
-            fetchAuditLogs();
+            refreshAll();
             addToast(
               showMovement?.startsWith("out-")
                 ? "Outbound recorded"
@@ -1114,9 +1297,7 @@ export default function DashboardPage() {
           onCloseAction={() => setShowTransfer(null)}
           onSuccessAction={() => {
             setShowTransfer(null);
-            fetchMaterials();
-            fetchMovements();
-            fetchAuditLogs();
+            refreshAll();
             addToast("Transfer completed");
           }}
         />

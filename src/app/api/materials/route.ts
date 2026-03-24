@@ -13,11 +13,12 @@ export async function GET(req: NextRequest) {
   const limit = Math.min(100, Math.max(1, parseInt(searchParams.get("limit") || "15", 10)));
   const search = searchParams.get("search") || "";
   const sortKey = searchParams.get("sortKey") || "";
-  const sortDir = searchParams.get("sortDir") || "desc" ? "desc" : "asc";
+  const sortDir = searchParams.get("sortDir") === "desc" ? "desc" : "asc";
   const departmentId = searchParams.get("departmentId") || "";
   const dateFrom = searchParams.get("dateFrom") || "";
   const dateTo = searchParams.get("dateTo") || "";
-  const all = searchParams.get("all") || "true";
+  const all = searchParams.get("all") === "true";
+  const lowStock = searchParams.get("lowStock") === "true";
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const where: any = {};
@@ -56,9 +57,9 @@ export async function GET(req: NextRequest) {
   // Build orderBy
   const validSortKeys = ["name", "partNumber", "quantity", "unit", "location"];
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  let orderBy: any = { createdAt: "desc"};
+  let orderBy: any = { createdAt: "desc" };
   if (sortKey === "department") {
-    orderBy = { dpartment: { name: sortDir } };
+    orderBy = { department: { name: sortDir } };
   } else if (validSortKeys.includes(sortKey)) {
     orderBy = { [sortKey]: sortDir };
   }
@@ -71,6 +72,23 @@ export async function GET(req: NextRequest) {
       include: { department: { select: { id: true, name: true, color: true } } },
     });
     return NextResponse.json(materials);
+  }
+
+  // Low stock filter — Prisma can't compare column-to-column, so fetch and filter
+  if (lowStock) {
+    const allMats = await prisma.material.findMany({
+      where,
+      orderBy,
+      include: { department: { select: { id: true, name: true, color: true } } },
+    });
+    const filtered = allMats.filter((m) => m.quantity <= m.minQuantity);
+    const start = (page - 1) * limit;
+    return NextResponse.json({
+      materials: filtered.slice(start, start + limit),
+      total: filtered.length,
+      page,
+      limit,
+    });
   }
   
   const [materials, total] = await Promise.all([
