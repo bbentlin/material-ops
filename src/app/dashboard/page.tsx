@@ -6,6 +6,7 @@ import AddMaterialModal from "@/components/AddMaterialModal";
 import MovementModal from "@/components/MovementModal";
 import EditMaterialModal from "@/components/EditMaterialModal";
 import TransferModal from "@/components/TransferModal";
+import ScannerModal from "@/components/ScannerModal";
 import Toast, { ToastMessage } from "@/components/Toast";
 
 type Material = {
@@ -103,6 +104,7 @@ export default function DashboardPage() {
   const [lowStockAlerts, setLowStockAlerts] = useState<LowStockAlert[]>([]);
   const [showAlerts, setShowAlerts] = useState(true);
   const [lowStockOnly, setLowStockOnly] = useState(false);
+  const [showScanner, setShowScanner] = useState(false);
   const debounceRef = useRef<ReturnType<typeof setTimeout>>(null);
 
   // Initialize dark mode from localStorage / system preference
@@ -284,6 +286,21 @@ export default function DashboardPage() {
     fetchMovementTrend();
     fetchAuditLogs();
     fetchLowStockAlerts();
+  }
+
+  function handleScanResult(partNumber: string) {
+    setShowScanner(false);
+    fetch(`/api/materials/lookup?partNumber=${encodeURIComponent(partNumber)}`)
+      .then((r) => {
+        if (!r.ok) throw new Error("not_found");
+        return r.json();
+      })
+      .then((mat) => {
+        router.push(`/dashboard/materials/${mat.id}`);
+      })
+      .catch(() => {
+        addToast(`No material found for "${partNumber}"`, "error");
+      });
   }
 
   function toggleSort(key: SortKey) {
@@ -595,6 +612,16 @@ export default function DashboardPage() {
                 </span>
               )}
             </div>
+
+            {/* Scanner */}
+            <button
+              onClick={() => setShowScanner(true)}
+              className="text-sm text-gray-600 dark:text-gray-400 hover:text-blue-700 dark:hover:text-blue-300 transition-colors px-3 py-1.5 rounded-md hover:bg-blue-50 dark:hover:bg-blue-900/30 font-medium"
+              title="Scan barcode or QR code"
+            >
+              📷 Scan
+            </button>
+
             {/* Admin link */}
             {canManageUsers && (
               <button
@@ -1300,6 +1327,14 @@ export default function DashboardPage() {
             refreshAll();
             addToast("Transfer completed");
           }}
+        />
+      )}
+
+      {/* Scanner Modal */}
+      {showScanner && (
+        <ScannerModal
+          onCloseAction={() => setShowScanner(false)}
+          onResultAction={handleScanResult}
         />
       )}
 

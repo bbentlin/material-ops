@@ -1,9 +1,10 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { useRouter, useParams } from "next/navigation";
 import MovementModal from "@/components/MovementModal";
 import EditMaterialModal from "@/components/EditMaterialModal";
+import Barcode128 from "@/components/Barcode128";
 
 type Movement = {
   id: string;
@@ -26,7 +27,7 @@ type Material = {
   createdAt?: string;
   updatedAt?: string;
   department?: { id: string; name: string; color: string } | null;
-  movements: Movement[]; 
+  movements: Movement[];
 };
 
 export default function MaterialDetailPage() {
@@ -39,6 +40,8 @@ export default function MaterialDetailPage() {
   const [showMovement, setShowMovement] = useState<"INBOUND" | "OUTBOUND" | null>(null);
   const [editMaterial, setEditMaterial] = useState(false);
   const [movementPage, setMovementPage] = useState(1);
+  const [qrDataUrl, setQrDataUrl] = useState<string>("");
+  const labelRef = useRef<HTMLDivElement>(null);
 
   const movementsPerPage = 15;
   const canEdit = userRole === "ADMIN" || userRole === "OPERATOR";
@@ -60,13 +63,50 @@ export default function MaterialDetailPage() {
       .finally(() => setLoading(false));
   }
 
+  // Generate QR code as data URL using canvas
+  useEffect(() => {
+    if (!material) return;
+    const qrData = material.partNumber;
+    // Use dynamic import to avoid SSR issues with qrcode
+    import("qrcode").then((QRCode) => {
+      QRCode.toDataURL(qrData, {
+        width: 180,
+        margin: 1,
+        color: { dark: "#000000", light: "#ffffff" },
+      }).then(setQrDataUrl).catch(() => {});
+    }).catch(() => {});
+  }, [material]);
+
   useEffect(() => {
     fetchMaterial();
     fetch("/api/auth/me")
       .then((res) => (res.ok ? res.json() : null))
-      .then((data) => {if (data) setUserRole(data.role); })
+      .then((data) => { if (data) setUserRole(data.role); })
       .catch(() => {});
   }, []);
+
+  function printLabel() {
+    if (!labelRef.current) return;
+    const printWindow = window.open("", "_blank", "width=400,height=600");
+    if (!printWindow) return;
+    printWindow.document.write(`
+      <!DOCTYPE html>
+      <html>
+        <head>
+          <title>Label — ${material?.partNumber}</title>
+          <style>
+            body { margin: 0; padding: 20px; font-family: -apple-system, BlinkMacSystemFont, sans-serif; }
+            @media print { body { padding: 10px; } }
+          </style>
+        </head>
+        <body>${labelRef.current.innerHTML}</body>
+      </html>
+    `);
+    printWindow.document.close();
+    printWindow.focus();
+    printWindow.print();
+    printWindow.close();
+  }
 
   if (loading) {
     return (
@@ -100,12 +140,11 @@ export default function MaterialDetailPage() {
     movementPage * movementsPerPage
   );
 
-  // Compute summary stats
   const totalInbound = movements.filter((m) => m.type === "INBOUND").reduce((s, m) => s + m.quantity, 0);
   const totalOutbound = movements.filter((m) => m.type === "OUTBOUND").reduce((s, m) => s + m.quantity, 0);
 
   return (
-    <div className="min-h-screeen bg-gray-100 dark:bg-gray-900">
+    <div className="min-h-screen bg-gray-100 dark:bg-gray-900">
       {/* Header */}
       <header className="bg-white shadow-sm border-b border-gray-200 dark:bg-gray-800 dark:border-gray-700">
         <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex items-center gap-4">
@@ -129,79 +168,124 @@ export default function MaterialDetailPage() {
       </header>
 
       <main className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {/* Material Info Card */}
-        <div className="bg-white rounded-xl shadow-sm border border-gray-200 dark:bg-gray-800 dark:border-gray-700 p-6 mb-8">
-          <div className="flex justify-between items-start mb-6">
-            <div>
-              <h2 className="text-2xl font-bold text-gray-900 dark:text-gray-100">{material.name}</h2>
-              <p className="text-gray-500 dark:text-gray-400 font-mono text-sm mt-1">{material.partNumber}</p>
-              {material.description && (
-                <p className="text-gray-600 dark:text-gray-400 mt-2">{material.description}</p>
-              )}
-            </div>
-            {canEdit && (
-              <div className="flex gap-2">
-                <button
-                  onClick={() => setEditMaterial(true)}
-                  className="text-sm font-medium bg-gray-100 text-gray-700 px-4 py-2 rounded-lg hover:bg-gray-200 dark:bg-gray-800 dark:text-gray-200 dark:hover:bg-gray-700 transition-colors"
-                >
-                  ✏️ Edit
-                </button>
-                <button
-                  onClick={() => setShowMovement("INBOUND")}
-                  className="text-sm font-medium bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition-colors"
-                >
-                  + Inbound
-                </button>
-                <button
-                  onClick={() => setShowMovement("OUTBOUND")}
-                  className="text-sm font-medium bg-orange-500 text-white px-4 py-2 rounded-lg hover:bg-orange-600 transition-colors"
-                >
-                  - Outbound
-                </button>
+        {/* Material Info + Label side by side */}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
+          {/* Material Info Card — 2 cols */}
+          <div className="lg:col-span-2 bg-white rounded-xl shadow-sm border border-gray-200 dark:bg-gray-800 dark:border-gray-700 p-6">
+            <div className="flex justify-between items-start mb-6">
+              <div>
+                <h2 className="text-2xl font-bold text-gray-900 dark:text-gray-100">{material.name}</h2>
+                <p className="text-gray-500 dark:text-gray-400 font-mono text-sm mt-1">{material.partNumber}</p>
+                {material.description && (
+                  <p className="text-gray-600 dark:text-gray-400 mt-2">{material.description}</p>
+                )}
               </div>
-            )}
-          </div>
-
-          {/* Info grid */}
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
-            <div>
-              <div className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-1">Quantity</div>
-              <span
-                className={`inline-flex items-center px-3 py-1 rounded-full text-lg font-bold ${
-                  isLowStock ? "bg-orange-100 text-orange-700" : "bg-green-100 text-green-700"
-                }`}
-              >
-                {material.quantity}
-              </span>
-              {isLowStock && (
-                <div className="text-xs text-orange-600 mt-1">
-                  ⚠ Below minimum ({material.minQuantity ?? 10})
+              {canEdit && (
+                <div className="flex gap-2">
+                  <button
+                    onClick={() => setEditMaterial(true)}
+                    className="text-sm font-medium bg-gray-100 text-gray-700 px-4 py-2 rounded-lg hover:bg-gray-200 dark:bg-gray-800 dark:text-gray-200 dark:hover:bg-gray-700 transition-colors"
+                  >
+                    ✏️ Edit
+                  </button>
+                  <button
+                    onClick={() => setShowMovement("INBOUND")}
+                    className="text-sm font-medium bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition-colors"
+                  >
+                    + Inbound
+                  </button>
+                  <button
+                    onClick={() => setShowMovement("OUTBOUND")}
+                    className="text-sm font-medium bg-orange-500 text-white px-4 py-2 rounded-lg hover:bg-orange-600 transition-colors"
+                  >
+                    − Outbound
+                  </button>
                 </div>
               )}
             </div>
-            <div>
-              <div className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-1">Min Quantity</div>
-              <div className="text-lg font-semibold text-gray-900 dark:text-gray-100">{material.minQuantity ?? 10}</div>
+
+            {/* Info grid */}
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
+              <div>
+                <div className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-1">Quantity</div>
+                <span
+                  className={`inline-flex items-center px-3 py-1 rounded-full text-lg font-bold ${
+                    isLowStock ? "bg-orange-100 text-orange-700" : "bg-green-100 text-green-700"
+                  }`}
+                >
+                  {material.quantity}
+                </span>
+                {isLowStock && (
+                  <div className="text-xs text-orange-600 mt-1">
+                    ⚠ Below minimum ({material.minQuantity ?? 10})
+                  </div>
+                )}
+              </div>
+              <div>
+                <div className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-1">Min Quantity</div>
+                <div className="text-lg font-semibold text-gray-900 dark:text-gray-100">{material.minQuantity ?? 10}</div>
+              </div>
+              <div>
+                <div className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-1">Unit</div>
+                <div className="text-lg font-semibold text-gray-900 dark:text-gray-100">{material.unit || "-"}</div>
+              </div>
+              <div>
+                <div className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-1">Location</div>
+                <div className="text-lg font-semibold text-gray-900 dark:text-gray-100">{material.location || "-"}</div>
+              </div>
             </div>
-            <div>
-              <div className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-1">Unit</div>
-              <div className="text-lg font-semibold text-gray-900 dark:text-gray-100">{material.unit || "-"}</div>
-            </div>
-            <div>
-              <div className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-1">Location</div>
-              <div className="text-lg font-semibold text-gray-900 dark:text-gray-100">{material.location || "-"}</div>
+
+            {/* Timestamps */}
+            <div className="mt-6 pt-4 border-t border-gray-100 dark:border-gray-700 flex gap-6 text-xs text-gray-400 dark:text-gray-500">
+              {material.createdAt && (
+                <span>Created: {new Date(material.createdAt).toLocaleString()}</span>
+              )}
+              {material.updatedAt && (
+                <span>Updated: {new Date(material.updatedAt).toLocaleString()}</span>
+              )}
             </div>
           </div>
 
-          {/* Timestamps */}
-          <div className="mt-6 pt-4 border-t border-gray-100 dark:border-gray-700 flex gap-6 text-xs text-gray-400 dark:text-gray-500">
-            {material.createdAt && (
-              <span>Created: {new Date(material.createdAt).toLocaleString()}</span>
-            )}
-            {material.updatedAt && (
-              <span>Updated: {new Date(material.updatedAt).toLocaleString()}</span>
-            )}
+          {/* Barcode / QR Label Card — 1 col */}
+          <div className="bg-white rounded-xl shadow-sm border border-gray-200 dark:bg-gray-800 dark:border-gray-700 p-6 flex flex-col items-center">
+            <div className="flex items-center justify-between w-full mb-4">
+              <h3 className="text-sm font-semibold text-gray-900 dark:text-gray-100">Label</h3>
+              <button
+                onClick={printLabel}
+                className="text-xs font-medium text-gray-600 dark:text-gray-300 px-2 py-1 rounded border border-gray-300 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
+              >
+                🖨️ Print
+              </button>
+            </div>
+            {/* Printable label content */}
+            <div
+              ref={labelRef}
+              className="bg-white border border-dashed border-gray-300 dark:border-gray-600 rounded-lg p-4 w-full flex flex-col items-center gap-3"
+              style={{ maxWidth: 300 }}
+            >
+              {/* QR Code */}
+              {qrDataUrl ? (
+                <img src={qrDataUrl} alt={`QR: ${material.partNumber}`} width={140} height={140} />
+              ) : (
+                <div className="w-35 h-35 bg-gray-100 rounded flex items-center justify-center text-gray-400 text-xs">
+                  QR Code
+                </div>
+              )}
+              {/* Barcode */}
+              <Barcode128 data={material.partNumber} width={240} height={50} />
+              {/* Material info */}
+              <div className="text-center">
+                <div className="text-sm font-bold text-gray-900" style={{ color: "#000" }}>{material.name}</div>
+                {material.location && (
+                  <div className="text-xs text-gray-500" style={{ color: "#666" }}>📍 {material.location}</div>
+                )}
+                {material.department && (
+                  <div className="text-xs mt-0.5" style={{ color: material.department.color }}>
+                    {material.department.name}
+                  </div>
+                )}
+              </div>
+            </div>
           </div>
         </div>
 
@@ -271,10 +355,10 @@ export default function MaterialDetailPage() {
               </tbody>
             </table>
           </div>
-          {movements.length > movementPage && (
+          {movements.length > movementsPerPage && (
             <div className="px-5 py-3 border-t border-gray-200 dark:border-gray-700 flex items-center justify-between text-sm">
               <span className="text-gray-500 dark:text-gray-500">
-                Showing {(movementPage - 1) * movementPage + 1}-
+                Showing {(movementPage - 1) * movementsPerPage + 1}–
                 {Math.min(movementPage * movementsPerPage, movements.length)} of {movements.length}
               </span>
               <div className="flex items-center gap-2">
@@ -291,8 +375,7 @@ export default function MaterialDetailPage() {
                 <button
                   onClick={() => setMovementPage((p) => Math.min(totalPages, p + 1))}
                   disabled={movementPage === totalPages}
-                  className="px-3 py-1.5 rounded-lg border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-200 hover:bg-gray-50 disabled:opacity-40 disabled::cursor-not-allowed
-                  "
+                  className="px-3 py-1.5 rounded-lg border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-200 hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed"
                 >
                   Next →
                 </button>
