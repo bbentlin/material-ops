@@ -24,15 +24,17 @@ enum MovementType {
 }
 
 model User {
-  id        String     @id @default(cuid())
-  email     String     @unique
-  name      String
-  password  String
-  role      Role       @default(VIEWER)
-  createdAt DateTime   @default(now())
-  updatedAt DateTime   @updatedAt
-  movements Movement[]
-  auditLogs AuditLog[]
+  id              String          @id @default(cuid())
+  email           String          @unique
+  name            String
+  password        String
+  role            Role            @default(VIEWER)
+  createdAt       DateTime        @default(now())
+  updatedAt       DateTime        @updatedAt
+  movements       Movement[]
+  auditLogs       AuditLog[]
+  createdOrders   PurchaseOrder[] @relation("CreatedOrders")
+  approvedOrders  PurchaseOrder[] @relation("ApprovedOrders")
 }
 
 model Department {
@@ -45,19 +47,20 @@ model Department {
 }
 
 model Material {
-  id           String      @id @default(cuid())
-  name         String
-  partNumber   String      @unique
-  description  String?
-  quantity     Int         @default(0)
-  minQuantity  Int         @default(10)
-  unit         String      @default("ea")
-  location     String?
-  departmentId String?
-  department   Department? @relation(fields: [departmentId], references: [id])
-  createdAt    DateTime    @default(now())
-  updatedAt    DateTime    @updatedAt
-  movements    Movement[]
+  id                  String      @id @default(cuid())
+  name                String
+  partNumber          String      @unique
+  description         String?
+  quantity            Int         @default(0)
+  minQuantity         Int         @default(10)
+  unit                String      @default("ea")
+  location            String?
+  departmentId        String?
+  department          Department? @relation(fields: [departmentId], references: [id])
+  createdAt           DateTime    @default(now())
+  updatedAt           DateTime    @updatedAt
+  movements           Movement[]
+  purchaseOrderItems  PurchaseOrderItem[]
 }
 
 model Movement {
@@ -85,4 +88,45 @@ model AuditLog {
   @@index([entity])
   @@index([createdAt])
   @@index([userId])  
+}
+
+enum PurchaseOrderStatus {
+  DRAFT
+  SUBMITTED
+  APPROVED
+  RECEIVED
+  CANCELLED
+}
+
+model PurchaseOrder {
+  id             String              @id @default(cuid())
+  orderNumber    String              @unique
+  status         PurchaseOrderStatus @default(DRAFT)
+  supplier       String
+  notes          String?
+  expectedDate   DateTime?
+  totalItems     Int                 @default(0)
+  createdById    String
+  createdBy      User                @relation("CreatedOrders", fields: [createdById], references: [id])
+  approvedById   String?
+  approvedBy     User?               @relation("ApprovedOrders", fields: [approvedById], references: [id])
+  receivedAt     DateTime?
+  createdAt      DateTime            @default(now())
+  updatedAt      DateTime            @updatedAt
+  items          PurchaseOrderItem[]
+
+  @@index([status])
+  @@index([createdAt])
+  @@index([createdById])
+}
+
+model PurchaseOrderItem {
+  id              String        @id @default(cuid())
+  purchaseOrderId String
+  purchaseOrder   PurchaseOrder @relation(fields: [purchaseOrderId], references: [id], onDelete: Cascade)
+  materialId      String
+  material        Material      @relation(fields: [materialId], references: [id])
+  quantity        Int
+  unitPrice       Float?
+  receivedQty     Int           @default(0)
 }
