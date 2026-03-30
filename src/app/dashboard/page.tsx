@@ -622,6 +622,15 @@ export default function DashboardPage() {
               📷 Scan
             </button>
 
+            {/* Purchase Orders Link */}
+            <button
+              onClick={() => router.push("/dashboard/purchase-orders")}
+              className="text-sm text-gray-600 dark:text-gray-400 hover:text-blue-700 dark:hover:text-blue-300 transition-colors px-3 py-1.5 rounded-md hover:bg-blue-50 dark:hover:bg-blue-900/30 font-medium"
+              title="Purchase Orders"
+            >
+              📋 Orders
+            </button>
+
             {/* Admin link */}
             {canManageUsers && (
               <button
