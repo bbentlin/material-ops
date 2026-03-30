@@ -69,7 +69,7 @@ export default function PurchaseOrderModal({
       .catch(() => {});
   }, []);
 
-  function addItem(idx: number) {
+  function addItem() {
     setItems((prev) => [...prev, { materialId: "", quantity: 1, unitPrice: null }]);
   }
 

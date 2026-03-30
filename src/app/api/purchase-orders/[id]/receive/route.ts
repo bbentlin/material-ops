@@ -51,7 +51,7 @@ export async function POST(
       data: { quantity: { increment: item.quantity } },
     });
 
-    await prisma.purchaseOrder.update({
+    await prisma.purchaseOrderItem.update({
       where: { id: item.id },
       data: { receivedQty: item.quantity},
     });
