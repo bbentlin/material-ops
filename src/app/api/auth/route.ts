@@ -1,8 +1,22 @@
 import { authenticate, getCurrentUser } from "@/lib/auth";
 import { logAudit } from "@/lib/audit";
 import { NextRequest, NextResponse } from "next/server";
+import { rateLimit } from "@/lib/rate-limit";
 
 export async function POST(req: NextRequest) {
+  const ip = req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() || "unknown";
+  const rl = rateLimit(`login:${ip}`, 5, 15 * 60 * 1000);
+
+  if (!rl.success) {
+    return NextResponse.json(
+      { error: "Too many login attempts. Please try again later." },
+      {
+        status: 429,
+        headers: { "Retry-After": String(Math.ceil(rl.retryAfterMs / 1000)) },
+      }
+    );
+  }
+
   const { email, password } = await req.json();
 
   if (!email || !password) {
@@ -33,7 +47,7 @@ export async function POST(req: NextRequest) {
     httpOnly: true,
     secure: process.env.NODE_ENV === "production",
     sameSite: "lax",
-    maxAge: 60 * 60 * 8, // 8 hours
+    maxAge: 60 * 60 * 8,
     path: "/",
   });
 

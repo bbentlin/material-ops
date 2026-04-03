@@ -5,7 +5,8 @@ const SECRET = new TextEncoder().encode(
   process.env.JWT_SECRET || "default-secret-change-me"
 );
 
-// Routes that don't require authentication
+const apiHits = new Map<string, number[]>();
+
 const publicPaths = ["/login", "/api/auth"];
 
 function isPublic(pathname: string) {
@@ -14,19 +15,35 @@ function isPublic(pathname: string) {
   );
 }
 
-export async function middleware(req: NextRequest) {
+export async function proxy(req: NextRequest) {
   const { pathname } = req.nextUrl;
 
-  // Let static files and Next.js internals pass through
   if (
     pathname.startsWith("/_next") ||
     pathname.startsWith("/favicon") ||
-    pathname.startsWith(".ico") ||
-    pathname.startsWith(".svg") ||
-    pathname.startsWith(".png") ||
-    pathname.startsWith(".jpg")
+    pathname.endsWith(".ico") ||
+    pathname.endsWith(".svg") ||
+    pathname.endsWith(".png") ||
+    pathname.endsWith(".jpg")
   ) {
     return NextResponse.next();
+  }
+
+  if (pathname.startsWith("/api/")) {
+    const ip = req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() || "unknown";
+    const now = Date.now();
+    const windowMs = 60_000;
+    const limit = 100;
+    const key = `api:${ip}`;
+    const hits = (apiHits.get(key) || []).filter((t) => t > now - windowMs);
+    if (hits.length >= limit) {
+      return NextResponse.json(
+        { error: "Rate limit exceeded" },
+        { status: 429, headers: { "Retry-After": "60" } }
+      );
+    }
+    hits.push(now);
+    apiHits.set(key, hits);
   }
 
   const token = req.cookies.get("token")?.value;
@@ -37,31 +54,26 @@ export async function middleware(req: NextRequest) {
       await jwtVerify(token, SECRET);
       isAuthenticated = true;
     } catch {
-      // Token is invalid or expired - treat as unauthenticated
+      // Token is invalid or expired
     }
   }
 
-  // Authenticated user hitting /login → send to dashboard
   if (isAuthenticated && pathname === "/login") {
     return NextResponse.redirect(new URL("/dashboard", req.url));
   }
 
-  // Unauthenticated user hitting / → send to login
   if (!isAuthenticated && pathname === "/") {
     return NextResponse.redirect(new URL("/login", req.url));
   }
 
-  // Public paths don't need auth
   if (isPublic(pathname)) {
     return NextResponse.next();
   }
 
-  // API routes: return 401 JSON instead of redirect
   if (!isAuthenticated && pathname.startsWith("/api/")) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  // Protected page routes: redirect to login
   if (!isAuthenticated) {
     const loginUrl = new URL("/login", req.url);
     loginUrl.searchParams.set("from", pathname);
@@ -73,10 +85,6 @@ export async function middleware(req: NextRequest) {
 
 export const config = {
   matcher: [
-    /*
-     * Match all paths except static files and Next.js internals.
-     * This is a safety net - the function also filters internally.
-     */
     "/((?!_next/static|_next/image).*)",
   ],
 };
