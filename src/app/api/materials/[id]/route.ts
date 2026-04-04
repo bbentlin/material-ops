@@ -2,6 +2,7 @@ import { prisma } from "@/lib/db";
 import { requireAuth } from "@/lib/permissions";
 import { logAudit } from "@/lib/audit";
 import { NextRequest, NextResponse } from "next/server";
+import { updateMaterialSchema } from "@/lib/validations";
 
 // GET single material
 export async function GET(
@@ -40,7 +41,15 @@ export async function PATCH(
   if (error) return error;
 
   const { id } = await params;
-  const body = await req.json();
+  const raw = await req.json();
+  const parsed = updateMaterialSchema.safeParse(raw);
+  if (!parsed.success) {
+    return NextResponse.json(
+      { error: parsed.error.issues[0].message},
+      { status: 400 }
+    );
+  }
+  const body = parsed.data;
 
   const existing = await prisma.material.findUnique({ where: { id } });
   if (!existing) {

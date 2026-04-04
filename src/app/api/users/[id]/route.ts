@@ -3,6 +3,7 @@ import { prisma } from "@/lib/db";
 import { requireAuth } from "@/lib/permissions";
 import { logAudit } from "@/lib/audit";
 import bcrypt from "bcryptjs";
+import { updateUserSchema } from "@/lib/validations";
 
 // PATCH update user (ADMIN ONLY)
 export async function PATCH(
@@ -13,19 +14,19 @@ export async function PATCH(
   if (error) return error;
 
   const { id } = await params;
-  const body = await req.json();
+  const raw = await req.json();
+  const parsed = updateUserSchema.safeParse(raw);
+  if (!parsed.success) {
+    return NextResponse.json(
+      { error: parsed.error.issues[0].message },
+      { status: 400 }
+    );
+  }
+  const body = parsed.data;
 
   const existing = await prisma.user.findUnique({ where: { id } });
   if (!existing) {
     return NextResponse.json({ error: "User not found" }, { status: 404 });
-  }
-
-  const validRoles = ["ADMIN", "OPERATOR", "VIEWER"];
-  if (body.role && !validRoles.includes(body.role)) {
-    return NextResponse.json(
-      { error: `Invalid role. Must be one of: ${validRoles.join(", ")}` },
-      { status: 400 }
-    );
   }
 
   // Prevent admin from demoting themselves

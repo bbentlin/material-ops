@@ -2,6 +2,7 @@ import { prisma } from "@/lib/db";
 import { requireAuth } from "@/lib/permissions";
 import { logAudit } from "@/lib/audit";
 import { NextRequest, NextResponse } from "next/server";
+import { createMaterialSchema } from "@/lib/validations";
 
 // GET materials with server-side pagination, search, sort, and filtering
 export async function GET(req: NextRequest) {
@@ -110,14 +111,15 @@ export async function POST(req: NextRequest) {
   const { error, user } = await requireAuth("OPERATOR");
   if (error) return error;
 
-  const { name, partNumber, description, quantity, unit, location, minQuantity, departmentId } = await req.json();
-
-  if (!name || !partNumber) {
+  const raw = await req.json();
+  const parsed = createMaterialSchema.safeParse(raw);
+  if (!parsed.success) {
     return NextResponse.json(
-      { error: "Name and part number are required" },
+      { error: parsed.error.issues[0].message },
       { status: 400 }
     );
   }
+  const { name, partNumber, description, quantity, unit, location, minQuantity, departmentId } = parsed.data;
   
   try {
     const material = await prisma.material.create({

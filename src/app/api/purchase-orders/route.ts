@@ -2,6 +2,7 @@ import { prisma } from "@/lib/db";
 import { requireAuth } from "@/lib/permissions";
 import { logAudit } from "@/lib/audit";
 import { NextRequest, NextResponse } from "next/server";
+import { createPurchaseOrderSchema } from "@/lib/validations";
 
 export async function GET(req: NextRequest) {
   const { error } = await requireAuth("VIEWER");
@@ -54,15 +55,15 @@ export async function POST(req: NextRequest) {
   const { user, error } = await requireAuth("OPERATOR");
   if (error) return error;
 
-  const body = await req.json();
-  const { supplier, notes, expectedDate, items } = body;
-
-  if (!supplier || !items || !Array.isArray(items) || items.length === 0) {
+  const raw = await req.json();
+  const parsed = createPurchaseOrderSchema.safeParse(raw);
+  if (!parsed.success) {
     return NextResponse.json(
-      { error: "Supplier and at least one item are required" },
+      { error: parsed.error.issues[0].message },
       { status: 400 }
     );
   }
+  const { supplier, notes, expectedDate, items } = parsed.data;
 
   // Validate all materialIds exist
   const materialIds = items.map((i: { materialId: string }) => i.materialId);
@@ -105,7 +106,7 @@ export async function POST(req: NextRequest) {
       totalItems: items.reduce((sum: number, i: { quantity: number }) => sum + i.quantity, 0),
       createdById: user!.id,
       items: {
-        create: items.map((i: { materialId: string; quantity: number; unitPrice?: number }) => ({
+        create: items.map((i: { materialId: string; quantity: number; unitPrice?: number | null }) => ({
           materialId: i.materialId,
           quantity: i.quantity,
           unitPrice: i.unitPrice ?? null,

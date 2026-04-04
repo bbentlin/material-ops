@@ -2,6 +2,7 @@ import { authenticate, getCurrentUser } from "@/lib/auth";
 import { logAudit } from "@/lib/audit";
 import { NextRequest, NextResponse } from "next/server";
 import { rateLimit } from "@/lib/rate-limit";
+import { loginSchema } from "@/lib/validations";
 
 export async function POST(req: NextRequest) {
   const ip = req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() || "unknown";
@@ -16,15 +17,16 @@ export async function POST(req: NextRequest) {
       }
     );
   }
-
-  const { email, password } = await req.json();
-
-  if (!email || !password) {
+ 
+  const body = await req.json();
+  const parsed = loginSchema.safeParse(body);
+  if (!parsed.success) {
     return NextResponse.json(
-      { error: "Email and password are required" },
+      { error: parsed.error.issues[0].message },
       { status: 400 }
     );
   }
+  const { email, password } = parsed.data;
 
   const result = await authenticate(email, password);
   if (!result) {

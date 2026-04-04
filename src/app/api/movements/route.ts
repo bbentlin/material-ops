@@ -2,6 +2,7 @@ import { prisma } from "@/lib/db";
 import { requireAuth } from "@/lib/permissions";
 import { logAudit } from "@/lib/audit";
 import { NextRequest, NextResponse } from "next/server";
+import { createMovementSchema } from "@/lib/validations";
 
 // GET movements with server-side pagination and search
 export async function GET(req: NextRequest) {
@@ -64,21 +65,15 @@ export async function POST(req: NextRequest) {
   const { error, user } = await requireAuth("OPERATOR");
   if (error) return error;
 
-  const { type, quantity, note, materialId, destinationMaterialId } = await req.json();
-
-  if (!type || !quantity || !materialId) {
+  const raw = await req.json();
+  const parsed = createMovementSchema.safeParse(raw);
+  if (!parsed.success) {
     return NextResponse.json(
-      { error: "type, quantity, and materialId are required" },
+      { error: parsed.error.issues[0].message },
       { status: 400 }
     );
   }
-
-  if (!["INBOUND", "OUTBOUND", "TRANSFER"].includes(type)) {
-    return NextResponse.json(
-      { error: "type must be INBOUND, OUTBOUND, or TRANSFER" },
-      { status: 400 }
-    );
-  }
+  const { type, quantity, note, materialId, destinationMaterialId } = parsed.data;
 
   // Verify material exists
   const material = await prisma.material.findUnique({

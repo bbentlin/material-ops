@@ -2,7 +2,6 @@ import { prisma } from "@/lib/db";
 import { requireAuth } from "@/lib/permissions";
 import { logAudit } from "@/lib/audit";
 import { NextRequest, NextResponse } from "next/server";
-import { CANCELLED } from "dns";
 
 export async function GET(
   req: NextRequest,

@@ -3,6 +3,7 @@ import { prisma } from "@/lib/db";
 import { requireAuth } from "@/lib/permissions";
 import { logAudit } from "@/lib/audit";
 import bcrypt from "bcryptjs";
+import { createUserSchema } from "@/lib/validations";
 
 // GET all users (ADMIN only)
 export async function GET() {
@@ -28,22 +29,15 @@ export async function POST(req: NextRequest) {
   const { error, user: currentUser } = await requireAuth("ADMIN");
   if (error) return error;
 
-  const { name, email, password, role } = await req.json();
-
-  if (!name || !email || !password) {
+  const raw = await req.json();
+  const parsed = createUserSchema.safeParse(raw);
+  if (!parsed.success) {
     return NextResponse.json(
-      { error: "Name, email, and password are required" },
+      { error: parsed.error.issues[0].message },
       { status: 400 }
     );
   }
-
-  const validRoles = ["ADMIN", "OPERATOR", "VIEWER"];
-  if (role && !validRoles.includes(role)) {
-    return NextResponse.json(
-      { error: `Invalid role. Must be one of: ${validRoles.join(", ")}` },
-      { status: 400 }
-    );
-  }
+  const { name, email, password, role } = parsed.data;
 
   const existing = await prisma.user.findUnique({ where: { email } });
   if (existing) {
