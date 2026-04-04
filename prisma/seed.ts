@@ -10,28 +10,40 @@ async function main() {
   // Create admin user
   const admin = await prisma.user.upsert({
     where: { email: "admin@materialops.com" },
-    update: {},
+    update: {
+      password: hashSync(process.env.ADMIN_PASSWORD || "Admin!Change#Me2026", 10),
+    },
     create: {
       email: "admin@materialops.com",
       name: "Admin",
-      password: hashSync("admin123", 10),
+      password: hashSync(process.env.ADMIN_PASSWORD || "Admin!Change#Me2026", 10),
       role: "ADMIN",
     },
   });
   console.log("Admin user created:", admin.email);
 
+  if (!process.env.ADMIN_PASSWORD) {
+    console.warn("⚠️ Using default admin password. Set ADMIN_PASSWORD env var for production.");
+  }
+
   // Create an operator user
   const operator = await prisma.user.upsert({
     where: { email: "operator@materialops.com" },
-    update: {},
+    update: {
+      password: hashSync(process.env.OPERATOR_PASSWORD || "Operator!Change#Me2026", 10),
+    },
     create: {
       email: "operator@materialops.com",
       name: "Operator",
-      password: hashSync("operator123", 10),
+      password: hashSync(process.env.OPERATOR_PASSWORD || "Operator!Change#Me2026", 10),
       role: "OPERATOR",
     },
   });
   console.log("Operator user created:", operator.email);
+
+  if (!process.env.OPERATOR_PASSWORD) {
+    console.warn("⚠️ Using default operator password. Set OPERATOR_PASSWORD env var for production.");
+  }
 
   // Create departments
   const departments = [
@@ -46,7 +58,7 @@ async function main() {
     { name: "Mounting/Liftgates", description: "Mounting of body to chassis and installation of liftgate", color: "#14B8A6" },
     { name: "Skirts/Sliders", description: "Fab/installation custom skirting/slider doors", color: "#475569" },
     { name: "Wiring", description: "Body wiring, camera, utility lighting installation, etc.", color: "#F8FAFC" },
-    { name: "Finishing", description: "Clean and finish bodies, sand & finish mover floors/Final inspection", color: "#1E293B" },
+    { name: "Finishing", description: "Clean, paint and finish bodies; undercoat chassis/undercarriage; sand & finish mover floors/Final inspection", color: "#1E293B" },
     { name: "Maintenance", description: "Maintain and repair tools & equipment/groundskeeping" },
     { name: "Janitorial", description: "Clean manufacturing facility", color: "#7C3AED"}
   ];
