@@ -66,6 +66,8 @@ export function useDashboard() {
   useEffect(() => {
     const stored = localStorage.getItem("theme");
     const isDark = stored === "dark" || (!stored && window.matchMedia("(prefers-color-scheme: dark)").matches);
+    setDarkMode(isDark);
+    document.documentElement.classList.toggle("dark", isDark);
   }, []);
 
   function toggleDarkMode() {
@@ -236,7 +238,7 @@ export function useDashboard() {
   // --- Handlers ---
   function handleScanResult(partNumber: string) {
     setShowScanner(false);
-    fetch(`/api/materials/lookup?partNumber-${encodeURIComponent(partNumber)}`)
+    fetch(`/api/materials/lookup?partNumber=${encodeURIComponent(partNumber)}`)
       .then((r) => {
         if (!r.ok) throw new Error("not_found");
         return r.json();
