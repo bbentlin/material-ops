@@ -276,8 +276,8 @@ export function useDashboard() {
     router.push("/login");
   }
 
-  const hasDateFilter = dateFrom || dateTo;
-  const hasAnyFilter = debouncedSearch || hasDateFilter || departmentFilter || lowStockOnly;
+  const hasDateFilter = Boolean(dateFrom || dateTo);
+  const hasAnyFilter = Boolean(debouncedSearch || hasDateFilter || departmentFilter || lowStockOnly);
 
   function clearFilters() {
     setSearch("");

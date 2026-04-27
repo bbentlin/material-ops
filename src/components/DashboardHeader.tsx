@@ -16,7 +16,7 @@ type Props = {
   userName: string | null;
   userRole: string | null;
   roleBadge: Record<string, string>;
-  canManageUser: boolean;
+  canManageUsers: boolean;
   setShowScannerAction: (v: boolean) => void;
   onOpenOrdersAction: () => void;
   onOpenUsersAction: () => void;
@@ -139,7 +139,7 @@ export default function DashboardHeader(props: Props) {
             📋 Orders
           </button>
 
-          {props.canManageUser && (
+          {props.canManageUsers && (
             <button
               onClick={props.onOpenUsersAction}
               className="text-sm text-gray-600 dark:text-gray-400 hover:text-purple-700 dark:hover:text-purple-200/95 transition-colors px-3 py-1.5 rounded-md hover:bg-purple-50 dark:hover:bg-purple-900/30 font-medium"

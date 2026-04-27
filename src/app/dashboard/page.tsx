@@ -8,6 +8,7 @@ import ScannerModal from "@/components/ScannerModal";
 import Toast from "@/components/Toast";
 import { useDashboard } from "@/hooks/useDashboard";
 import type { SortKey } from "@/types/dashboard";
+import DashboardHeader from "@/components/DashboardHeader";
 
 export default function DashboardPage() {
   const d = useDashboard();
@@ -28,143 +29,29 @@ export default function DashboardPage() {
 
   return (
     <div className="min-h-screen bg-gray-100 dark:bg-gray-900">
-      {/* Header */}
-      <header className="bg-white dark:bg-gray-800 shadow-sm border-b border-gray-200 dark:border-gray-700">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex justify-between items-center">
-          <h1 className="text-xl font-bold text-gray-900 dark:text-gray-100 px-4">
-            📦 LogiCore Inventory Management System
-          </h1>
-          <div className="flex items-center gap-4">
-            {/* Search */}
-            <div className="relative">
-              <svg
-                className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
-                />
-              </svg>
-              <input
-                type="text"
-                placeholder="Search materials, part numbers, locations..."
-                value={d.search}
-                onChange={(e) => d.setSearch(e.target.value)}
-                className="pl-10 pr-4 py-2 w-80 border border-gray-300 dark:border-gray-600 rounded-lg text-sm text-gray-900 dark:text-gray-100 bg-white dark:bg-gray-700 placeholder-gray-400 dark:placeholder-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-              />
-              {d.search && (
-                <button
-                  onClick={() => d.setSearch("")}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 dark:text-gray-200 hover:text-gray-600 dark:hover:text-gray-300"
-                >
-                  ✕
-                </button>
-              )}
-            </div>
-            {/* Date range */}
-            <div className="flex items-center gap-2">
-              <input
-                type="date"
-                value={d.dateFrom}
-                onChange={(e) => d.setDateFrom(e.target.value)}
-                className="border border-gray-300 dark:border-gray-600 rounded-lg text-sm text-gray-900 dark:text-gray-100 bg-white dark:bg-gray-700 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                title="From date"
-              />
-              <span className="text-gray-400 dark:text-gray-100 text-sm">→</span>
-              <input
-                type="date"
-                value={d.dateTo}
-                onChange={(e) => d.setDateTo(e.target.value)}
-                className="border border-gray-300 dark:border-gray-600 rounded-lg text-sm text-gray-900 dark:text-gray-100 bg-white dark:bg-gray-700 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                title="To date"
-              />
-              {d.hasDateFilter && (
-                <button
-                  onClick={() => {
-                    d.setDateFrom("");
-                    d.setDateTo("");
-                  }}
-                  className="text-gray-400 hover:text-gray-600 text-sm"
-                  title="Clear dates"
-                >
-                  ✕
-                </button>
-              )}
-            </div>
-            <select
-              value={d.departmentFilter}
-              onChange={(e) => d.setDepartmentFilter(e.target.value)}
-              className="border border-gray-300 dark:border-gray-600 rounded-lg text-sm text-gray-900 dark:text-gray-100 bg-white dark:bg-gray-800 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
-            >
-              <option value="">All Departments</option>
-              {d.departments.map((dept) => (
-                <option key={dept.id} value={dept.id}>{dept.name}</option>
-              ))}
-            </select>
-            {/* User info + role badge */}
-            <div className="flex items-center gap-2 border-l border-gray-200 dark:border-gray-300 pl-4">
-              {d.userName && (
-                <span className="text-sm text-gray-700 dark:text-gray-300 font-medium">{d.userName}</span>
-              )}
-              {d.userRole && (
-                <span
-                  className={`text-xs font-semibold px-2 py-0.5 rounded-full ${
-                    d.roleBadge[d.userRole] || "bg-gray-200 text-gray-600"
-                  }`}
-                >
-                  {d.userRole}
-                </span>
-              )}
-            </div>
-
-            {/* Scanner */}
-            <button
-              onClick={() => d.setShowScanner(true)}
-              className="text-sm text-gray-600 dark:text-gray-400 hover:text-blue-700 dark:hover:text-blue-300 transition-colors px-3 py-1.5 rounded-md hover:bg-blue-50 dark:hover:bg-blue-900/30 font-medium"
-              title="Scan barcode or QR code"
-            >
-              📷 Scan
-            </button>
-
-            {/* Purchase Orders Link */}
-            <button
-              onClick={() => d.router.push("/dashboard/purchase-orders")}
-              className="text-sm text-gray-600 dark:text-gray-400 hover:text-blue-700 dark:hover:text-blue-300 transition-colors px-3 py-1.5 rounded-md hover:bg-blue-50 dark:hover:bg-blue-900/30 font-medium"
-              title="Purchase Orders"
-            >
-              📋 Orders
-            </button>
-
-            {/* Admin link */}
-            {d.canManageUsers && (
-              <button
-                onClick={() => d.router.push("/admin")}
-                className="text-sm text-gray-600 dark:text-gray-400 hover:text-purple-700 dark:hover:text-purple-200/95 transition-colors px-3 py-1.5 rounded-md hover:bg-purple-50 dark:hover:bg-purple-900/30 font-medium"
-              >
-                👥 Users
-              </button>
-            )}
-            <button
-              onClick={d.handleLogout}
-              className="text-sm text-gray-500 dark:text-gray-400 hover:text-red-600 dark:hover:text-red-400 transition-colors px-3 py-1.5 rounded-md hover:bg-red-50 dark:hover:bg-red-900/30"
-            >
-              Sign Out
-            </button>
-            <button
-              onClick={d.toggleDarkMode}
-              className="text-sm text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 transition-colors px-2 py-1.5 rounded-md hover:bg-gray-100 dark:hover:bg-gray-700"
-              title={d.darkMode ? "Switch to light mode" : "Switch to dark mode"}
-            >
-              {d.darkMode ? "☀️" : "🌙"}
-            </button>
-          </div>
-        </div>
-      </header>
+      
+      <DashboardHeader
+        search={d.search}
+        setSearchAction={d.setSearch}
+        dateFrom={d.dateFrom}
+        setDateFromAction={d.setDateFrom}
+        dateTo={d.dateTo}
+        setDateToAction={d.setDateTo}
+        hasDateFilter={d.hasDateFilter}
+        departmentFilter={d.departmentFilter}
+        setDepartmentFilterAction={d.setDepartmentFilter}
+        departments={d.departments}
+        userName={d.userName}
+        userRole={d.userRole}
+        roleBadge={d.roleBadge}
+        canManageUsers={d.canManageUsers}
+        setShowScannerAction={d.setShowScanner}
+        onOpenOrdersAction={() => d.router.push("/dashboard/purchase-orders")}
+        onOpenUsersAction={() => d.router.push("/admin")}
+        onLogoutAction={d.handleLogout}
+        darkMode={d.darkMode}
+        onToggleDarkModeAction={d.toggleDarkMode}
+      />
 
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {d.error && (
