@@ -14,6 +14,7 @@ import DashboardWidgets from "@/components/DashboardWidgets";
 import DashboardLowStockAlerts from "@/components/DashboardLowStockAlerts";
 import DashboardCharts from "@/components/DashboardCharts";
 import DashboardMaterialsTable from "@/components/DashboardMaterialsTable";
+import DashboardMovementsTable from "@/components/DashboardMovementsTable";
 
 export default function DashboardPage() {
   const d = useDashboard();
@@ -166,91 +167,15 @@ export default function DashboardPage() {
           onPageChangeAction={(page) => d.setMaterialPage(page)}
         />
 
-        {/* Recent Movements */}
-        <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 overflow-hidden mt-8">
-          <div className="p-5 border-b border-gray-200 dark:border-gray-700">
-            <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100">Recent Movements</h2>
-          </div>
-          <div className="overflow-x-auto">
-            <table className="w-full">
-              <thead>
-                <tr className="bg-gray-50 dark:bg-gray-700 text-left text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                  <th className="px-5 py-3">Date</th>
-                  <th className="px-5 py-3">Material</th>
-                  <th className="px-5 py-3">Type</th>
-                  <th className="px-5 py-3">Qty</th>
-                  <th className="px-5 py-3">Note</th>
-                  <th className="px-5 py-3">By</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-gray-100 dark:divide-gray-700">
-                {d.movements.map((mov) => (
-                  <tr key={mov.id} className="hover:bg-gray-50 dark:hover:bg-gray-700/30 transition-colors">
-                    <td className="px-5 py-4 text-sm text-gray-500 dark:text-gray-200">
-                      {new Date(mov.createdAt).toLocaleDateString()}
-                    </td>
-                    <td className="px-5 py-4 font-medium text-gray-900 dark:text-gray-300">
-                      {mov.material.name}
-                    </td>
-                    <td className="px-5 py-4">
-                      <span
-                        className={`inline-flex items-center text-xs font-semibold px-2.5 py-1 rounded-full ${
-                          mov.type === "INBOUND"
-                            ? "bg-green-100 text-green-700"
-                            : mov.type === "OUTBOUND"
-                            ? "bg-orange-100 text-orange-700"
-                            : "bg-blue-100 text-blue-700"
-                        }`}
-                      >
-                        {mov.type}
-                      </span>
-                    </td>
-                    <td className="px-5 py-4 font-medium text-gray-900 dark:text-gray-300">{mov.quantity}</td>
-                    <td className="px-5 py-4 text-sm text-gray-500 dark:text-gray-300">{mov.note || "—"}</td>
-                    <td className="px-5 py-4 text-sm text-gray-500 dark:text-gray-300">{mov.user.name}</td>
-                  </tr>
-                ))}
-                {d.movements.length === 0 && (
-                  <tr>
-                    <td colSpan={6} className="px-5 py-12 text-center text-gray-400">
-                      {d.hasAnyFilter
-                        ? "No movements matching your filters"
-                        : "No movements yet. Record inbound or outbound stock above."}
-                    </td>
-                  </tr>
-                )}
-              </tbody>
-            </table>
-          </div>
-          {d.totalMovements > d.movementsPerPage && (
-            <div className="px-5 py-3 border-t border-gray-200 dark:border-gray-700 flex items-center justify-between text-sm">
-              <span className="text-gray-500 dark:text-gray-400">
-                Showing {(d.movementPage - 1) * d.movementsPerPage + 1}–
-                {Math.min(d.movementPage * d.movementsPerPage, d.totalMovements)} of{" "}
-                {d.totalMovements}
-              </span>
-              <div className="flex items-center gap-2">
-                <button
-                  onClick={() => d.setMovementPage((p) => Math.max(1, p - 1))}
-                  disabled={d.movementPage === 1}
-                  className="px-3 py-1.5 rounded-lg border border-gray-300 dark:border-gray-700 text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-800 disabled:opacity-40 disabled:cursor-not-allowed"
-                >
-                  ← Previous
-                </button>
-                <span className="text-gray-700 dark:text-gray-300 font-medium">
-                  Page {d.movementPage} of {d.totalMovementPages}
-                </span>
-                <button
-                  onClick={() => d.setMovementPage((p) => Math.min(d.totalMovementPages, p + 1))}
-                  disabled={d.movementPage === d.totalMovementPages}
-                  className="px-3 py-1.5 rounded-lg border border-gray-300 dark:border-gray-700 text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-800 disabled:opacity-40 disabled:cursor-not-allowed"
-                >
-                  Next →
-                </button>
-              </div>
-            </div>
-          )}
-        </div>
+        <DashboardMovementsTable
+          movements={d.movements}
+          hasAnyFilter={d.hasAnyFilter}
+          totalMovements={d.totalMovements}
+          movementsPerPage={d.movementsPerPage}
+          movementPage={d.movementPage}
+          totalMovementPages={d.totalMovementPages}
+          onPageChangeAction={(page) => d.setMovementPage(page)}
+        />
 
         {/* Activity Feed */}
         <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 overflow-hidden mt-8">
