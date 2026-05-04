@@ -15,6 +15,7 @@ import DashboardLowStockAlerts from "@/components/DashboardLowStockAlerts";
 import DashboardCharts from "@/components/DashboardCharts";
 import DashboardMaterialsTable from "@/components/DashboardMaterialsTable";
 import DashboardMovementsTable from "@/components/DashboardMovementsTable";
+import DashboardActivityFeed from "@/components/DashboardActivityFeed";
 
 export default function DashboardPage() {
   const d = useDashboard();
@@ -177,52 +178,13 @@ export default function DashboardPage() {
           onPageChangeAction={(page) => d.setMovementPage(page)}
         />
 
-        {/* Activity Feed */}
-        <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 overflow-hidden mt-8">
-          <div className="p-5 border-b border-gray-200 dark:border-gray-700 flex justify-between items-center">
-            <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100">Recent Activity</h2>
-            <button
-              onClick={() => d.router.push("/dashboard/audit-log")}
-              className="text-sm text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300 font-medium"
-            >
-              View All →
-            </button>
-          </div>
-          <div className="divide-y divide-gray-100 dark:divide-gray-700">
-            {d.auditLogs.length === 0 ? (
-              <div className="px-5 py-12 text-center text-gray-400">No activity yet</div>
-            ) : (
-              d.auditLogs.map((entry) => {
-                const { icon, label, color } = d.formatAuditAction(entry);
-                const detail = d.getAuditDetail(entry);
-                return (
-                  <div key={entry.id} className="px-5 py-3 flex items-center gap-3 hover:bg-gray-50 dark:hover:bg-gray-700/30 transition-colors">
-                    <span className="text-lg shrink-0">{icon}</span>
-                    <div className="flex-1 min-w-0">
-                      <span className={`text-sm ${color}`}>{label}</span>
-                      {detail && (
-                        <span className="text-sm text-gray-500 dark:text-gray-400 ml-2">{detail}</span>
-                      )}
-                    </div>
-                    <div className="flex items-center gap-3 shrink-0">
-                      <span className="text-xs text-gray-500 dark:text-gray-400">
-                        {entry.user?.name || "System"}
-                      </span>
-                      <span className="text-xs text-gray-400 dark:text-gray-500">
-                        {new Date(entry.createdAt).toLocaleString(undefined, {
-                          month: "short",
-                          day: "numeric",
-                          hour: "2-digit",
-                          minute: "2-digit",
-                        })}
-                      </span>
-                    </div>
-                  </div>
-                );
-              })
-            )}
-          </div>
-        </div>
+        <DashboardActivityFeed
+          auditLogs={d.auditLogs}
+          formatAuditAction={d.formatAuditAction}
+          getAuditDetailAction={d.getAuditDetail}
+          onViewAllAction={() => d.router.push("/dashboard/audit-log")}
+        />
+        
       </main>
 
       {/* Add Material Modal */}
