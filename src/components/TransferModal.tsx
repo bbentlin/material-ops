@@ -1,7 +1,8 @@
 "use client";
 
 import { useState, useEffect, useTransition } from "react";
-import DraggableModal from "./DraggableModal";
+import { SkeletonText } from "@/components/Skeleton";  
+import DraggableModal from "@/components/DraggableModal";
 
 const inputClass = 
   "border border-gray-300 p-2 rounded-md text-gray-900 bg-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 selection:bg-blue-200 selection:text-gray-900 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100 dark:placeholder-gray-500";
@@ -83,7 +84,7 @@ export default function TransferModal({
                 <span className="text-gray-500 dark:text-gray-300 ml-2">Qty: {source.quantity}</span>
               </>
             ) : (
-              <span className="text-gray-400 dark:text-gray-300">Loading...</span>
+              <SkeletonText className="h-4 w-40" />
             )}
           </div>
         </div>

@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
+import { SkeletonRow } from "@/components/Skeleton";
 import SubPageLayout from "@/components/SubPageLayout";
 
 type AuditEntry = {
@@ -154,11 +155,11 @@ export default function AuditLogPage() {
             </thead>
             <tbody className="divide-y divide-gray-100 dark:divide-gray-700">
               {loading ? (
-                <tr>
-                  <td colSpan={5} className="px-5 py-12 text-center text-gray-400">
-                    Loading...
-                  </td>
-                </tr>
+                <>
+                  {Array.from({ length: 8 }).map((_, i) => (
+                    <SkeletonRow key={i} cols={5} />
+                  ))}
+                </>
               ) : logs.length === 0 ? (
                 <tr>
                   <td colSpan={5} className="px-5 py-12 text-center text-gray-400">
