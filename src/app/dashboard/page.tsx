@@ -16,16 +16,13 @@ import DashboardCharts from "@/components/DashboardCharts";
 import DashboardMaterialsTable from "@/components/DashboardMaterialsTable";
 import DashboardMovementsTable from "@/components/DashboardMovementsTable";
 import DashboardActivityFeed from "@/components/DashboardActivityFeed";
+import DashboardSkeleton from "@/components/DashboardSkeleton";
 
 export default function DashboardPage() {
   const d = useDashboard();
 
   if (d.loading) {
-    return (
-      <div className="min-h-screen bg-gray-100 dark:bg-gray-900 flex items-center justify-center">
-        <div className="text-gray-500 dark:text-gray-400 text-lg">Loading...</div>
-      </div>
-    );
+    return <DashboardSkeleton />;
   }
 
   return (
