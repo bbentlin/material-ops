@@ -1,5 +1,7 @@
 "use client";
 
+import { SkeletonBox, SkeletonText } from "@/components/Skeleton";
+
 import type { WidgetData } from "@/types/dashboard";
 
 type Props = {
@@ -69,7 +71,23 @@ export default function DashboardWidgets(props: Props) {
             </div>
           </>
         ) : (
-          <p className="text-sm text-gray-400 text-center py-8">Loading...</p>
+          <div className="py-4 space-y-3">
+            <div className="w-28 h-28 mx-auto rounded-full animate-pulse bg-gray-200 dark:bg-gray-700" />
+            <div className="space-y-2">
+              <div className="flex justify-between">
+                <SkeletonText className="h-3 w-20" />
+                <SkeletonText className="h-3 w-8" /> 
+              </div>
+              <div className="flex justify-between">
+                <SkeletonText h-3 w-16 />
+                <SkeletonText h-3 w-8 />
+              </div>
+              <div className="flex justify-between">
+                <SkeletonText className="h-3 w-20" />
+                <SkeletonText className="h-3 w-8" />
+              </div>
+            </div>
+          </div>
         )}
       </div>
 
@@ -154,7 +172,29 @@ export default function DashboardWidgets(props: Props) {
             </p>
           </>
         ) : (
-          <p className="text-sm text-gray-400 text-center py-8">Loading...</p>
+          <div className="space-y-3">
+            <div>
+              <div className="flex justify-between mb-1">
+                <SkeletonText className="h-3 w-14" />
+                <SkeletonText className="h-3 w-8" />
+              </div>
+              <SkeletonBox className="h-2 w-full rounded-full" />
+            </div>
+            <div>
+              <div className="flex justify-between mb-1">
+                <SkeletonText className="h-3 w-16" />
+                <SkeletonText className="h-3 w-8" />
+              </div>
+              <SkeletonBox className="h-2 w-full rounded-full" />
+            </div>
+            <div>
+              <div className="flex justify-between mb-1">
+                <SkeletonText className="h-3 w-16" />
+                <SkeletonText className="h-3 w-8" />
+              </div>
+              <SkeletonBox className="h-2 w-full rounded-full" />
+            </div>
+          </div>
         )}
       </div>
 

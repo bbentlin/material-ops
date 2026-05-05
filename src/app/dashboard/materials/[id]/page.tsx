@@ -2,6 +2,7 @@
 
 import { useEffect, useState, useRef } from "react";
 import { useRouter, useParams } from "next/navigation";
+import { SkeletonBox, SkeletonText } from "@/components/Skeleton";
 import MovementModal from "@/components/MovementModal";
 import EditMaterialModal from "@/components/EditMaterialModal";
 import Barcode128 from "@/components/Barcode128";
@@ -110,8 +111,57 @@ export default function MaterialDetailPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gray-100 dark:bg-gray-900 flex items-center justify-center">
-        <div className="text-gray-500 dark:text-gray-400 text-lg">Loading...</div>
+      <div className="min-h-screen bg-gray-100 dark:bg-gray-900">
+        <header className="bg-white shadow-sm border-b border-gray-200 dark:bg-gray-800 dark:border-gray-700">
+          <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex items-center gap-4">
+            <SkeletonText className="h-4 w-24" />
+            <div className="h-5 w-px bg-gray-300 dark:bg-gray-600" />
+            <SkeletonBox className="h-6 w-56 rounded" />
+          </div>
+        </header>
+
+        <main className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-6">
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <div className="lg:col-span-2 bg-white rounded-xl shadow-sm border border-gray-200 dark:bg-gray-800 dark:border-gray-700 p-6">
+              <SkeletonBox className="h-8 w-64 rounded mb-2" />
+              <SkeletonBox className="h-4 w-40 mb-6" />
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
+                {Array.from({ length: 4 }).map((_, i) => (
+                  <div key={i}>
+                    <SkeletonText className="h-3 w-20 mb-2" />
+                    <SkeletonBox className="h-8 w-16 rounded" />
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            <div className="bg-white rounded-xl shadow-sm border border-gray-200 dark:bg-gray-800 dark:border-gray-700 p-6">
+              <SkeletonText className="h-4 w-16 mb-4" />
+              <SkeletonBox className="h-40 w-full rounded mb-3" />
+              <SkeletonBox className="h-12 w-full rounded" />
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            {Array.from({ length: 3 }).map((_, i) => (
+              <div key={i} className="bg-white dark:bg-gray-900 p-5 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700">
+                <SkeletonText className="h-3 w-24 mb-2" />
+                <SkeletonBox className="h-8 w-14 rounded" />
+              </div>
+            ))}
+          </div>
+
+          <div className="bg-white dark:bg-gray-900 rounded-xl shadow-sm border border-gray-200 dark:border-gray-900 overflow-hidden">
+            <div className="p-5 border-b border-gray-200 dark:border-gray-700">
+              <SkeletonText className="h-5 w-40" />
+            </div>
+            <div className="p-5 space-y-3">
+              {Array.from({ length: 6 }).map((_, i) => (
+                <SkeletonBox key={i} className="h-4 w-full rounded" />
+              ))}
+            </div>
+          </div>
+        </main>
       </div>
     );
   }

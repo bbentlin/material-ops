@@ -77,14 +77,6 @@ export default function AdminPage() {
     );
   });
 
-  if (loading) {
-    return (
-      <div className="min-h-screen bg-gray-100 dark:bg-gray-900 flex items-center justify-center">
-        <div className="text-gray-500 dark:text-gray-400 text-lg">Loading...</div>
-      </div>
-    );
-  }
-
   const headerActions = (
     <div className="relative">
       <svg
@@ -120,7 +112,7 @@ export default function AdminPage() {
 
   return (
     <>
-      <SubPageLayout title="👥 User Management" maxWidth="max-w-5xl" actions={headerActions}>
+      <SubPageLayout title="👥 User Management" maxWidth="max-w-5xl" actions={headerActions} loading={loading}>
         {error && (
           <div className="bg-red-50 dark:bg-red-900/30 border border-red-200 dark:border-red-800 text-red-700 dark:text-red-400 p-4 rounded-lg mb-6">
             {error}
