@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
+import SubPageLayout from "@/components/SubPageLayout";
 
 type AuditEntry = {
   id: string;
@@ -38,21 +39,7 @@ export default function AuditLogPage() {
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
   const [entityFilter, setEntityFilter] = useState("");
-  const [darkMode, setDarkMode] = useState(false);
   const limit = 25;
-
-  useEffect(() => {
-    const stored = localStorage.getItem("theme");
-    const isDark = stored === "dark" || (!stored && window.matchMedia("(prefers-color-scheme: dark)").matches);
-    setDarkMode(isDark);
-  }, []);
-
-  function toggleDarkMode() {
-    const next = !darkMode;
-    setDarkMode(next);
-    document.documentElement.classList.toggle("dark", next);
-    localStorage.setItem("theme", next ? "dark" : "light");
-  }
 
   useEffect(() => {
     setPage(1);
@@ -106,173 +93,151 @@ export default function AuditLogPage() {
     }
   }
 
+  const headerActions = (
+    <>
+      <div className="relative">
+        <svg
+          className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400"
+          fill="none"
+          stroke="currentColor"
+          viewBox="0 0 24 24"
+        >
+          <path
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            strokeWidth={2}
+            d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
+          />
+        </svg>
+        <input
+          type="text"
+          placeholder="Search logs..."
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+          className="pl-10 pr-4 py-2 w-64 border border-gray-300 dark:border-gray-600 rounded-lg text-sm text-gray-900 dark:text-gray-100 bg-white dark:bg-gray-700 placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500"
+        />
+      </div>
+      <select
+        value={entityFilter}
+        onChange={(e) => setEntityFilter(e.target.value)}
+        className="border border-gray-300 dark:border-gray-600 rounded-lg text-sm text-gray-900 dark:text-gray-100 bg-white dark:bg-gray-800 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+      >
+        <option value="">All Categories</option>
+        {entities.map((e) => (
+          <option key={e} value={e}>{e}</option>
+        ))}
+      </select>
+    </>
+  );
+
   return (
-    <div className="min-h-screen bg-gray-100 dark:bg-gray-900">
-      {/* Header */}
-      <header className="bg-white dark:bg-gray-800 shadow-sm border-b border-gray-200 dark:border-gray-700">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex justify-between items-center">
-          <div className="flex items-center gap-4">
-            <button
-              onClick={() => router.push("/dashboard")}
-              className="text-sm text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 transition-colors"
-            >
-              ← Back to Dashboard
-            </button>
-            <h1 className="text-xl font-bold text-gray-900 dark:text-gray-100">📋 Audit Log</h1>
-          </div>
-          <div className="flex items-center gap-3">
-            <div className="relative">
-              <svg
-                className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
-                />
-              </svg>
-              <input
-                type="text"
-                placeholder="Search logs..."
-                value={search}
-                onChange={(e) => setSearch(e.target.value)}
-                className="pl-10 pr-4 py-2 w-64 border border-gray-300 dark:border-gray-600 rounded-lg text-sm text-gray-900 dark:text-gray-100 bg-white dark:bg-gray-700 placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500"
-              />
-            </div>
-            <select
-              value={entityFilter}
-              onChange={(e) => setEntityFilter(e.target.value)}
-              className="border border-gray-300 dark:border-gray-600 rounded-lg text-sm text-gray-900 dark:text-gray-100 bg-white dark:bg-gray-800 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
-            >
-              <option value="">All Categories</option>
-              {entities.map((e) => (
-                <option key={e} value={e}>{e}</option>
-              ))}
-            </select>
-            <button
-              onClick={toggleDarkMode}
-              className="text-sm text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 px-2 py-1.5 rounded-md hover:bg-gray-100 dark:hover:bg-gray-700"
-            >
-              {darkMode ? "☀️" : "🌙"}
-            </button>
-          </div>
-        </div>
-      </header>
+    <SubPageLayout title="📋 Audit Log" actions={headerActions}>
+      {/* Summary */}
+      <div className="mb-4 text-sm text-gray-500 dark:text-gray-400">
+        {total} total log{total !== 1 ? "s" : ""}
+        {entityFilter && ` in ${entityFilter}`}
+        {search && ` matching "${search}"`}
+      </div>
 
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {/* Summary */}
-        <div className="mb-4 text-sm text-gray-500 dark:text-gray-400">
-          {total} total log{total !== 1 ? "s" : ""}
-          {entityFilter && ` in ${entityFilter}`}
-          {search && ` matching "${search}"`}
-        </div>
-
-        {/* Table */}
-        <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 overflow-hidden">
-          <div className="overflow-x-auto">
-            <table className="w-full">
-              <thead>
-                <tr className="bg-gray-50 dark:bg-gray-700/50 text-left text-xs font-semibold tex-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                  <th className="px-5 py-3">Timestamp</th>
-                  <th className="px-5 py-3">Action</th>
-                  <th className="px-5 py-3">Category</th>
-                  <th className="px-5 py-3">Details</th>
-                  <th className="px-5 py-3">User</th>
+      {/* Table */}
+      <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 overflow-hidden">
+        <div className="overflow-x-auto">
+          <table className="w-full">
+            <thead>
+              <tr className="bg-gray-50 dark:bg-gray-700/50 text-left text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                <th className="px-5 py-3">Timestamp</th>
+                <th className="px-5 py-3">Action</th>
+                <th className="px-5 py-3">Category</th>
+                <th className="px-5 py-3">Details</th>
+                <th className="px-5 py-3">User</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-gray-100 dark:divide-gray-700">
+              {loading ? (
+                <tr>
+                  <td colSpan={5} className="px-5 py-12 text-center text-gray-400">
+                    Loading...
+                  </td>
                 </tr>
-              </thead>
-              <tbody className="divide-y divide-gray-100 dark:divide-gray-700">
-                {loading ? (
-                  <tr>
-                    <td colSpan={5} className="px-5 py-12 text-center text-gray-400">
-                      Loading...
-                    </td>
-                  </tr>
-                ) : logs.length === 0 ? (
-                  <tr>
-                    <td colSpan={5} className="px-5 py-12 text-center text-gray-400">
-                      No audit log entries found
-                    </td>
-                  </tr>
-                ) : (
-                  logs.map((entry) => {
-                    const style = actionStyle[entry.action] || {
-                      icon: "📋",
-                      label: entry.action,
-                      bg: "bg-gray-100 text-gray-600 dark:bg-gray-700 dark:text-gray-300",
-                    };
-                    return (
-                      <tr
-                        key={entry.id}
-                        className="hover:bg-gray-50 dark:hover:bg-gray-700/30 transition-colors"
-                      >
-                        <td className="px-5 py-4 text-sm text-gray-500 dark:text-gray-400 whitespace-nowrap">
-                          {new Date(entry.createdAt).toLocaleDateString(undefined, {
-                            year: "numeric",
-                            month: "short",
-                            day: "numeric",
-                            hour: "2-digit",
-                            minute: "2-digit",
-                            second: "2-digit",
-                          })}
-                        </td>
-                        <td className="px-5 py-4">
-                          <span
-                            className={`inline-flex items-center gap-1 text-xs font-semibold px-2.5 py-1 rounded-full ${style.bg}`}
-                          >
-                            <span>{style.icon}</span>
-                            {style.label}
-                          </span>
-                        </td>
-                        <td className="px-5 py-4 text-sm text-gray-500 dark:text-gray-400">
-                          {entry.entity}
-                        </td>
-                        <td className="px-5 py-4 text-sm text-gray-700 dark:text-gray-300 max-w-md truncate">
-                          {parseDetails(entry)}
-                        </td>
-                        <td className="px-5 py-4 text-sm text-gray-500 dark:text-gray-400 whitespace-nowrap">
-                          {entry.user?.name || <span className="italic text-gray-400">deleted user</span>}
-                        </td>
-                      </tr>
-                    );
-                  })
-                )}
-              </tbody>
-            </table>
-          </div>
-
-          {/* Pagination */}
-          {total > limit && (
-            <div className="px-5 py-3 border-t border-gray-200 dark:border-gray-700 flex items-center justify-between text-sm">
-              <span className="text-gray-500 dark:text-gray-400">
-                Showing {(page -1) * limit + 1}-{Math.min(page * limit, total)} of {total}
-              </span>
-              <div className="flex items-center gap-2">
-                <button
-                  onClick={() => setPage((p) => Math.max(1, p - 1))}
-                  disabled={page === 1}
-                  className="px-3 py-1.5 rounded-lg border border-gray-300 dark:border-gray-700 text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-800 disabled:opacity-40 disabled:cursor-not-allowed"
-                >
-                  ← Previous
-                </button>
-                <span className="text-gray-700 dark:text-gray-300 font-medium">
-                  Page {page} of {totalPages}
-                </span>
-                <button
-                  onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
-                  disabled={page === totalPages}
-                  className="px-3 py-1.5 rounded-lg border border-gray-300 dark:border-gray-700 text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-800 disabled:opacity-40 disabled:cursor-not-allowed"
-                >
-                  Next →
-                </button>
-              </div>
-            </div>
-          )}
+              ) : logs.length === 0 ? (
+                <tr>
+                  <td colSpan={5} className="px-5 py-12 text-center text-gray-400">
+                    No audit log entries found
+                  </td>
+                </tr>
+              ) : (
+                logs.map((entry) => {
+                  const style = actionStyle[entry.action] || {
+                    icon: "📋",
+                    label: entry.action,
+                    bg: "bg-gray-100 text-gray-600 dark:bg-gray-700 dark:text-gray-300",
+                  };
+                  return (
+                    <tr
+                      key={entry.id}
+                      className="hover:bg-gray-50 dark:hover:bg-gray-700/30 transition-colors"
+                    >
+                      <td className="px-5 py-4 text-sm text-gray-500 dark:text-gray-400 whitespace-nowrap">
+                        {new Date(entry.createdAt).toLocaleDateString(undefined, {
+                          year: "numeric",
+                          month: "short",
+                          day: "numeric",
+                          hour: "2-digit",
+                          minute: "2-digit",
+                          second: "2-digit",
+                        })}
+                      </td>
+                      <td className="px-5 py-4">
+                        <span className={`inline-flex items-center gap-1 text-xs font-semibold px-2.5 py-1 rounded-full ${style.bg}`}>
+                          <span>{style.icon}</span>
+                          {style.label}
+                        </span>
+                      </td>
+                      <td className="px-5 py-4 text-sm text-gray-500 dark:text-gray-400">
+                        {entry.entity}
+                      </td>
+                      <td className="px-5 py-4 text-sm text-gray-700 dark:text-gray-300 max-w-md truncate">
+                        {parseDetails(entry)}
+                      </td>
+                      <td className="px-5 py-4 text-sm text-gray-500 dark:text-gray-400 whitespace-nowrap">
+                        {entry.user?.name || <span className="italic text-gray-400">deleted user</span>}
+                      </td>
+                    </tr>
+                  );
+                })
+              )}
+            </tbody>
+          </table>
         </div>
-      </main>
-    </div>
+
+        {/* Pagination */}
+        {total > limit && (
+          <div className="px-5 py-3 border-t border-gray-200 dark:border-gray-700 flex items-center justify-between text-sm">
+            <span className="text-gray-500 dark:text-gray-400">
+              Showing {(page - 1) * limit + 1}–{Math.min(page * limit, total)} of {total}
+            </span>
+            <div className="flex items-center gap-2">
+              <button
+                onClick={() => setPage((p) => Math.max(1, p - 1))}
+                disabled={page === 1}
+                className="px-3 py-1.5 rounded-lg border border-gray-300 dark:border-gray-700 text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-800 disabled:opacity-40 disabled:cursor-not-allowed"
+              >
+                ← Previous
+              </button>
+              <span className="text-gray-700 dark:text-gray-300 font-medium">
+                Page {page} of {totalPages}
+              </span>
+              <button
+                onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
+                disabled={page === totalPages}
+                className="px-3 py-1.5 rounded-lg border border-gray-300 dark:border-gray-700 text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-800 disabled:opacity-40 disabled:cursor-not-allowed"
+              >
+                Next →
+              </button>
+            </div>
+          </div>
+        )}
+      </div>
+    </SubPageLayout>
   );
 }

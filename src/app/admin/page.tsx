@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import AddUserModal from "@/components/AddUserModal";
 import EditUserModal from "@/components/EditUserModal";
+import SubPageLayout from "@/components/SubPageLayout";
 
 type User = {
   id: string;
@@ -69,7 +70,7 @@ export default function AdminPage() {
   const filteredUsers = users.filter((user) => {
     if (!search) return true;
     const q = search.toLowerCase();
-    return(
+    return (
       user.name.toLowerCase().includes(q) ||
       user.email.toLowerCase().includes(q) ||
       user.role.toLowerCase().includes(q)
@@ -77,97 +78,83 @@ export default function AdminPage() {
   });
 
   if (loading) {
-    return(
-      <div className="min-h-screen bg-gray-100 flex items-center justify-center dark:bg-gray-900">
-        <div className="text-gray-500 text-lg dark:text-gray-400">Loading...</div>
+    return (
+      <div className="min-h-screen bg-gray-100 dark:bg-gray-900 flex items-center justify-center">
+        <div className="text-gray-500 dark:text-gray-400 text-lg">Loading...</div>
       </div>
     );
   }
 
-  return (
-    <div className="min-h-screen bg-gray-100 dark:bg-gray-900">
-      {/* Header */}
-      <header className="bg-white shadow-sm border-b border-gray-200 dark:bg-gray-800 dark:border-gray-700">
-        <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex justify-between items-center">
-          <div className="flex items-center gap-4">
-            <button
-              onClick={() => router.push("/dashboard")}
-              className="text-sm text-gray-500 hover:text-gray-700 transition-colors dark:text-gray-400 dark:hover:text-gray-200"
-            >
-              ⬅ Back to Dashboard
-            </button>
-            <h1 className="text-xl font-bold text-gray-900 dark:text-gray-100">👥 User Management</h1>
-          </div>
-          <div className="flex items-center gap-3">
-            <div className="relative">
-              <svg
-                className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
-                />
-              </svg>
-              <input
-                type="text"
-                placeholder="Search users..."
-                value={search}
-                onChange={(e) => setSearch(e.target.value)}
-                className="pl-10 pr-4 py-2 w-64 border border-gray-300 rounded-lg text-sm text-gray-900 bg-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-900 dark:text-gray-100 dark:border-gray-700 dark:placeholder-gray-500 dark:focus:ring-blue-400"
-              />
-              {search && (
-                <button
-                  onClick={() => setSearch("")}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 dark:text-gray-100 dark:hover:text-gray-300"
-                >
-                  ✕
-                </button>
-              )}
-            </div>
-          </div>
-        </div>
-      </header>
+  const headerActions = (
+    <div className="relative">
+      <svg
+        className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400"
+        fill="none"
+        stroke="currentColor"
+        viewBox="0 0 24 24"
+      >
+        <path
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          strokeWidth={2}
+          d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
+        />
+      </svg>
+      <input
+        type="text"
+        placeholder="Search users..."
+        value={search}
+        onChange={(e) => setSearch(e.target.value)}
+        className="pl-10 pr-8 py-2 w-64 border border-gray-300 dark:border-gray-700 rounded-lg text-sm text-gray-900 dark:text-gray-100 bg-white dark:bg-gray-900 placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400"
+      />
+      {search && (
+        <button
+          onClick={() => setSearch("")}
+          className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
+        >
+          ✕
+        </button>
+      )}
+    </div>
+  );
 
-      <main className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+  return (
+    <>
+      <SubPageLayout title="👥 User Management" maxWidth="max-w-5xl" actions={headerActions}>
         {error && (
-          <div className="bg-red-50 border border-red-200 text-red-700 p-4 rounded-lg mb-6 dark:bg-red-900/30 dark:border-red-800 dark:text-red-400">
+          <div className="bg-red-50 dark:bg-red-900/30 border border-red-200 dark:border-red-800 text-red-700 dark:text-red-400 p-4 rounded-lg mb-6">
             {error}
           </div>
         )}
 
         {/* Stats */}
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
-          <div className="bg-white p-5 rounded-xl shadow-sm border border-gray-200 dark:bg-gray-800 dark:border-gray-700">
+          <div className="bg-white dark:bg-gray-800 p-5 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700">
             <div className="text-sm font-medium text-gray-500 dark:text-gray-400 mb-1">Total Users</div>
             <div className="text-2xl font-bold text-gray-900 dark:text-gray-100">{users.length}</div>
           </div>
-          <div className="bg-white p-5 rounded-xl shadow-sm border border-gray-200 dark:bg-gray-800 dark:border-gray-700">
+          <div className="bg-white dark:bg-gray-800 p-5 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700">
             <div className="text-sm font-medium text-gray-500 dark:text-gray-400 mb-1">Admins</div>
-            <div className="text-2xl font-bold text-purple-600 dark:text-purple-100">
+            <div className="text-2xl font-bold text-purple-600 dark:text-purple-400">
               {users.filter((u) => u.role === "ADMIN").length}
             </div>
           </div>
-          <div className="bg-white p-5 rounded-xl shadow-sm border border-gray-200 dark:bg-gray-800 dark:border-gray-700">
+          <div className="bg-white dark:bg-gray-800 p-5 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700">
             <div className="text-sm font-medium text-gray-500 dark:text-gray-400 mb-1">Operators</div>
-            <div className="text-2xl font-bold text-blue-600 dark:text-blue-100">
+            <div className="text-2xl font-bold text-blue-600 dark:text-blue-400">
               {users.filter((u) => u.role === "OPERATOR").length}
             </div>
           </div>
-          <div className="bg-white p-5 rounded-xl shadow-sm border border-gray-200 dark:bg-gray-800 dark:border-gray-700">
+          <div className="bg-white dark:bg-gray-800 p-5 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700">
             <div className="text-sm font-medium text-gray-500 dark:text-gray-400 mb-1">Viewers</div>
-            <div className="text-2xl font-bold text-gray-600 dark:text-gray-100">
+            <div className="text-2xl font-bold text-gray-600 dark:text-gray-400">
               {users.filter((u) => u.role === "VIEWER").length}
             </div>
           </div>
         </div>
 
         {/* Users Table */}
-        <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden dark:bg-gray-800 dark:border-gray-700">
+        <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 overflow-hidden">
           <div className="p-5 border-b border-gray-200 dark:border-gray-700 flex justify-between items-center">
             <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100">Users</h2>
             <button
@@ -180,7 +167,7 @@ export default function AdminPage() {
           <div className="overflow-x-auto">
             <table className="w-full">
               <thead>
-                <tr className="bg-gray-50 text-left text-xs font-semibold text-gray-500 dark:bg-gray-700/50 dark:text-gray-400 uppercase tracking-wider">
+                <tr className="bg-gray-50 dark:bg-gray-700/50 text-left text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">
                   <th className="px-5 py-3">Name</th>
                   <th className="px-5 py-3">Email</th>
                   <th className="px-5 py-3">Role</th>
@@ -209,7 +196,7 @@ export default function AdminPage() {
                         {user.role}
                       </span>
                     </td>
-                    <td className="px-5 py-4 text-sm tex-gray-500">
+                    <td className="px-5 py-4 text-sm text-gray-500 dark:text-gray-400">
                       {new Date(user.createdAt).toLocaleDateString()}
                     </td>
                     <td className="px-5 py-4">
@@ -233,9 +220,8 @@ export default function AdminPage() {
             </table>
           </div>
         </div>
-      </main>
+      </SubPageLayout>
 
-      {/* Add User Modal */}
       {showAddUser && (
         <AddUserModal
           onCloseAction={() => setShowAddUser(false)}
@@ -246,7 +232,6 @@ export default function AdminPage() {
         />
       )}
 
-      {/* Edit User Modal */}
       {editUser && currentUser && (
         <EditUserModal
           user={editUser}
@@ -258,6 +243,6 @@ export default function AdminPage() {
           }}
         />
       )}
-    </div>
+    </>
   );
 }

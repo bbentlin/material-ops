@@ -4,7 +4,7 @@ import { useEffect, useState, useCallback, useRef } from "react";
 import { useRouter } from "next/navigation";
 import PurchaseOrderModal from "@/components/PurchaseOrderModal";
 import Toast, { ToastMessage } from "@/components/Toast";
-import { draftMode } from "next/headers";
+import SubPageLayout from "@/components/SubPageLayout";
 
 type POItem = {
   id: string;
@@ -27,7 +27,7 @@ type PurchaseOrder = {
   createdAt: string;
   updatedAt: string;
   createdBy: { id: string; name: string; email: string };
-  approvedBy?: {id: string; name: string } | null;
+  approvedBy?: { id: string; name: string } | null;
   items: POItem[];
 };
 
@@ -61,25 +61,8 @@ export default function PurchaseOrdersPage() {
   const [editOrder, setEditOrder] = useState<PurchaseOrder | null>(null);
   const [expandedId, setExpandedId] = useState<string | null>(null);
   const [toasts, setToasts] = useState<ToastMessage[]>([]);
-  const [darkMode, setDarkMode] = useState(false);
   const debounceRef = useRef<ReturnType<typeof setTimeout>>(null);
   const limit = 15;
-
-  useEffect(() => {
-    const stored = localStorage.getItem("theme");
-    const isDark = 
-      stored === "dark" ||
-      (!stored && window.matchMedia("(prefers-color-scheme: dark)").matches);
-    setDarkMode(isDark);
-    document.documentElement.classList.toggle("dark", isDark);
-  }, []);
-
-  function toggleDarkMode() {
-    const next = !darkMode;
-    setDarkMode(next);
-    document.documentElement.classList.toggle("dark", next);
-    localStorage.setItem("theme", next ? "dark" : "light");
-  }
 
   function addToast(text: string, type: ToastMessage["type"] = "success") {
     setToasts((prev) => [...prev, { id: crypto.randomUUID(), text, type }]);
@@ -89,7 +72,6 @@ export default function PurchaseOrdersPage() {
     setToasts((prev) => prev.filter((t) => t.id !== id));
   }
 
-  // Debounce search
   useEffect(() => {
     if (debounceRef.current) clearTimeout(debounceRef.current);
     debounceRef.current = setTimeout(() => {
@@ -177,77 +159,50 @@ export default function PurchaseOrdersPage() {
     }
   }
 
+  const headerActions = (
+    <>
+      <input
+        type="text"
+        placeholder="Search orders..."
+        className="border border-gray-300 dark:border-gray-600 rounded-lg text-sm text-gray-900 dark:text-gray-100 bg-white dark:bg-gray-800 px-3 py-2 w-56 focus:outline-none focus:ring-2 focus:ring-blue-500"
+        value={search}
+        onChange={(e) => setSearch(e.target.value)}
+      />
+      <select
+        value={statusFilter}
+        onChange={(e) => {
+          setStatusFilter(e.target.value);
+          setPage(1);
+        }}
+        className="border border-gray-300 dark:border-gray-600 rounded-lg text-sm text-gray-900 dark:text-gray-100 bg-white dark:bg-gray-800 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+      >
+        <option value="">All Statuses</option>
+        <option value="DRAFT">Draft</option>
+        <option value="SUBMITTED">Submitted</option>
+        <option value="APPROVED">Approved</option>
+        <option value="RECEIVED">Received</option>
+        <option value="CANCELLED">Cancelled</option>
+      </select>
+      {canEdit && (
+        <button
+          onClick={() => setShowCreate(true)}
+          className="bg-blue-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-blue-700 transition-colors"
+        >
+          + New Order
+        </button>
+      )}
+    </>
+  );
+
   return (
-    <div className={`min-h-screen bg-gray-50 dark:bg-gray-900 ${darkMode ? "dark" : ""}`}>
+    <>
       <Toast messages={toasts} onDismissAction={dismissToast} />
+      <SubPageLayout title="📋 Purchase Orders" actions={headerActions} sticky>
 
-      {/* Header */}
-      <header className="bg-white dark:bg-gray-800 shadow-sm border-b border-gray-200 dark:border-gray-700 sticky top-0 z-20">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex items-center justify-between flex-wrap gap-3">
-          <div className="flex items-center gap-4">
-            <button
-              onClick={() => router.push("/dashboard")}
-              className="text-sm text-gray-500 dark:text-gray-400 hover:text-blue-600 dark:hover:text-blue-300"
-            >
-              ← Dashboard
-            </button>
-            <h1 className="text-xl font-bold text-gray-900 dark:text-gray-100 tracking-tight">
-              📋 Purchase Orders
-            </h1>
-          </div>
-
-          <div className="flex items-center gap-3">
-            <input
-              type="text"
-              placeholder="Search orders..."
-              className="border border-gray-300 dark:border-gray-600 rounded-lg text-sm text-gray-900 dark:text-gray-100 bg-white dark:bg-gray-800 px-3 py-2 w-56 focus:outline-none focus-ring-2 focus:ring-blue-500"
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-            />
-            <select
-              value={statusFilter}
-              onChange={(e) => {
-                setStatusFilter(e.target.value);
-                setPage(1);
-              }}
-              className="border border-gray-300 dark:border-gray-600 rounded-lg text-sm text-gray-900 dark:text-gray-100 bg-white dark:bg-gray-800 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
-            >
-              <option value="">All Statuses</option>
-              <option value="DRAFT">Draft</option>
-              <option value="SUBMITTED">Submitted</option>
-              <option value="APPROVED">Approved</option>
-              <option value="RECEIVED">Received</option>
-              <option value="CANCELLED">Cancelled</option>
-            </select>
-
-            {canEdit && (
-              <button
-                onClick={() => setShowCreate(true)}
-                className="bg-blue-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-blue-700 transition-colors"
-              >
-                + New Order
-              </button>
-            )}
-
-            <button
-              onClick={toggleDarkMode}
-              className="text-sm text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 px-2 py-1.5 rounded-md hover:bg-gray-100 dark:hover:bg-gray-700"
-              title={darkMode ? "Light mode" : "Dark mode"}
-            >
-              {darkMode ? "☀️" : "🌙"}
-            </button>
-          </div>
-        </div>
-      </header>
-
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {/* Stats row */}
+        {/* Status filter tabs */}
         <div className="grid grid-cols-2 sm:grid-cols-5 gap-4 mb-6">
           {["ALL", "DRAFT", "SUBMITTED", "APPROVED", "RECEIVED"].map((s) => {
-            const count =
-              s === "ALL"
-                ? total
-                : orders.filter((o) => o.status === s).length;
+            const count = s === "ALL" ? total : orders.filter((o) => o.status === s).length;
             const isActive = s === "ALL" ? !statusFilter : statusFilter === s;
             return (
               <button
@@ -308,48 +263,32 @@ export default function PurchaseOrdersPage() {
                     <tr
                       key={order.id}
                       className="hover:bg-gray-50 dark:hover:bg-gray-700/30 cursor-pointer transition-colors"
-                      onClick={() =>
-                       setExpandedId(expandedId === order.id ? null : order.id) 
-                      }
+                      onClick={() => setExpandedId(expandedId === order.id ? null : order.id)}
                     >
                       <td className="px-4 py-3 font-mono font-medium text-gray-900 dark:text-gray-100">
                         {order.orderNumber}
                       </td>
                       <td className="px-4 py-3">
-                        <span
-                          className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-semibold ${
-                            statusColors[order.status] || ""
-                          }`}
-                        >
+                        <span className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-semibold ${statusColors[order.status] || ""}`}>
                           {statusIcons[order.status]} {order.status}
                         </span>
                       </td>
-                      <td className="px-4 py-3 text-gray-700 dark:text-gray-300">
-                        {order.supplier}
-                      </td>
+                      <td className="px-4 py-3 text-gray-700 dark:text-gray-300">{order.supplier}</td>
                       <td className="px-4 py-3 text-gray-600 dark:text-gray-400">
                         {order.items.length} lines · {order.totalItems} units
                       </td>
                       <td className="px-4 py-3 text-gray-600 dark:text-gray-400">
-                        {order.expectedDate
-                          ? new Date(order.createdAt).toLocaleDateString()
-                          : "-"}
+                        {order.expectedDate ? new Date(order.expectedDate).toLocaleDateString() : "-"}
                       </td>
                       <td className="px-4 py-3 text-gray-500 dark:text-gray-400 text-xs">
                         {new Date(order.createdAt).toLocaleDateString()}
                         <div className="text-gray-400">{order.createdBy.name}</div>
                       </td>
                       <td className="px-4 py-3 text-right">
-                        <div
-                          className="flex items-center justify-end gap-1"
-                          onClick={(e) => e.stopPropagation()}
-                        >
-                          {/* Status transitions */}
+                        <div className="flex items-center justify-end gap-1" onClick={(e) => e.stopPropagation()}>
                           {canEdit && order.status === "DRAFT" && (
                             <button
-                              onClick={() =>
-                                handleStatusChange(order.id, "SUBMITTED")
-                              }
+                              onClick={() => handleStatusChange(order.id, "SUBMITTED")}
                               className="text-xs px-2 py-1 rounded bg-blue-100 text-blue-700 hover:bg-blue-200 dark:bg-blue-900/40 dark:text-blue-300 dark:hover:bg-blue-900/60 font-medium"
                             >
                               Submit
@@ -357,9 +296,7 @@ export default function PurchaseOrdersPage() {
                           )}
                           {canApprove && order.status === "SUBMITTED" && (
                             <button
-                              onClick={() =>
-                                handleStatusChange(order.id, "APPROVED")
-                              }
+                              onClick={() => handleStatusChange(order.id, "APPROVED")}
                               className="text-xs px-2 py-1 rounded bg-green-100 text-green-700 hover:bg-green-200 dark:bg-green-900/40 dark:text-green-300 dark:hover:bg-green-900/60 font-medium"
                             >
                               Approve
@@ -381,23 +318,17 @@ export default function PurchaseOrdersPage() {
                               Edit
                             </button>
                           )}
-                          {canEdit && 
-                            order.status !== "RECEIVED" &&
-                            order.status !== "CANCELLED" && (
-                              <button
-                                onClick={() =>
-                                  handleStatusChange(order.id, "CANCELLED")
-                                }
-                                className="text-xs px-2 py-1 rounded text-red-600 hover:bg-red-50 dark:text-red-400 dark:hover:bg-red-900/30 font-medium"
-                              >
-                                Cancel
-                              </button>
-                            )}
+                          {canEdit && order.status !== "RECEIVED" && order.status !== "CANCELLED" && (
+                            <button
+                              onClick={() => handleStatusChange(order.id, "CANCELLED")}
+                              className="text-xs px-2 py-1 rounded text-red-600 hover:bg-red-50 dark:text-red-400 dark:hover:bg-red-900/30 font-medium"
+                            >
+                              Cancel
+                            </button>
+                          )}
                           {canDelete && order.status === "RECEIVED" && (
                             <button
-                              onClick={() =>
-                                handleDelete(order.id, order.orderNumber)
-                              }
+                              onClick={() => handleDelete(order.id, order.orderNumber)}
                               className="text-xs px-2 py-1 rounded text-red-500 hover:bg-red-50 dark:hover:bg-red-900/30"
                             >
                               🗑️
@@ -406,12 +337,10 @@ export default function PurchaseOrdersPage() {
                         </div>
                       </td>
                     </tr>
-                    {/* Expanded detail */}
                     {expandedId === order.id && (
                       <tr key={`${order.id}-detail`}>
                         <td colSpan={7} className="px-4 py-4 bg-gray-50 dark:bg-gray-800/50">
-                          <div className="grid grid-cols-1 mg;grid-cols-2 gap-4">
-                            {/* Line Items */}
+                          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                             <div>
                               <h4 className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase mb-2">
                                 Line Items
@@ -429,10 +358,7 @@ export default function PurchaseOrdersPage() {
                                 </thead>
                                 <tbody>
                                   {order.items.map((item) => (
-                                    <tr
-                                      key={item.id}
-                                      className="border-t border-gray-100 dark:border-gray-700"
-                                    >
+                                    <tr key={item.id} className="border-t border-gray-100 dark:border-gray-700">
                                       <td className="py-1.5 text-gray-700 dark:text-gray-300">
                                         <span className="font-mono text-gray-400 dark:text-gray-500">
                                           {item.material.partNumber}
@@ -443,9 +369,7 @@ export default function PurchaseOrdersPage() {
                                         {item.quantity} {item.material.unit}
                                       </td>
                                       <td className="py-1.5 text-right text-gray-500 dark:text-gray-400">
-                                        {item.unitPrice != null
-                                          ? `$${item.unitPrice.toFixed(2)}`
-                                          : "-"}
+                                        {item.unitPrice != null ? `$${item.unitPrice.toFixed(2)}` : "-"}
                                       </td>
                                       {order.status === "RECEIVED" && (
                                         <td className="py-1.5 text-right text-green-600 dark:text-green-400">
@@ -457,20 +381,16 @@ export default function PurchaseOrdersPage() {
                                 </tbody>
                               </table>
                             </div>
-
-                            {/* Order Info */}
                             <div className="text-xs space-y-1.5">
                               <h4 className="font-semibold text-gray-500 dark:text-gray-400 uppercase mb-2">
                                 Details
                               </h4>
                               <div className="text-gray-600 dark:text-gray-400">
-                                <strong>Created by:</strong>{" "}
-                                {order.createdBy.name} ({order.createdBy.email})
+                                <strong>Created by:</strong> {order.createdBy.name} ({order.createdBy.email})
                               </div>
                               {order.approvedBy && (
                                 <div className="text-gray-600 dark:text-gray-400">
-                                  <strong>Approved by:</strong>{" "}
-                                  {order.approvedBy.name}
+                                  <strong>Approved by:</strong> {order.approvedBy.name}
                                 </div>
                               )}
                               {order.notes && (
@@ -480,21 +400,13 @@ export default function PurchaseOrdersPage() {
                               )}
                               {order.receivedAt && (
                                 <div className="text-gray-600 dark:text-gray-400">
-                                  <strong>Received:</strong>{" "}
-                                  {new Date(order.receivedAt).toLocaleString()}
+                                  <strong>Received:</strong> {new Date(order.receivedAt).toLocaleString()}
                                 </div>
                               )}
                               {order.items.some((i) => i.unitPrice != null) && (
                                 <div className="text-gray-700 dark:text-gray-300 font-medium pt-1">
                                   <strong>Total Cost:</strong> $
-                                  {order.items
-                                    .reduce(
-                                      (sum, i) =>
-                                        sum +
-                                        i.quantity * (i.unitPrice || 0),
-                                      0
-                                    )
-                                    .toFixed(2)}
+                                  {order.items.reduce((sum, i) => sum + i.quantity * (i.unitPrice || 0), 0).toFixed(2)}
                                 </div>
                               )}
                             </div>
@@ -508,7 +420,6 @@ export default function PurchaseOrdersPage() {
             </table>
           )}
 
-          {/* Pagination */}
           {totalPages > 1 && (
             <div className="flex items-center justify-between px-4 py-3 border-t border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-700/30">
               <span className="text-xs text-gray-500 dark:text-gray-400">
@@ -533,9 +444,9 @@ export default function PurchaseOrdersPage() {
             </div>
           )}
         </div>
-      </main>
 
-      {/* Modals */}
+      </SubPageLayout>
+
       {showCreate && (
         <PurchaseOrderModal
           onCloseAction={() => setShowCreate(false)}
@@ -557,6 +468,6 @@ export default function PurchaseOrdersPage() {
           }}
         />
       )}
-    </div>
+    </>
   );
 }

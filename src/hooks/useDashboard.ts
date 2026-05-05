@@ -14,6 +14,7 @@ import type {
   LowStockAlert,
   WidgetData,
 } from "@/types/dashboard";
+import { useDarkMode } from "./useDarkMode";
 
 export function useDashboard() {
   const router = useRouter();
@@ -42,7 +43,6 @@ export function useDashboard() {
   const [sortKey, setSortKey] = useState<SortKey | null>(null);
   const [sortDir, setSortDir] = useState<SortDir>("asc");
   const [toasts, setToasts] = useState<ToastMessage[]>([]);
-  const [darkMode, setDarkMode] = useState(false);
   const [auditLogs, setAuditLogs] = useState<AuditEntry[]>([]);
   const [stats, setStats] = useState<StatsData | null>(null);
   const [movementTrend, setMovementTrend] = useState<TrendDay[]>([]);
@@ -52,6 +52,8 @@ export function useDashboard() {
   const [showScanner, setShowScanner] = useState(false);
   const debounceRef = useRef<ReturnType<typeof setTimeout>>(null);
   const [widgets, setWidgets] = useState<WidgetData | null>(null);
+  
+  const { darkMode, toggleDarkMode } = useDarkMode();
 
   // --- Constants ---
   const materialsPerPage = 15;
@@ -61,21 +63,6 @@ export function useDashboard() {
   const canEdit = userRole === "ADMIN" || userRole === "OPERATOR";
   const canDelete = userRole === "ADMIN";
   const canManageUsers = userRole === "ADMIN";
-
-  // --- Dark mode ---
-  useEffect(() => {
-    const stored = localStorage.getItem("theme");
-    const isDark = stored === "dark" || (!stored && window.matchMedia("(prefers-color-scheme: dark)").matches);
-    setDarkMode(isDark);
-    document.documentElement.classList.toggle("dark", isDark);
-  }, []);
-
-  function toggleDarkMode() {
-    const next = !darkMode;
-    setDarkMode(next);
-    document.documentElement.classList.toggle("dark", next);
-    localStorage.setItem("theme", next ? "dark" : "light");
-  }
 
   // --- Toasts ---
   function addToast(text: string, type: ToastMessage["type"] = "success") {
@@ -465,12 +452,14 @@ export function useDashboard() {
     departments, departmentFilter, setDepartmentFilter,
     materialPage, setMaterialPage, movementPage, setMovementPage,
     sortKey, sortDir,
-    toasts, darkMode,
-    auditLogs, stats, movementTrend,
+    toasts, auditLogs, stats, movementTrend,
     lowStockAlerts, showAlerts, setShowAlerts,
     lowStockOnly, setLowStockOnly,
     showScanner, setShowScanner,
     widgets,
+
+    // Dark mode
+    darkMode, toggleDarkMode,
 
     // Constants
     materialsPerPage, movementsPerPage,
@@ -487,7 +476,7 @@ export function useDashboard() {
     debouncedSearch,
 
     // Handlers
-    toggleDarkMode, addToast, dismissToast,
+    addToast, dismissToast,
     toggleSort, sortIndicator,
     handleLogout, handleScanResult,
     clearFilters, exportCSV, handleImportCSV,
