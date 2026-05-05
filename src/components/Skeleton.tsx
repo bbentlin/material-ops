@@ -25,7 +25,7 @@ export function SkeletonCard({ className = "" }: { className?: string }) {
   return (
     <div
       aria-hidden="true"
-      className={`bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 ${className}`}
+      className={`bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-5 ${className}`}
     >
       <div className={`h-3 w-24 ${basePulse} rounded-full mb-3`} />
       <div className={`h-8 w-16 ${basePulse} rounded mb-2`} />

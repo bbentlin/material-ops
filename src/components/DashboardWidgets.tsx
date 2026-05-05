@@ -11,6 +11,7 @@ type Props = {
 
 export default function DashboardWidgets(props: Props) {
   const poSummary = props.widgets?.poSummary;
+  const widgetsLoading = !props.widgets;
 
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
@@ -79,8 +80,8 @@ export default function DashboardWidgets(props: Props) {
                 <SkeletonText className="h-3 w-8" /> 
               </div>
               <div className="flex justify-between">
-                <SkeletonText h-3 w-16 />
-                <SkeletonText h-3 w-8 />
+                <SkeletonText classname="h-3 w-16" />
+                <SkeletonText className="h-3 w-8" />
               </div>
               <div className="flex justify-between">
                 <SkeletonText className="h-3 w-20" />
@@ -201,7 +202,22 @@ export default function DashboardWidgets(props: Props) {
       {/* Top Movers */}
       <div className="bg-white dark:bg-gray-800 p-6 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700">
         <h3 className="text-sm font-semibold text-gray-900 dark:text-gray-100 mb-4">Top Movers (30d)</h3>
-        {props.widgets?.topMovers && props.widgets.topMovers.length > 0 ? (
+        {widgetsLoading ? (
+          <div className="space-y-3">
+            {Array.from({ length: 5 }).map((_, i) => (
+              <div key={i} className="flex items-center gap-2">
+                <div className="w-4 h-4 rounded-full bg-gray-200 dark:bg-gray-700 motion-safe:animate-pulse motion-reduce:animate-none" />
+                <div className="flex-1 min-w-0 space-y-1">
+                  <SkeletonText className="h-3 w-32" />
+                  <SkeletonText className="h-2 w-20" />
+                </div>
+                <div className="shrink-0">
+                  <SkeletonText className="h-3 w-8" />
+                </div>
+              </div>
+            ))}
+          </div>
+        ) : props.widgets.topMovers.length > 0 ? (
           <div className="space-y-3">
             {props.widgets.topMovers.slice(0, 5).map((item, i) => (
               <div key={item.id} className="flex items-center gap-2">
@@ -233,7 +249,19 @@ export default function DashboardWidgets(props: Props) {
       {/* PO Breakdown */}
       <div className="bg-white dark:bg-gray-800 p-6 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700">
         <h3 className="text-sm font-semibold text-gray-900 dark:text-gray-100 mb-4">PO Breakdown</h3>
-        {poSummary && Object.keys(poSummary).length > 0 ? (
+        {widgetsLoading ? (
+          <div className="space-y-2">
+            {Array.from({ length: 4 }).map((_, i) => (
+              <div key={i}>
+                <div className="flex justify-between mb-1">
+                  <SkeletonText className="h-3 w-20" />
+                  <SkeletonText className="h-3 w-6" />
+                </div>
+                <SkeletonBox className="h-1.5 w-full rounded-full" />
+              </div>
+            ))}
+          </div>
+        ) : poSummary && Object.keys(poSummary).length > 0 ? (
           <div className="space-y-2">
             {Object.entries(poSummary).map(([status, count]) => {
               const total = Object.values(poSummary).reduce((a, b) => a + b, 0);
