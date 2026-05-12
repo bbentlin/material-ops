@@ -2,7 +2,7 @@
 
 import { useRouter } from "next/navigation";
 import { useDarkMode } from "@/hooks/useDarkMode";
-import { SkeletonBox, SkeletonText } from "@/components/Skeleton";
+import { SkeletonBox, SkeletonText, SkeletonTableBody } from "@/components/Skeleton";
 import type { ReactNode } from "react";
 
 interface SubPageLayoutProps {
@@ -78,17 +78,7 @@ export default function SubPageLayout({
                 <SkeletonText className="h-5 w-24" />
               </div>
               <table className="w-full">
-                <tbody className="divide-y divide-gray-100 dark:divide-gray-700">
-                  {Array.from({ length: 6 }).map((_, i) => (
-                    <tr key={i}>
-                      {Array.from({ length: 5 }).map((_, j) => (
-                        <td key={j} className="px-5 py-4">
-                          <div className="h-4 animate-pulse bg-gray-200 dark:bg-gray-700 rounded-full w-3/4" />
-                        </td>
-                      ))}
-                    </tr>
-                  ))}
-                </tbody>
+                <SkeletonTableBody rows={6} cols={5} />
               </table>
             </div>
           </div>

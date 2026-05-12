@@ -80,7 +80,7 @@ export default function DashboardWidgets(props: Props) {
                 <SkeletonText className="h-3 w-8" /> 
               </div>
               <div className="flex justify-between">
-                <SkeletonText classname="h-3 w-16" />
+                <SkeletonText className="h-3 w-16" />
                 <SkeletonText className="h-3 w-8" />
               </div>
               <div className="flex justify-between">
@@ -217,9 +217,9 @@ export default function DashboardWidgets(props: Props) {
               </div>
             ))}
           </div>
-        ) : props.widgets.topMovers.length > 0 ? (
+        ) : (props.widgets?.topMovers?.length ?? 0) > 0 ? (
           <div className="space-y-3">
-            {props.widgets.topMovers.slice(0, 5).map((item, i) => (
+            {(props.widgets?.topMovers ?? []).slice(0, 5).map((item, i) => (
               <div key={item.id} className="flex items-center gap-2">
                 <span className="text-xs font-bold text-gray-400 dark:text-gray-500 w-4 text-right">{i + 1}</span>
                 <div className="flex-1 min-w-0">

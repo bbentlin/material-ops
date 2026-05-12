@@ -1,4 +1,4 @@
-import { SkeletonBox, SkeletonCard, SkeletonRow, SkeletonText } from "@/components/Skeleton";
+import { SkeletonBox, SkeletonCard, SkeletonTableBody, SkeletonText } from "@/components/Skeleton";
 
 export default function DashboardSkeleton() {
   return (
@@ -81,7 +81,7 @@ export default function DashboardSkeleton() {
             </thead>
             <tbody className="divide-y divide-gray-100 dark:divide-gray-700">
               {Array.from({ length: 8 }).map((_, i) => (
-                <SkeletonRow key={i} cols={7} />
+                <SkeletonTableBody rows={8} cols={7} />
               ))}
             </tbody>
           </table>
@@ -104,7 +104,7 @@ export default function DashboardSkeleton() {
             </thead>
             <tbody className="divide-y divide-gray-100 dark:divide-gray-700">
               {Array.from({ length: 5 }).map((_, i) => (
-                <SkeletonRow key={i} cols={5} />
+                <SkeletonTableBody rows={5} cols={5} />
               ))}
             </tbody>
           </table>

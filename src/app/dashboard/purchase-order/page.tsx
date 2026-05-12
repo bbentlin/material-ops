@@ -2,7 +2,7 @@
 
 import { useEffect, useState, useCallback, useRef } from "react";
 import { useRouter } from "next/navigation";
-import { SkeletonRow, SkeletonText } from "@/components/Skeleton";
+import { SkeletonTableBody } from "@/components/Skeleton";
 import PurchaseOrderModal from "@/components/PurchaseOrderModal";
 import Toast, { ToastMessage } from "@/components/Toast";
 import SubPageLayout from "@/components/SubPageLayout";
@@ -232,12 +232,8 @@ export default function PurchaseOrdersPage() {
         {/* Orders table */}
         <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 overflow-hidden">
           {loading ? (
-            <table>
-              <tbody>
-                {Array.from({ length: 8 }).map((_, i) => (
-                  <SkeletonRow key={i} cols={7} />
-                ))}
-              </tbody>
+            <table className="w-full text-sm">
+              <SkeletonTableBody rows={8} cols={7} cellClassName="px-4 py-3" />
             </table>
           ) : orders.length === 0 ? (
             <div className="p-12 text-center text-gray-400 dark:text-gray-500">
