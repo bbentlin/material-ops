@@ -21,6 +21,15 @@ import DashboardSkeleton from "@/components/DashboardSkeleton";
 export default function DashboardPage() {
   const d = useDashboard();
 
+  const shouldCrashDashboard = 
+    process.env.NEXT_PUBLIC_E2E_CRASH === "1" &&
+    typeof window !== "undefined" &&
+    new URLSearchParams(window.location.search).has("e2eCrashDashboard");
+
+    if (shouldCrashDashboard) {
+      throw new Error("E2E dashboard boundary crash");
+    }
+
   if (d.loading) {
     return <DashboardSkeleton />;
   }

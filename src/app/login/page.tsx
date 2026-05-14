@@ -27,6 +27,15 @@ export default function LoginPage() {
     });
   }
 
+  const shouldCrashApp = 
+    process.env.NEXT_PUBLIC_E2E_CRASH === "1" &&
+    typeof window !== "undefined" && 
+    new URLSearchParams(window.location.search).has("e2eCrashApp");
+
+  if (shouldCrashApp) {
+    throw new Error("E2E app boundary crash");
+  }
+
   return (
     <div className="flex min-h-screen items-center justify-center bg-gray-100 dark:bg-gray-900">
       <form

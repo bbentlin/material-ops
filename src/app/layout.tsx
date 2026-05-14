@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "@/styles/globals.css";
+import { cookies } from "next/headers";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -17,11 +18,20 @@ export const metadata: Metadata = {
   description: "Material handling and inventory management",
 };
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const cookieStore = await cookies();
+  const shouldCrashGlobal =
+    process.env.E2E_CRASH === "1" &&
+    cookieStore.get("e2eCrashGlobal")?.value === "1";
+
+  if (shouldCrashGlobal) {
+    throw new Error("E2E global boundary crash");
+  }
+
   return (
     <html lang="en" suppressHydrationWarning>
       <head>

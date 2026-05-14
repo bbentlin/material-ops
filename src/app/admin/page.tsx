@@ -110,6 +110,15 @@ export default function AdminPage() {
     </div>
   );
 
+  const shouldCrashAdmin = 
+    process.env.NEXT_PUBLIC_E2E_CRASH === "1" &&
+    typeof window !== "undefined" && 
+    new URLSearchParams(window.location.search).has("e2eCrashAdmin");
+
+    if (shouldCrashAdmin) {
+      throw new Error("E2E admin boundary crash");
+    }
+
   return (
     <>
       <SubPageLayout title="👥 User Management" maxWidth="max-w-5xl" actions={headerActions} loading={loading}>
