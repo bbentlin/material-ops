@@ -36,12 +36,6 @@ function ToastItem({
     return () => clearTimeout(timer);
   }, [message.id, onDismissAction]);
 
-  const styles = {
-    success: "bg-green-600 text-white",
-    error: "bg-red-600 text-white",
-    info: "bg-blue-600 text-white",
-  };
-
   const icons = {
     success: "✓",
     error: "✕",

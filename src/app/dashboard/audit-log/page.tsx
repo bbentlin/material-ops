@@ -2,7 +2,6 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { SkeletonTableBody } from "@/components/Skeleton";
 import SubPageLayout from "@/components/SubPageLayout";
 
 type AuditEntry = {

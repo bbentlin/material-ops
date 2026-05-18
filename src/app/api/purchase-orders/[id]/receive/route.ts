@@ -1,10 +1,9 @@
 import { prisma } from "@/lib/db";
 import { requireAuth } from "@/lib/permissions";
-import { logAudit } from "@/lib/audit";
-import { NextRequest, NextResponse } from "next/server";
+import { NextResponse } from "next/server";
 
 export async function POST(
-  req: NextRequest,
+  _req: Request,
   { params }: { params: Promise<{ id: string }> }
 ) {
   const { user, error } = await requireAuth("OPERATOR");

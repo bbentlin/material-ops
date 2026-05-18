@@ -1,6 +1,7 @@
 "use client";
 
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useState, useRef, useCallback } from "react";
+import Image from "next/image";
 import { useRouter, useParams } from "next/navigation";
 import { SkeletonBox, SkeletonText } from "@/components/Skeleton";
 import { MaterialWithMovements } from "@/types/domain";
@@ -25,7 +26,7 @@ export default function MaterialDetailPage() {
   const canEdit = userRole === "ADMIN" || userRole === "OPERATOR";
   const canDelete = userRole === "ADMIN";
 
-  function fetchMaterial() {
+  const fetchMaterial = useCallback(() => {
     fetch(`/api/materials/${id}`)
       .then((res) => {
         if (res.status === 401) {
@@ -39,7 +40,7 @@ export default function MaterialDetailPage() {
       .then(setMaterial)
       .catch((e) => setError(e.message))
       .finally(() => setLoading(false));
-  }
+  }, [id, router]);
 
   // Generate QR code as data URL using canvas
   useEffect(() => {
@@ -59,9 +60,11 @@ export default function MaterialDetailPage() {
     fetchMaterial();
     fetch("/api/auth/me")
       .then((res) => (res.ok ? res.json() : null))
-      .then((data) => { if (data) setUserRole(data.role); })
+      .then((data) => {
+        if (data) setUserRole(data.role);
+      })
       .catch(() => {});
-  }, []);
+  }, [fetchMaterial]);
 
   function printLabel() {
     if (!labelRef.current) return;
@@ -292,7 +295,13 @@ export default function MaterialDetailPage() {
             >
               {/* QR Code */}
               {qrDataUrl ? (
-                <img src={qrDataUrl} alt={`QR: ${material.partNumber}`} width={140} height={140} />
+                <Image
+                  src={qrDataUrl}
+                  alt={`QR: ${material.partNumber}`}
+                  width={140}
+                  height={140}
+                  unoptimized
+                />
               ) : (
                 <div className="w-35 h-35 bg-gray-100 rounded flex items-center justify-center text-gray-400 text-xs">
                   QR Code

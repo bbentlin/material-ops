@@ -2,7 +2,6 @@
 
 import { useEffect, useState, useTransition } from "react";
 import DraggableModal from "./DraggableModal";
-import { WithStringifiedURLs } from "next/dist/lib/metadata/types/metadata-interface";
 
 const inputClass = 
 "border border-gray-300 p-2 rounded-md text-gray-900 bg-white placeholder-gray-400 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100 dark:placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500 selection:bg-blue-200 selection:text-gray-900";

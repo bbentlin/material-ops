@@ -91,8 +91,20 @@ export default function ScannerModal({
     "w-full border border-gray-300 dark:border-gray-600 rounded-lg px-3 py-2 text-sm text-gray-900 dark:text-gray-100 bg-white dark:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500";
 
   return (
-    <DraggableModal title="📷 Scan Barcode / QR Code" onCloseAction={onCloseAction}>
+    <DraggableModal>
       <div className="space-y-4">
+        <div className="flex items-center justify-between">
+          <h2 className="text-sm font-semibold text-gray-900 dark:text-gray-100">
+            📷 Scan Barcode / QR Code
+          </h2>
+          <button
+            onClick={onCloseAction}
+            className="text-xs px-2 py-1 rounded border border-gray-300 dark:border-gray-600 text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700"
+          >
+            Close
+          </button>
+        </div>
+
         {/* Camera Scanner */}
         <div className="relative bg-black rounded-lg overflow-hidden" style={{ minHeight: 240 }}>
           {scanning ? (

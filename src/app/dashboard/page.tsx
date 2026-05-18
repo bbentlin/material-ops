@@ -7,7 +7,6 @@ import TransferModal from "@/components/TransferModal";
 import ScannerModal from "@/components/ScannerModal";
 import Toast from "@/components/Toast";
 import { useDashboard } from "@/hooks/useDashboard";
-import type { SortKey } from "@/types/dashboard";
 import DashboardHeader from "@/components/DashboardHeader";
 import DashboardStatsCards from "@/components/DashboardStatsCards";
 import DashboardWidgets from "@/components/DashboardWidgets";

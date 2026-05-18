@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import AddUserModal from "@/components/AddUserModal";
 import EditUserModal from "@/components/EditUserModal";
@@ -37,7 +37,7 @@ export default function AdminPage() {
   const [search, setSearch] = useState("");
   const router = useRouter();
 
-  function fetchUsers() {
+  const fetchUsers = useCallback(() => {
     fetch("/api/users")
       .then((res) => {
         if (res.status === 401 || res.status === 403) {
@@ -50,7 +50,7 @@ export default function AdminPage() {
       .then(setUsers)
       .catch((e) => setError(e.message))
       .finally(() => setLoading(false));
-  }
+  }, [router]);
 
   function fetchCurrentUser() {
     fetch("/api/auth/me")
@@ -65,7 +65,7 @@ export default function AdminPage() {
   useEffect(() => {
     fetchUsers();
     fetchCurrentUser();
-  }, []);
+  }, [fetchUsers]);
 
   const filteredUsers = users.filter((user) => {
     if (!search) return true;
