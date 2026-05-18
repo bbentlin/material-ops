@@ -1,7 +1,6 @@
 import { getCurrentUser } from "./auth";
 import { NextResponse } from "next/server";
-
-type Role = "ADMIN" | "OPERATOR" | "VIEWER";
+import { Role } from "@/types/domain";
 
 const ROLE_HIERARCHY: Record<Role, number> = {
   VIEWER: 1,

@@ -3,16 +3,7 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import SubPageLayout from "@/components/SubPageLayout";
-
-type AuditEntry = {
-  id: string;
-  action: string;
-  entity: string;
-  entityId?: string;
-  details?: string;
-  createdAt: string;
-  user?: { name: string; email: string } | null;
-};
+import type { AuditEntry } from "@/types/dashboard";
 
 const actionStyle: Record<string, { icon: string; label: string; bg: string }> = {
   LOGIN: { icon: "🔑", label: "Login", bg: "bg-blue-100 text-blue-700 dark:bg-blue-900 dark:text-blue-300" },
