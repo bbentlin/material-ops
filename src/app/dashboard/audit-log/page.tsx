@@ -43,11 +43,6 @@ export default function AuditLogPage() {
   const limit = 25;
 
   useEffect(() => {
-    setPage(1);
-  }, [search, entityFilter]);
-
-  useEffect(() => {
-    setLoading(true);
     const params = new URLSearchParams();
     params.set("page", String(page));
     params.set("limit", String(limit));
@@ -114,13 +109,21 @@ export default function AuditLogPage() {
           type="text"
           placeholder="Search logs..."
           value={search}
-          onChange={(e) => setSearch(e.target.value)}
+          onChange={(e) => {
+            setSearch(e.target.value);
+            setPage(1);
+            setLoading(true);
+          }}
           className="pl-10 pr-4 py-2 w-64 border border-gray-300 dark:border-gray-600 rounded-lg text-sm text-gray-900 dark:text-gray-100 bg-white dark:bg-gray-700 placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500"
         />
       </div>
       <select
         value={entityFilter}
-        onChange={(e) => setEntityFilter(e.target.value)}
+        onChange={(e) => {
+          setEntityFilter(e.target.value);
+          setPage(1);
+          setLoading(true);
+        }}
         className="border border-gray-300 dark:border-gray-600 rounded-lg text-sm text-gray-900 dark:text-gray-100 bg-white dark:bg-gray-800 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
       >
         <option value="">All Categories</option>
@@ -155,11 +158,15 @@ export default function AuditLogPage() {
             </thead>
             <tbody className="divide-y divide-gray-100 dark:divide-gray-700">
               {loading ? (
-                <>
-                  {Array.from({ length: 8 }).map((_, i) => (
-                    <SkeletonTableBody rows={8} cols={5} />
-                  ))}
-                </>
+                Array.from({ length: 8 }).map((_, rowIndex) => (
+                  <tr key={rowIndex}>
+                    {Array.from({ length: 5 }).map((_, cellIndex) => (
+                      <td key={cellIndex} className="px-5 py-4">
+                        <div className="h-4 w-3/4 rounded-full bg-gray-200 dark:bg-gray-700 motion-safe:animate-pulse" />
+                      </td>
+                    ))}
+                  </tr>
+                ))
               ) : logs.length === 0 ? (
                 <tr>
                   <td colSpan={5} className="px-5 py-12 text-center text-gray-400">

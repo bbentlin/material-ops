@@ -2,18 +2,13 @@
 
 import { useState, useEffect, useTransition } from "react";
 import { SkeletonText } from "@/components/Skeleton";  
+import { MaterialBase } from "@/types/domain";
 import DraggableModal from "@/components/DraggableModal";
+
+type TransferMaterial = Pick<MaterialBase, "id" | "name" | "partNumber" | "quantity" | "location">;
 
 const inputClass = 
   "border border-gray-300 p-2 rounded-md text-gray-900 bg-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 selection:bg-blue-200 selection:text-gray-900 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100 dark:placeholder-gray-500";
-
-type Material = {
-  id: string;
-  name: string;
-  partNumber: string;
-  quantity: number;
-  location?: string;
-};
 
 export default function TransferModal({
   sourceMaterialId,
@@ -24,7 +19,7 @@ export default function TransferModal({
   onCloseAction: () => void;
   onSuccessAction: () => void;
 }) {
-  const [materials, setMaterials] = useState<Material[]>([]);
+  const [materials, setMaterials] = useState<TransferMaterial[]>([]);
   const [destinationId, setDestinationId] = useState("");
   const [quantity, setQuantity] = useState(1);
   const [note, setNote] = useState("");

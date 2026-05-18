@@ -1,22 +1,11 @@
 "use client";
 
 import { useEffect, useState, useTransition } from "react";
+import { MaterialBase } from "@/types/domain";
 import DraggableModal from "./DraggableModal";
 
 const inputClass =
   "border border-gray-300 p-2 rounded-md text-gray-900 bg-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 selection:bg-blue-200 selection:text-gray-900 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100 dark:placeholder-gray-500";
-
-type Material = {
-  id: string;
-  name: string;
-  partNumber: string;
-  description: string;
-  quantity: number;
-  minQuantity?: number;
-  unit?: string;
-  location?: string;
-  department?: { id: string; name: string; color: string } | null;
-};
 
 export default function EditMaterialModal({
   material,
@@ -24,7 +13,7 @@ export default function EditMaterialModal({
   onCloseAction,
   onSuccessAction,
 }: {
-  material: Material;
+  material: MaterialBase;
   canDelete?: boolean;
   onCloseAction: () => void;
   onSuccessAction: () => void;

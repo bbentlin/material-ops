@@ -79,11 +79,7 @@ export default function DashboardSkeleton() {
                 ))}
               </tr>
             </thead>
-            <tbody className="divide-y divide-gray-100 dark:divide-gray-700">
-              {Array.from({ length: 8 }).map((_, i) => (
-                <SkeletonTableBody rows={8} cols={7} />
-              ))}
-            </tbody>
+            <SkeletonTableBody rows={8} cols={7} cellClassName="px-5 py-4" />
           </table>
         </div>
 
@@ -102,11 +98,7 @@ export default function DashboardSkeleton() {
                 ))}
               </tr>
             </thead>
-            <tbody className="divide-y divide-gray-100 dark:divide-gray-700">
-              {Array.from({ length: 5 }).map((_, i) => (
-                <SkeletonTableBody rows={5} cols={5} />
-              ))}
-            </tbody>
+            <SkeletonTableBody rows={5} cols={5} cellClassName="px-5 py-4" />
           </table>
         </div>
       </main>

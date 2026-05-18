@@ -3,38 +3,15 @@
 import { useEffect, useState, useRef } from "react";
 import { useRouter, useParams } from "next/navigation";
 import { SkeletonBox, SkeletonText } from "@/components/Skeleton";
+import { MaterialWithMovements } from "@/types/domain";
 import MovementModal from "@/components/MovementModal";
 import EditMaterialModal from "@/components/EditMaterialModal";
 import Barcode128 from "@/components/Barcode128";
 
-type Movement = {
-  id: string;
-  type: string;
-  quantity: number;
-  note?: string;
-  createdAt: string;
-  user: { name: string; email: string };
-};
-
-type Material = {
-  id: string;
-  name: string;
-  partNumber: string;
-  description: string;
-  quantity: number;
-  minQuantity?: number;
-  unit?: string;
-  location?: string;
-  createdAt?: string;
-  updatedAt?: string;
-  department?: { id: string; name: string; color: string } | null;
-  movements: Movement[];
-};
-
 export default function MaterialDetailPage() {
   const router = useRouter();
   const { id } = useParams<{ id: string }>();
-  const [material, setMaterial] = useState<Material | null>(null);
+  const [material, setMaterial] = useState<MaterialWithMovements | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [userRole, setUserRole] = useState<string | null>(null);

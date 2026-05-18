@@ -32,12 +32,12 @@ export function useDashboard() {
   const [editMaterial, setEditMaterial] = useState<Material | null>(null);
   const [search, setSearch] = useState("");
   const [debouncedSearch, setDebouncedSearch] = useState("");
-  const [dateFrom, setDateFrom] = useState("");
-  const [dateTo, setDateTo] = useState("");
+  const [dateFrom, setDateFromState] = useState("");
+  const [dateTo, setDateToState] = useState("");
   const [userRole, setUserRole] = useState<string | null>(null);
   const [userName, setUserName] = useState<string | null>(null);
   const [departments, setDepartments] = useState<{ id: string; name: string; color: string }[]>([]);
-  const [departmentFilter, setDepartmentFilter] = useState("");
+  const [departmentFilter, setDepartmentFilterState] = useState("");
   const [materialPage, setMaterialPage] = useState(1);
   const [movementPage, setMovementPage] = useState(1);
   const [sortKey, setSortKey] = useState<SortKey | null>(null);
@@ -48,7 +48,7 @@ export function useDashboard() {
   const [movementTrend, setMovementTrend] = useState<TrendDay[]>([]);
   const [lowStockAlerts, setLowStockAlerts] = useState<LowStockAlert[]>([]);
   const [showAlerts, setShowAlerts] = useState(true);
-  const [lowStockOnly, setLowStockOnly] = useState(false);
+  const [lowStockOnly, setLowStockOnlyState] = useState(false);
   const [showScanner, setShowScanner] = useState(false);
   const debounceRef = useRef<ReturnType<typeof setTimeout>>(null);
   const [widgets, setWidgets] = useState<WidgetData | null>(null);
@@ -85,12 +85,6 @@ export function useDashboard() {
       if (debounceRef.current) clearTimeout(debounceRef.current);
     };
   }, [search]);
-
-  // Reset to page 1 when filters change
-  useEffect(() => {
-    setMaterialPage(1);
-    setMovementPage(1);
-  }, [dateFrom, dateTo, departmentFilter, lowStockOnly]);
 
   // --- Fetch functions ---
   const fetchMaterials = useCallback(() => {
@@ -223,6 +217,31 @@ export function useDashboard() {
   }
 
   // --- Handlers ---
+  function resetPages() {
+    setMaterialPage(1);
+    setMovementPage(1);
+  }
+
+  function setDateFrom(value: string) {
+    setDateFromState(value);
+    resetPages();
+  }
+
+  function setDateTo(value: string) {
+    setDateToState(value);
+    resetPages();
+  }
+
+  function setDepartmentFilter(value: string) {
+    setDepartmentFilterState(value);
+    resetPages();
+  }
+
+  function setLowStockOnly(value: boolean) {
+    setLowStockOnlyState(value);
+    resetPages();
+  }
+
   function handleScanResult(partNumber: string) {
     setShowScanner(false);
     fetch(`/api/materials/lookup?partNumber=${encodeURIComponent(partNumber)}`)

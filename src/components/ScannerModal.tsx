@@ -15,12 +15,10 @@ export default function ScannerModal({
   const [manualEntry, setManualEntry] = useState("");
   const [cameraError, setCameraError] = useState("");
   const [scanning, setScanning] = useState(false);
-  const [hasBarcodeDetector, setHasBarcodeDetector] = useState(false);
-
-  useEffect(() => {
-    // Check if BarcodeDetector API is available
-    setHasBarcodeDetector("BarcodeDetector" in window);
-  }, []);
+  
+  const [hasBarcodeDetector] = useState(
+    () => typeof window !== "undefined" && "BarcodeDetector" in window
+  );
 
   async function startCamera() {
     try {

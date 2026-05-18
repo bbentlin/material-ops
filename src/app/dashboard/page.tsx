@@ -124,7 +124,7 @@ export default function DashboardPage() {
           criticalCount={d.criticalCount}
           lowCount={d.lowCount}
           onToggleLowStockAction={() => {
-            d.setLowStockOnly((prev) => !prev);
+            d.setLowStockOnly(!d.lowStockOnly);
             d.setMaterialPage(1);
           }}
         />

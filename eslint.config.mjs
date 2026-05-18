@@ -7,6 +7,9 @@ const eslintConfig = defineConfig([
   ...nextTs,
   // Override default ignores of eslint-config-next.
   globalIgnores([
+    "src/generated/**",
+    "prisma/generated/**",
+    "src/generated/prisma/**",
     // Default ignores of eslint-config-next:
     ".next/**",
     "out/**",

@@ -1,38 +1,14 @@
 "use client";
 
-import { useEffect, useState, useCallback, useRef } from "react";
+import { useEffect, useState, useCallback, useRef, Fragment } from "react";
 import { useRouter } from "next/navigation";
 import { SkeletonTableBody } from "@/components/Skeleton";
+import { PurchaseOrder, PurchaseOrderStatus } from "@/types/domain";
 import PurchaseOrderModal from "@/components/PurchaseOrderModal";
 import Toast, { ToastMessage } from "@/components/Toast";
 import SubPageLayout from "@/components/SubPageLayout";
 
-type POItem = {
-  id: string;
-  materialId: string;
-  quantity: number;
-  unitPrice: number | null;
-  receivedQty: number;
-  material: { id: string; name: string; partNumber: string; unit: string };
-};
-
-type PurchaseOrder = {
-  id: string;
-  orderNumber: string;
-  status: string;
-  supplier: string;
-  notes?: string | null;
-  expectedDate?: string | null;
-  totalItems: number;
-  receivedAt?: string | null;
-  createdAt: string;
-  updatedAt: string;
-  createdBy: { id: string; name: string; email: string };
-  approvedBy?: { id: string; name: string } | null;
-  items: POItem[];
-};
-
-const statusColors: Record<string, string> = {
+const statusColors: Record<PurchaseOrderStatus, string> = {
   DRAFT: "bg-gray-100 text-gray-700 dark:bg-gray-700 dark:text-gray-300",
   SUBMITTED: "bg-blue-100 text-blue-700 dark:bg-blue-900/40 dark:text-blue-300",
   APPROVED: "bg-green-100 text-green-700 dark:bg-green-900/40 dark:text-green-300",
@@ -40,7 +16,7 @@ const statusColors: Record<string, string> = {
   CANCELLED: "bg-red-100 text-red-700 dark:bg-red-900/40 dark:text-red-300",
 };
 
-const statusIcons: Record<string, string> = {
+const statusIcons: Record<PurchaseOrderStatus, string> = {
   DRAFT: "📝",
   SUBMITTED: "📨",
   APPROVED: "✅",
@@ -79,10 +55,13 @@ export default function PurchaseOrdersPage() {
       setDebouncedSearch(search);
       setPage(1);
     }, 300);
+
+    return () => {
+      if (debounceRef.current) clearTimeout(debounceRef.current);
+    };
   }, [search]);
 
   const fetchOrders = useCallback(async () => {
-    setLoading(true);
     const params = new URLSearchParams({
       page: String(page),
       limit: String(limit),
@@ -91,16 +70,41 @@ export default function PurchaseOrdersPage() {
     if (statusFilter) params.set("status", statusFilter);
 
     const res = await fetch(`/api/purchase-orders?${params}`);
-    if (res.ok) {
-      const data = await res.json();
-      setOrders(data.orders);
-      setTotal(data.total);
+    if (!res.ok) {
+      throw new Error("Failed to fetch purchase orders");
     }
-    setLoading(false);
-  }, [page, debouncedSearch, statusFilter]);
+
+    return res.json();
+  }, [page, limit, debouncedSearch, statusFilter]);
 
   useEffect(() => {
-    fetchOrders();
+    let cancelled = false;
+
+    async function loadOrders() {
+      try {
+        const data = await fetchOrders();
+        if (cancelled) return;
+
+        setOrders(data.orders ?? []);
+        setTotal(data.total ?? 0);
+      } catch (e) {
+        if (cancelled) return;
+
+        const message = 
+          e instanceof Error ? e.message : "Failed to fetch purchase orders";
+        addToast(message, "error");
+      } finally {
+        if (!cancelled) {
+          setLoading(false);
+        }
+      }
+    }
+
+    void loadOrders();
+
+    return () => {
+      cancelled = true;
+    };
   }, [fetchOrders]);
 
   useEffect(() => {
@@ -126,7 +130,10 @@ export default function PurchaseOrdersPage() {
     });
     if (res.ok) {
       addToast(`Order ${newStatus.toLowerCase()} successfully`);
-      fetchOrders();
+      setLoading(true);
+      const data = await fetchOrders();
+      setOrders(data.orders ?? []);
+      setTotal(data.total ?? 0);
     } else {
       const data = await res.json();
       addToast(data.error || "Action failed", "error");
@@ -139,7 +146,10 @@ export default function PurchaseOrdersPage() {
     });
     if (res.ok) {
       addToast("Order received - stock updated!", "success");
-      fetchOrders();
+      setLoading(true);
+      const data = await fetchOrders();
+      setOrders(data.orders ?? []);
+      setTotal(data.total ?? 0);
     } else {
       const data = await res.json();
       addToast(data.error || "Failed to receive order", "error");
@@ -153,7 +163,10 @@ export default function PurchaseOrdersPage() {
     });
     if (res.ok) {
       addToast("Order deleted");
-      fetchOrders();
+      setLoading(true);
+      const data = await fetchOrders();
+      setOrders(data.orders ?? []);
+      setTotal(data.total ?? 0);
     } else {
       const data = await res.json();
       addToast(data.error || "Failed to delete", "error");
@@ -172,6 +185,7 @@ export default function PurchaseOrdersPage() {
       <select
         value={statusFilter}
         onChange={(e) => {
+          setLoading(true);
           setStatusFilter(e.target.value);
           setPage(1);
         }}
@@ -209,6 +223,7 @@ export default function PurchaseOrdersPage() {
               <button
                 key={s}
                 onClick={() => {
+                  setLoading(true);
                   setStatusFilter(s === "ALL" ? "" : s);
                   setPage(1);
                 }}
@@ -219,7 +234,7 @@ export default function PurchaseOrdersPage() {
                 }`}
               >
                 <div className="text-xs text-gray-500 dark:text-gray-400 font-medium">
-                  {s === "ALL" ? "📊 All" : `${statusIcons[s]} ${s.charAt(0) + s.slice(1).toLowerCase()}`}
+                  {s === "ALL" ? "📊 All" : `${statusIcons[s as PurchaseOrderStatus]} ${s.charAt(0) + s.slice(1).toLowerCase()}`}
                 </div>
                 <div className="text-xl font-bold text-gray-900 dark:text-gray-100">
                   {s === "ALL" ? total : count}
@@ -262,9 +277,8 @@ export default function PurchaseOrdersPage() {
               </thead>
               <tbody className="divide-y divide-gray-100 dark:divide-gray-700">
                 {orders.map((order) => (
-                  <>
+                  <Fragment key={order.id}>
                     <tr
-                      key={order.id}
                       className="hover:bg-gray-50 dark:hover:bg-gray-700/30 cursor-pointer transition-colors"
                       onClick={() => setExpandedId(expandedId === order.id ? null : order.id)}
                     >
@@ -417,7 +431,7 @@ export default function PurchaseOrdersPage() {
                         </td>
                       </tr>
                     )}
-                  </>
+                  </Fragment>
                 ))}
               </tbody>
             </table>
@@ -430,14 +444,20 @@ export default function PurchaseOrdersPage() {
               </span>
               <div className="flex gap-1">
                 <button
-                  onClick={() => setPage((p) => Math.max(1, p - 1))}
+                  onClick={() => {
+                    setLoading(true);
+                    setPage((p) => Math.max(1, p-1));
+                  }}
                   disabled={page === 1}
                   className="px-3 py-1 text-xs rounded border border-gray-300 dark:border-gray-600 disabled:opacity-40 hover:bg-gray-100 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-300"
                 >
                   Prev
                 </button>
                 <button
-                  onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
+                  onClick={() => {
+                    setLoading(true);
+                    setPage((p) => Math.min(totalPages, p + 1));
+                  }}
                   disabled={page === totalPages}
                   className="px-3 py-1 text-xs rounded border border-gray-300 dark:border-gray-600 disabled:opacity-40 hover:bg-gray-100 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-300"
                 >
@@ -453,10 +473,13 @@ export default function PurchaseOrdersPage() {
       {showCreate && (
         <PurchaseOrderModal
           onCloseAction={() => setShowCreate(false)}
-          onSuccessAction={() => {
+          onSuccessAction={ async () => {
             setShowCreate(false);
             addToast("Purchase order created");
-            fetchOrders();
+            setLoading(true);
+            const data = await fetchOrders();
+            setOrders(data.orders ?? []);
+            setTotal(data.total ?? 0);
           }}
         />
       )}
@@ -464,10 +487,13 @@ export default function PurchaseOrdersPage() {
         <PurchaseOrderModal
           order={editOrder}
           onCloseAction={() => setEditOrder(null)}
-          onSuccessAction={() => {
+          onSuccessAction={ async () => {
             setEditOrder(null);
             addToast("Purchase order updated");
-            fetchOrders();
+            setLoading(true);
+            const data = await fetchOrders();
+            setOrders(data.orders ?? []);
+            setTotal(data.total ?? 0);
           }}
         />
       )}
