@@ -15,6 +15,7 @@ export default defineConfig({
     env: {
       NEXT_PUBLIC_E2E_CRASH: "1",
       E2E_CRASH: "1",
+      E2E_DISABLE_RATE_LIMITS: "1",
     },
   },
 });

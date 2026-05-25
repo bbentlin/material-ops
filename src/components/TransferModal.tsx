@@ -27,9 +27,9 @@ export default function TransferModal({
   const [isPending, startTransition] = useTransition();
 
   useEffect(() => {
-    fetch("/api/materials")
+    fetch("/api/materials?all=true")
       .then((r) => (r.ok ? r.json() : []))
-      .then(setMaterials)
+      .then((data) => setMaterials(Array.isArray(data) ? data : data.materials ?? []))
       .catch(() => {});
   },  []);
 
@@ -45,7 +45,7 @@ export default function TransferModal({
       setError("");
       const res = await fetch("/api/movements", {
         method: "POST",
-        headers: { "ContentType": "application/json" },
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           materialId: sourceMaterialId,
           destinationMaterialId: destinationId,
@@ -111,7 +111,7 @@ export default function TransferModal({
             Quantity <span className="text-red-500">*</span>
           </label>
           <input
-            id="transfer=qty"
+            id="transfer-qty"
             type="number"
             min={1}
             max={source?.quantity ?? undefined}

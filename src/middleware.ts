@@ -10,6 +10,8 @@ const apiHits = new Map<string, number[]>();
 
 const publicPaths = ["/login", "/api/auth"];
 
+const disableRateLimits = process.env.E2E_DISABLE_RATE_LIMITS === "1";
+
 function isPublic(pathname: string) {
   return publicPaths.some(
     (p) => pathname === p || pathname.startsWith(p + "/")
@@ -30,7 +32,7 @@ export async function middleware(req: NextRequest) {
     return NextResponse.next();
   }
 
-  if (pathname.startsWith("/api/")) {
+  if (pathname.startsWith("/api/") && !disableRateLimits) {
     const ip = req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() || "unknown";
     const now = Date.now();
     const windowMs = 60_000;
