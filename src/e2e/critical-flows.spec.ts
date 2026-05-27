@@ -144,4 +144,23 @@ test.describe.serial("critical inventory flows", () => {
     await expect(page).toHaveURL(/\/dashboard/);
     await expect(page.getByText("LogiCore Inventory Management System")).toBeVisible();
   });
+
+  test("mobile header exposes controls via hamburger menu", async ({ page }) => {
+    await page.setViewportSize({ width: 390, height: 844 });
+    await loginAsAdmin(page);
+
+    const openMenuButton = page.getByRole("button", { name: /open navigation menu/i });
+    await expect(openMenuButton).toBeVisible();
+    await openMenuButton.click();
+
+    const drawer = page.getByRole("dialog", { name: /dashboard menu/i });
+    await expect(drawer).toBeVisible();
+
+    await expect(drawer.getByRole("button", { name: /scan/i })).toBeVisible();
+    await expect(drawer.getByRole("button", { name: /orders/i })).toBeVisible();
+    await expect(drawer.getByRole("button", { name: /sign out/i })).toBeVisible();
+
+    await page.keyboard.press("Escape");
+    await expect(page.getByRole("dialog", { name: /dashboard menu/i })).toHaveCount(0);
+  });
 });
