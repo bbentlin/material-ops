@@ -69,7 +69,7 @@ export default function PurchaseOrdersPage() {
     if (debouncedSearch) params.set("search", debouncedSearch);
     if (statusFilter) params.set("status", statusFilter);
 
-    const res = await fetch(`/api/purchase-orders?${params}`);
+    const res = await fetch("/api/purchase-orders?" + params.toString());
     if (!res.ok) {
       throw new Error("Failed to fetch purchase orders");
     }
@@ -90,7 +90,7 @@ export default function PurchaseOrdersPage() {
       } catch (e) {
         if (cancelled) return;
 
-        const message = 
+        const message =
           e instanceof Error ? e.message : "Failed to fetch purchase orders";
         addToast(message, "error");
       } finally {
@@ -123,13 +123,13 @@ export default function PurchaseOrdersPage() {
   const totalPages = Math.ceil(total / limit);
 
   async function handleStatusChange(orderId: string, newStatus: string) {
-    const res = await fetch(`/api/purchase-orders/${orderId}`, {
+    const res = await fetch("/api/purchase-orders/" + orderId, {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ status: newStatus }),
     });
     if (res.ok) {
-      addToast(`Order ${newStatus.toLowerCase()} successfully`);
+      addToast("Order " + newStatus.toLowerCase() + " successfully");
       setLoading(true);
       const data = await fetchOrders();
       setOrders(data.orders ?? []);
@@ -141,7 +141,7 @@ export default function PurchaseOrdersPage() {
   }
 
   async function handleReceive(orderId: string) {
-    const res = await fetch(`/api/purchase-orders/${orderId}/receive`, {
+    const res = await fetch("/api/purchase-orders/" + orderId + "/receive", {
       method: "POST",
     });
     if (res.ok) {
@@ -157,8 +157,8 @@ export default function PurchaseOrdersPage() {
   }
 
   async function handleDelete(orderId: string, orderNumber: string) {
-    if (!confirm(`Delete ${orderNumber}? This cannot be undone.`)) return;
-    const res = await fetch(`/api/purchase-orders/${orderId}`, {
+    if (!confirm("Delete " + orderNumber + "? This cannot be undone.")) return;
+    const res = await fetch("/api/purchase-orders/" + orderId, {
       method: "DELETE",
     });
     if (res.ok) {
@@ -178,7 +178,7 @@ export default function PurchaseOrdersPage() {
       <input
         type="text"
         placeholder="Search orders..."
-        className="border border-gray-300 dark:border-gray-600 rounded-lg text-sm text-gray-900 dark:text-gray-100 bg-white dark:bg-gray-800 px-3 py-2 w-56 focus:outline-none focus:ring-2 focus:ring-blue-500"
+        className="w-full sm:w-56 border border-gray-300 dark:border-gray-600 rounded-lg text-sm text-gray-900 dark:text-gray-100 bg-white dark:bg-gray-800 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
         value={search}
         onChange={(e) => setSearch(e.target.value)}
       />
@@ -213,8 +213,6 @@ export default function PurchaseOrdersPage() {
     <>
       <Toast messages={toasts} onDismissAction={dismissToast} />
       <SubPageLayout title="📋 Purchase Orders" actions={headerActions} sticky>
-
-        {/* Status filter tabs */}
         <div className="grid grid-cols-2 sm:grid-cols-5 gap-4 mb-6">
           {["ALL", "DRAFT", "SUBMITTED", "APPROVED", "RECEIVED"].map((s) => {
             const count = s === "ALL" ? total : orders.filter((o) => o.status === s).length;
@@ -227,14 +225,17 @@ export default function PurchaseOrdersPage() {
                   setStatusFilter(s === "ALL" ? "" : s);
                   setPage(1);
                 }}
-                className={`p-3 rounded-lg border text-center transition-all ${
-                  isActive
+                className={
+                  "p-3 rounded-lg border text-center transition-all " +
+                  (isActive
                     ? "border-blue-500 bg-blue-50 dark:bg-blue-900/30 dark:border-blue-400"
-                    : "border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 hover:border-gray-300"
-                }`}
+                    : "border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 hover:border-gray-300")
+                }
               >
                 <div className="text-xs text-gray-500 dark:text-gray-400 font-medium">
-                  {s === "ALL" ? "📊 All" : `${statusIcons[s as PurchaseOrderStatus]} ${s.charAt(0) + s.slice(1).toLowerCase()}`}
+                  {s === "ALL"
+                    ? "📊 All"
+                    : statusIcons[s as PurchaseOrderStatus] + " " + (s.charAt(0) + s.slice(1).toLowerCase())}
                 </div>
                 <div className="text-xl font-bold text-gray-900 dark:text-gray-100">
                   {s === "ALL" ? total : count}
@@ -244,12 +245,27 @@ export default function PurchaseOrdersPage() {
           })}
         </div>
 
-        {/* Orders table */}
         <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 overflow-hidden">
           {loading ? (
-            <table className="w-full text-sm">
-              <SkeletonTableBody rows={8} cols={7} cellClassName="px-4 py-3" />
-            </table>
+            <>
+              <div className="md:hidden p-4 space-y-3">
+                {Array.from({ length: 5 }).map((_, i) => (
+                  <div
+                    key={i}
+                    className="rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 p-4 space-y-3"
+                  >
+                    <div className="h-4 w-28 bg-gray-200 dark:bg-gray-700 rounded animate-pulse" />
+                    <div className="h-3 w-40 bg-gray-200 dark:bg-gray-700 rounded animate-pulse" />
+                    <div className="h-3 w-32 bg-gray-200 dark:bg-gray-700 rounded animate-pulse" />
+                  </div>
+                ))}
+              </div>
+              <div className="hidden md:block">
+                <table className="w-full text-sm">
+                  <SkeletonTableBody rows={8} cols={7} cellClassName="px-4 py-3" />
+                </table>
+              </div>
+            </>
           ) : orders.length === 0 ? (
             <div className="p-12 text-center text-gray-400 dark:text-gray-500">
               No purchase orders found.{" "}
@@ -263,217 +279,368 @@ export default function PurchaseOrdersPage() {
               )}
             </div>
           ) : (
-            <table className="w-full text-sm">
-              <thead>
-                <tr className="bg-gray-50 dark:bg-gray-700/50 text-gray-500 dark:text-gray-400 text-left">
-                  <th className="px-4 py-3 font-medium">Order #</th>
-                  <th className="px-4 py-3 font-medium">Status</th>
-                  <th className="px-4 py-3 font-medium">Supplier</th>
-                  <th className="px-4 py-3 font-medium">Items</th>
-                  <th className="px-4 py-3 font-medium">Expected</th>
-                  <th className="px-4 py-3 font-medium">Created</th>
-                  <th className="px-4 py-3 font-medium text-right">Actions</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-gray-100 dark:divide-gray-700">
+            <>
+              <div className="md:hidden p-4 space-y-3">
                 {orders.map((order) => (
-                  <Fragment key={order.id}>
-                    <tr
-                      className="hover:bg-gray-50 dark:hover:bg-gray-700/30 cursor-pointer transition-colors"
-                      onClick={() => setExpandedId(expandedId === order.id ? null : order.id)}
-                    >
-                      <td className="px-4 py-3 font-mono font-medium text-gray-900 dark:text-gray-100">
-                        {order.orderNumber}
-                      </td>
-                      <td className="px-4 py-3">
-                        <span className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-semibold ${statusColors[order.status] || ""}`}>
-                          {statusIcons[order.status]} {order.status}
-                        </span>
-                      </td>
-                      <td className="px-4 py-3 text-gray-700 dark:text-gray-300">{order.supplier}</td>
-                      <td className="px-4 py-3 text-gray-600 dark:text-gray-400">
-                        {order.items.length} lines · {order.totalItems} units
-                      </td>
-                      <td className="px-4 py-3 text-gray-600 dark:text-gray-400">
+                  <div
+                    key={order.id}
+                    className="rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 p-4"
+                  >
+                    <div className="flex items-start justify-between gap-3">
+                      <div>
+                        <div className="font-mono font-medium text-gray-900 dark:text-gray-100">
+                          {order.orderNumber}
+                        </div>
+                        <div className="text-sm text-gray-600 dark:text-gray-400 mt-1">
+                          {order.supplier}
+                        </div>
+                      </div>
+                      <span
+                        className={
+                          "inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-semibold " +
+                          (statusColors[order.status] || "")
+                        }
+                      >
+                        {statusIcons[order.status]} {order.status}
+                      </span>
+                    </div>
+
+                    <div className="mt-3 grid grid-cols-2 gap-2 text-xs text-gray-600 dark:text-gray-400">
+                      <div>Items: {order.items.length} lines</div>
+                      <div>Total: {order.totalItems} units</div>
+                      <div>
+                        Expected:{" "}
                         {order.expectedDate ? new Date(order.expectedDate).toLocaleDateString() : "-"}
-                      </td>
-                      <td className="px-4 py-3 text-gray-500 dark:text-gray-400 text-xs">
-                        {new Date(order.createdAt).toLocaleDateString()}
-                        <div className="text-gray-400">{order.createdBy.name}</div>
-                      </td>
-                      <td className="px-4 py-3 text-right">
-                        <div className="flex items-center justify-end gap-1" onClick={(e) => e.stopPropagation()}>
-                          {canEdit && order.status === "DRAFT" && (
-                            <button
-                              onClick={() => handleStatusChange(order.id, "SUBMITTED")}
-                              className="text-xs px-2 py-1 rounded bg-blue-100 text-blue-700 hover:bg-blue-200 dark:bg-blue-900/40 dark:text-blue-300 dark:hover:bg-blue-900/60 font-medium"
+                      </div>
+                      <div>Created: {new Date(order.createdAt).toLocaleDateString()}</div>
+                    </div>
+
+                    <div className="mt-3 flex flex-wrap gap-1.5">
+                      {canEdit && order.status === "DRAFT" && (
+                        <button
+                          onClick={() => handleStatusChange(order.id, "SUBMITTED")}
+                          className="text-xs px-2 py-1 rounded bg-blue-100 text-blue-700 hover:bg-blue-200 dark:bg-blue-900/40 dark:text-blue-300"
+                        >
+                          Submit
+                        </button>
+                      )}
+                      {canApprove && order.status === "SUBMITTED" && (
+                        <button
+                          onClick={() => handleStatusChange(order.id, "APPROVED")}
+                          className="text-xs px-2 py-1 rounded bg-green-100 text-green-700 hover:bg-green-200 dark:bg-green-900/40 dark:text-green-300"
+                        >
+                          Approve
+                        </button>
+                      )}
+                      {canEdit && order.status === "APPROVED" && (
+                        <button
+                          onClick={() => handleReceive(order.id)}
+                          className="text-xs px-2 py-1 rounded bg-purple-100 text-purple-700 hover:bg-purple-200 dark:bg-purple-900/40 dark:text-purple-300"
+                        >
+                          Receive
+                        </button>
+                      )}
+                      {canEdit && order.status === "DRAFT" && (
+                        <button
+                          onClick={() => setEditOrder(order)}
+                          className="text-xs px-2 py-1 rounded bg-gray-100 text-gray-600 hover:bg-gray-200 dark:bg-gray-700 dark:text-gray-300"
+                        >
+                          Edit
+                        </button>
+                      )}
+                      {canEdit && order.status !== "RECEIVED" && order.status !== "CANCELLED" && (
+                        <button
+                          onClick={() => handleStatusChange(order.id, "CANCELLED")}
+                          className="text-xs px-2 py-1 rounded text-red-600 hover:bg-red-50 dark:text-red-400 dark:hover:bg-red-900/30"
+                        >
+                          Cancel
+                        </button>
+                      )}
+                      {canDelete && order.status === "RECEIVED" && (
+                        <button
+                          onClick={() => handleDelete(order.id, order.orderNumber)}
+                          className="text-xs px-2 py-1 rounded text-red-500 hover:bg-red-50 dark:hover:bg-red-900/30"
+                        >
+                          🗑️
+                        </button>
+                      )}
+                      <button
+                        onClick={() => setExpandedId(expandedId === order.id ? null : order.id)}
+                        className="text-xs px-2 py-1 rounded border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300"
+                      >
+                        {expandedId === order.id ? "Hide details" : "Show details"}
+                      </button>
+                    </div>
+
+                    {expandedId === order.id && (
+                      <div className="mt-3 border-t border-gray-200 dark:border-gray-700 pt-3 text-xs">
+                        <div className="font-semibold text-gray-500 dark:text-gray-400 uppercase mb-2">
+                          Line Items
+                        </div>
+                        <div className="space-y-1.5">
+                          {order.items.map((item) => (
+                            <div
+                              key={item.id}
+                              className="flex items-center justify-between gap-2 text-gray-700 dark:text-gray-300"
                             >
-                              Submit
-                            </button>
-                          )}
-                          {canApprove && order.status === "SUBMITTED" && (
-                            <button
-                              onClick={() => handleStatusChange(order.id, "APPROVED")}
-                              className="text-xs px-2 py-1 rounded bg-green-100 text-green-700 hover:bg-green-200 dark:bg-green-900/40 dark:text-green-300 dark:hover:bg-green-900/60 font-medium"
-                            >
-                              Approve
-                            </button>
-                          )}
-                          {canEdit && order.status === "APPROVED" && (
-                            <button
-                              onClick={() => handleReceive(order.id)}
-                              className="text-xs px-2 py-1 rounded bg-purple-100 text-purple-700 hover:bg-purple-200 dark:bg-purple-900/40 dark:text-purple-300 dark:hover:bg-purple-900/60 font-medium"
-                            >
-                              Receive
-                            </button>
-                          )}
-                          {canEdit && order.status === "DRAFT" && (
-                            <button
-                              onClick={() => setEditOrder(order)}
-                              className="text-xs px-2 py-1 rounded bg-gray-100 text-gray-600 hover:bg-gray-200 dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-600 font-medium"
-                            >
-                              Edit
-                            </button>
-                          )}
-                          {canEdit && order.status !== "RECEIVED" && order.status !== "CANCELLED" && (
-                            <button
-                              onClick={() => handleStatusChange(order.id, "CANCELLED")}
-                              className="text-xs px-2 py-1 rounded text-red-600 hover:bg-red-50 dark:text-red-400 dark:hover:bg-red-900/30 font-medium"
-                            >
-                              Cancel
-                            </button>
-                          )}
-                          {canDelete && order.status === "RECEIVED" && (
-                            <button
-                              onClick={() => handleDelete(order.id, order.orderNumber)}
-                              className="text-xs px-2 py-1 rounded text-red-500 hover:bg-red-50 dark:hover:bg-red-900/30"
-                            >
-                              🗑️
-                            </button>
+                              <span className="min-w-0 break-words">
+                                <span className="font-mono text-gray-400 dark:text-gray-500">
+                                  {item.material.partNumber}
+                                </span>{" "}
+                                {item.material.name}
+                              </span>
+                              <span className="shrink-0">
+                                {item.quantity} {item.material.unit}
+                              </span>
+                            </div>
+                          ))}
+                        </div>
+
+                        <div className="mt-3 space-y-1 text-gray-600 dark:text-gray-400">
+                          <div>
+                            Created by: {order.createdBy.name} ({order.createdBy.email})
+                          </div>
+                          {order.approvedBy && <div>Approved by: {order.approvedBy.name}</div>}
+                          {order.notes && <div>Notes: {order.notes}</div>}
+                          {order.receivedAt && (
+                            <div>Received: {new Date(order.receivedAt).toLocaleString()}</div>
                           )}
                         </div>
-                      </td>
-                    </tr>
-                    {expandedId === order.id && (
-                      <tr key={`${order.id}-detail`}>
-                        <td colSpan={7} className="px-4 py-4 bg-gray-50 dark:bg-gray-800/50">
-                          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                            <div>
-                              <h4 className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase mb-2">
-                                Line Items
-                              </h4>
-                              <table className="w-full text-xs">
-                                <thead>
-                                  <tr className="text-gray-400 dark:text-gray-500">
-                                    <th className="text-left py-1">Material</th>
-                                    <th className="text-right py-1">Qty</th>
-                                    <th className="text-right py-1">Price</th>
-                                    {order.status === "RECEIVED" && (
-                                      <th className="text-right py-1">Recv</th>
-                                    )}
-                                  </tr>
-                                </thead>
-                                <tbody>
-                                  {order.items.map((item) => (
-                                    <tr key={item.id} className="border-t border-gray-100 dark:border-gray-700">
-                                      <td className="py-1.5 text-gray-700 dark:text-gray-300">
-                                        <span className="font-mono text-gray-400 dark:text-gray-500">
-                                          {item.material.partNumber}
-                                        </span>{" "}
-                                        {item.material.name}
-                                      </td>
-                                      <td className="py-1.5 text-right text-gray-700 dark:text-gray-300">
-                                        {item.quantity} {item.material.unit}
-                                      </td>
-                                      <td className="py-1.5 text-right text-gray-500 dark:text-gray-400">
-                                        {item.unitPrice != null ? `$${item.unitPrice.toFixed(2)}` : "-"}
-                                      </td>
-                                      {order.status === "RECEIVED" && (
-                                        <td className="py-1.5 text-right text-green-600 dark:text-green-400">
-                                          {item.receivedQty}
-                                        </td>
-                                      )}
-                                    </tr>
-                                  ))}
-                                </tbody>
-                              </table>
-                            </div>
-                            <div className="text-xs space-y-1.5">
-                              <h4 className="font-semibold text-gray-500 dark:text-gray-400 uppercase mb-2">
-                                Details
-                              </h4>
-                              <div className="text-gray-600 dark:text-gray-400">
-                                <strong>Created by:</strong> {order.createdBy.name} ({order.createdBy.email})
-                              </div>
-                              {order.approvedBy && (
-                                <div className="text-gray-600 dark:text-gray-400">
-                                  <strong>Approved by:</strong> {order.approvedBy.name}
-                                </div>
-                              )}
-                              {order.notes && (
-                                <div className="text-gray-600 dark:text-gray-400">
-                                  <strong>Notes:</strong> {order.notes}
-                                </div>
-                              )}
-                              {order.receivedAt && (
-                                <div className="text-gray-600 dark:text-gray-400">
-                                  <strong>Received:</strong> {new Date(order.receivedAt).toLocaleString()}
-                                </div>
-                              )}
-                              {order.items.some((i) => i.unitPrice != null) && (
-                                <div className="text-gray-700 dark:text-gray-300 font-medium pt-1">
-                                  <strong>Total Cost:</strong> $
-                                  {order.items.reduce((sum, i) => sum + i.quantity * (i.unitPrice || 0), 0).toFixed(2)}
-                                </div>
-                              )}
-                            </div>
-                          </div>
-                        </td>
-                      </tr>
+                      </div>
                     )}
-                  </Fragment>
+                  </div>
                 ))}
-              </tbody>
-            </table>
+              </div>
+
+              <div className="hidden md:block overflow-x-auto">
+                <table className="w-full text-sm">
+                  <thead>
+                    <tr className="bg-gray-50 dark:bg-gray-700/50 text-gray-500 dark:text-gray-400 text-left">
+                      <th className="px-4 py-3 font-medium">Order #</th>
+                      <th className="px-4 py-3 font-medium">Status</th>
+                      <th className="px-4 py-3 font-medium">Supplier</th>
+                      <th className="px-4 py-3 font-medium">Items</th>
+                      <th className="px-4 py-3 font-medium">Expected</th>
+                      <th className="px-4 py-3 font-medium">Created</th>
+                      <th className="px-4 py-3 font-medium text-right">Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-gray-100 dark:divide-gray-700">
+                    {orders.map((order) => (
+                      <Fragment key={order.id}>
+                        <tr
+                          className="hover:bg-gray-50 dark:hover:bg-gray-700/30 cursor-pointer transition-colors"
+                          onClick={() => setExpandedId(expandedId === order.id ? null : order.id)}
+                        >
+                          <td className="px-4 py-3 font-mono font-medium text-gray-900 dark:text-gray-100">
+                            {order.orderNumber}
+                          </td>
+                          <td className="px-4 py-3">
+                            <span
+                              className={
+                                "inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-semibold " +
+                                (statusColors[order.status] || "")
+                              }
+                            >
+                              {statusIcons[order.status]} {order.status}
+                            </span>
+                          </td>
+                          <td className="px-4 py-3 text-gray-700 dark:text-gray-300">{order.supplier}</td>
+                          <td className="px-4 py-3 text-gray-600 dark:text-gray-400">
+                            {order.items.length} lines · {order.totalItems} units
+                          </td>
+                          <td className="px-4 py-3 text-gray-600 dark:text-gray-400">
+                            {order.expectedDate ? new Date(order.expectedDate).toLocaleDateString() : "-"}
+                          </td>
+                          <td className="px-4 py-3 text-gray-500 dark:text-gray-400 text-xs">
+                            {new Date(order.createdAt).toLocaleDateString()}
+                            <div className="text-gray-400">{order.createdBy.name}</div>
+                          </td>
+                          <td className="px-4 py-3 text-right">
+                            <div
+                              className="flex items-center justify-end gap-1"
+                              onClick={(e) => e.stopPropagation()}
+                            >
+                              {canEdit && order.status === "DRAFT" && (
+                                <button
+                                  onClick={() => handleStatusChange(order.id, "SUBMITTED")}
+                                  className="text-xs px-2 py-1 rounded bg-blue-100 text-blue-700 hover:bg-blue-200 dark:bg-blue-900/40 dark:text-blue-300 dark:hover:bg-blue-900/60 font-medium"
+                                >
+                                  Submit
+                                </button>
+                              )}
+                              {canApprove && order.status === "SUBMITTED" && (
+                                <button
+                                  onClick={() => handleStatusChange(order.id, "APPROVED")}
+                                  className="text-xs px-2 py-1 rounded bg-green-100 text-green-700 hover:bg-green-200 dark:bg-green-900/40 dark:text-green-300 dark:hover:bg-green-900/60 font-medium"
+                                >
+                                  Approve
+                                </button>
+                              )}
+                              {canEdit && order.status === "APPROVED" && (
+                                <button
+                                  onClick={() => handleReceive(order.id)}
+                                  className="text-xs px-2 py-1 rounded bg-purple-100 text-purple-700 hover:bg-purple-200 dark:bg-purple-900/40 dark:text-purple-300 dark:hover:bg-purple-900/60 font-medium"
+                                >
+                                  Receive
+                                </button>
+                              )}
+                              {canEdit && order.status === "DRAFT" && (
+                                <button
+                                  onClick={() => setEditOrder(order)}
+                                  className="text-xs px-2 py-1 rounded bg-gray-100 text-gray-600 hover:bg-gray-200 dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-600 font-medium"
+                                >
+                                  Edit
+                                </button>
+                              )}
+                              {canEdit && order.status !== "RECEIVED" && order.status !== "CANCELLED" && (
+                                <button
+                                  onClick={() => handleStatusChange(order.id, "CANCELLED")}
+                                  className="text-xs px-2 py-1 rounded text-red-600 hover:bg-red-50 dark:text-red-400 dark:hover:bg-red-900/30 font-medium"
+                                >
+                                  Cancel
+                                </button>
+                              )}
+                              {canDelete && order.status === "RECEIVED" && (
+                                <button
+                                  onClick={() => handleDelete(order.id, order.orderNumber)}
+                                  className="text-xs px-2 py-1 rounded text-red-500 hover:bg-red-50 dark:hover:bg-red-900/30"
+                                >
+                                  🗑️
+                                </button>
+                              )}
+                            </div>
+                          </td>
+                        </tr>
+                        {expandedId === order.id && (
+                          <tr key={order.id + "-detail"}>
+                            <td colSpan={7} className="px-4 py-4 bg-gray-50 dark:bg-gray-800/50">
+                              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <div>
+                                  <h4 className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase mb-2">
+                                    Line Items
+                                  </h4>
+                                  <table className="w-full text-xs">
+                                    <thead>
+                                      <tr className="text-gray-400 dark:text-gray-500">
+                                        <th className="text-left py-1">Material</th>
+                                        <th className="text-right py-1">Qty</th>
+                                        <th className="text-right py-1">Price</th>
+                                        {order.status === "RECEIVED" && (
+                                          <th className="text-right py-1">Recv</th>
+                                        )}
+                                      </tr>
+                                    </thead>
+                                    <tbody>
+                                      {order.items.map((item) => (
+                                        <tr
+                                          key={item.id}
+                                          className="border-t border-gray-100 dark:border-gray-700"
+                                        >
+                                          <td className="py-1.5 text-gray-700 dark:text-gray-300">
+                                            <span className="font-mono text-gray-400 dark:text-gray-500">
+                                              {item.material.partNumber}
+                                            </span>{" "}
+                                            {item.material.name}
+                                          </td>
+                                          <td className="py-1.5 text-right text-gray-700 dark:text-gray-300">
+                                            {item.quantity} {item.material.unit}
+                                          </td>
+                                          <td className="py-1.5 text-right text-gray-500 dark:text-gray-400">
+                                            {item.unitPrice != null ? "$" + item.unitPrice.toFixed(2) : "-"}
+                                          </td>
+                                          {order.status === "RECEIVED" && (
+                                            <td className="py-1.5 text-right text-green-600 dark:text-green-400">
+                                              {item.receivedQty}
+                                            </td>
+                                          )}
+                                        </tr>
+                                      ))}
+                                    </tbody>
+                                  </table>
+                                </div>
+
+                                <div className="text-xs space-y-1.5">
+                                  <h4 className="font-semibold text-gray-500 dark:text-gray-400 uppercase mb-2">
+                                    Details
+                                  </h4>
+                                  <div className="text-gray-600 dark:text-gray-400">
+                                    <strong>Created by:</strong> {order.createdBy.name} ({order.createdBy.email})
+                                  </div>
+                                  {order.approvedBy && (
+                                    <div className="text-gray-600 dark:text-gray-400">
+                                      <strong>Approved by:</strong> {order.approvedBy.name}
+                                    </div>
+                                  )}
+                                  {order.notes && (
+                                    <div className="text-gray-600 dark:text-gray-400">
+                                      <strong>Notes:</strong> {order.notes}
+                                    </div>
+                                  )}
+                                  {order.receivedAt && (
+                                    <div className="text-gray-600 dark:text-gray-400">
+                                      <strong>Received:</strong> {new Date(order.receivedAt).toLocaleString()}
+                                    </div>
+                                  )}
+                                  {order.items.some((i) => i.unitPrice != null) && (
+                                    <div className="text-gray-700 dark:text-gray-300 font-medium pt-1">
+                                      <strong>Total Cost:</strong> $
+                                      {order.items
+                                        .reduce((sum, i) => sum + i.quantity * (i.unitPrice || 0), 0)
+                                        .toFixed(2)}
+                                    </div>
+                                  )}
+                                </div>
+                              </div>
+                            </td>
+                          </tr>
+                        )}
+                      </Fragment>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </>
           )}
 
           {totalPages > 1 && (
-            <div className="flex items-center justify-between px-4 py-3 border-t border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-700/30">
-              <span className="text-xs text-gray-500 dark:text-gray-400">
-                Page {page} of {totalPages} · {total} order{total !== 1 ? "s" : ""}
-              </span>
-              <div className="flex gap-1">
-                <button
-                  onClick={() => {
-                    setLoading(true);
-                    setPage((p) => Math.max(1, p-1));
-                  }}
-                  disabled={page === 1}
-                  className="px-3 py-1 text-xs rounded border border-gray-300 dark:border-gray-600 disabled:opacity-40 hover:bg-gray-100 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-300"
-                >
-                  Prev
-                </button>
-                <button
-                  onClick={() => {
-                    setLoading(true);
-                    setPage((p) => Math.min(totalPages, p + 1));
-                  }}
-                  disabled={page === totalPages}
-                  className="px-3 py-1 text-xs rounded border border-gray-300 dark:border-gray-600 disabled:opacity-40 hover:bg-gray-100 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-300"
-                >
-                  Next
-                </button>
+            <div className="px-4 py-3 border-t border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-700/30">
+              <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+                <span className="text-xs text-gray-500 dark:text-gray-400">
+                  Page {page} of {totalPages} · {total} order{total !== 1 ? "s" : ""}
+                </span>
+                <div className="flex gap-1">
+                  <button
+                    onClick={() => {
+                      setLoading(true);
+                      setPage((p) => Math.max(1, p - 1));
+                    }}
+                    disabled={page === 1}
+                    className="px-3 py-1 text-xs rounded border border-gray-300 dark:border-gray-600 disabled:opacity-40 hover:bg-gray-100 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-300"
+                  >
+                    Prev
+                  </button>
+                  <button
+                    onClick={() => {
+                      setLoading(true);
+                      setPage((p) => Math.min(totalPages, p + 1));
+                    }}
+                    disabled={page === totalPages}
+                    className="px-3 py-1 text-xs rounded border border-gray-300 dark:border-gray-600 disabled:opacity-40 hover:bg-gray-100 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-300"
+                  >
+                    Next
+                  </button>
+                </div>
               </div>
             </div>
           )}
         </div>
-
       </SubPageLayout>
 
       {showCreate && (
         <PurchaseOrderModal
           onCloseAction={() => setShowCreate(false)}
-          onSuccessAction={ async () => {
+          onSuccessAction={async () => {
             setShowCreate(false);
             addToast("Purchase order created");
             setLoading(true);
@@ -483,11 +650,12 @@ export default function PurchaseOrdersPage() {
           }}
         />
       )}
+
       {editOrder && (
         <PurchaseOrderModal
           order={editOrder}
           onCloseAction={() => setEditOrder(null)}
-          onSuccessAction={ async () => {
+          onSuccessAction={async () => {
             setEditOrder(null);
             addToast("Purchase order updated");
             setLoading(true);

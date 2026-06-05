@@ -1,4 +1,4 @@
-"use client";
+"use client"
 
 import { useEffect, useState, useRef, useCallback } from "react";
 import Image from "next/image";
@@ -42,18 +42,20 @@ export default function MaterialDetailPage() {
       .finally(() => setLoading(false));
   }, [id, router]);
 
-  // Generate QR code as data URL using canvas
   useEffect(() => {
     if (!material) return;
     const qrData = material.partNumber;
-    // Use dynamic import to avoid SSR issues with qrcode
-    import("qrcode").then((QRCode) => {
-      QRCode.toDataURL(qrData, {
-        width: 180,
-        margin: 1,
-        color: { dark: "#000000", light: "#ffffff" },
-      }).then(setQrDataUrl).catch(() => {});
-    }).catch(() => {});
+    import("qrcode")
+      .then((QRCode) => {
+        QRCode.toDataURL(qrData, {
+          width: 180,
+          margin: 1,
+          color: { dark: "#000000", light: "#ffffff" },
+        })
+          .then(setQrDataUrl)
+          .catch(() => {});
+      })
+      .catch(() => {});
   }, [material]);
 
   useEffect(() => {
@@ -74,7 +76,7 @@ export default function MaterialDetailPage() {
       <!DOCTYPE html>
       <html>
         <head>
-          <title>Label — ${material?.partNumber}</title>
+          <title>Label - ${material?.partNumber}</title>
           <style>
             body { margin: 0; padding: 20px; font-family: -apple-system, BlinkMacSystemFont, sans-serif; }
             @media print { body { padding: 10px; } }
@@ -91,53 +93,53 @@ export default function MaterialDetailPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gray-100 dark:bg-gray-900">
-        <header className="bg-white shadow-sm border-b border-gray-200 dark:bg-gray-800 dark:border-gray-700">
-          <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex items-center gap-4">
-            <SkeletonText className="h-4 w-24" />
-            <div className="h-5 w-px bg-gray-300 dark:bg-gray-600" />
-            <SkeletonBox className="h-6 w-56 rounded" />
+      <div>
+        <header>
+          <div>
+            <SkeletonText />
+            <div />
+            <SkeletonBox />
           </div>
         </header>
 
-        <main className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-6">
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-            <div className="lg:col-span-2 bg-white rounded-xl shadow-sm border border-gray-200 dark:bg-gray-800 dark:border-gray-700 p-6">
-              <SkeletonBox className="h-8 w-64 rounded mb-2" />
-              <SkeletonBox className="h-4 w-40 mb-6" />
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
+        <main>
+          <div>
+            <div>
+              <SkeletonBox />
+              <SkeletonBox />
+              <div>
                 {Array.from({ length: 4 }).map((_, i) => (
-                  <div key={i}>
-                    <SkeletonText className="h-3 w-20 mb-2" />
-                    <SkeletonBox className="h-8 w-16 rounded" />
+                  <div>
+                    <SkeletonText />
+                    <SkeletonBox />
                   </div>
                 ))}
               </div>
             </div>
 
-            <div className="bg-white rounded-xl shadow-sm border border-gray-200 dark:bg-gray-800 dark:border-gray-700 p-6">
-              <SkeletonText className="h-4 w-16 mb-4" />
-              <SkeletonBox className="h-40 w-full rounded mb-3" />
-              <SkeletonBox className="h-12 w-full rounded" />
+            <div>
+              <SkeletonText />
+              <SkeletonBox />
+              <SkeletonBox />
             </div>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <div>
             {Array.from({ length: 3 }).map((_, i) => (
-              <div key={i} className="bg-white dark:bg-gray-900 p-5 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700">
-                <SkeletonText className="h-3 w-24 mb-2" />
-                <SkeletonBox className="h-8 w-14 rounded" />
+              <div>
+                <SkeletonText />
+                <SkeletonBox />
               </div>
             ))}
           </div>
 
-          <div className="bg-white dark:bg-gray-900 rounded-xl shadow-sm border border-gray-200 dark:border-gray-900 overflow-hidden">
-            <div className="p-5 border-b border-gray-200 dark:border-gray-700">
-              <SkeletonText className="h-5 w-40" />
+          <div>
+            <div>
+              <SkeletonText />
             </div>
-            <div className="p-5 space-y-3">
+            <div>
               {Array.from({ length: 6 }).map((_, i) => (
-                <SkeletonBox key={i} className="h-4 w-full rounded" />
+                <SkeletonBox />
               ))}
             </div>
           </div>
@@ -148,13 +150,10 @@ export default function MaterialDetailPage() {
 
   if (error || !material) {
     return (
-      <div className="min-h-screen bg-gray-100 dark:bg-gray-900 flex items-center justify-center">
-        <div className="text-center">
-          <div className="text-red-600 text-lg font-medium mb-4">{error || "Material not found"}</div>
-          <button
-            onClick={() => router.push("/dashboard")}
-            className="text-blue-600 hover:text-blue-800 font-medium"
-          >
+      <div>
+        <div>
+          <div>{}</div>
+          <button>
             ← Back to Dashboard
           </button>
         </div>
@@ -170,153 +169,145 @@ export default function MaterialDetailPage() {
     movementPage * movementsPerPage
   );
 
-  const totalInbound = movements.filter((m) => m.type === "INBOUND").reduce((s, m) => s + m.quantity, 0);
-  const totalOutbound = movements.filter((m) => m.type === "OUTBOUND").reduce((s, m) => s + m.quantity, 0);
+  const totalInbound = movements  
+    .filter((m) => m.type === "INBOUND")
+    .reduce((s, m) => s + m.quantity, 0);
+  const totalOutbound = movements
+    .filter((m) => m.type === "OUTBOUND")
+    .reduce((s, m) => s + m.quantity, 0);
 
   return (
-    <div className="min-h-screen bg-gray-100 dark:bg-gray-900">
-      {/* Header */}
-      <header className="bg-white shadow-sm border-b border-gray-200 dark:bg-gray-800 dark:border-gray-700">
-        <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex items-center gap-4">
-          <button
-            onClick={() => router.push("/dashboard")}
-            className="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 font-medium text-sm flex items-center gap-1"
-          >
-            ← Dashboard
-          </button>
-          <div className="h-5 w-px bg-gray-300 dark:bg-gray-600" />
-          <h1 className="text-xl font-bold text-gray-900 dark:text-gray-100 truncate">{material.name}</h1>
-          {material.department && (
-            <span
-              className="text-xs font-semibold px-2 py-0.5 rounded-full text-white"
-              style={{ backgroundColor: material.department.color }}
-            >
-              {material.department.name}
-            </span>
-          )}
+    <div>
+      <header>
+        <div>
+          <div>
+            <button>
+              ← Dashboard
+            </button>
+            <div />
+            <div>
+              <h1>
+                {material.name}
+              </h1>
+              {material.department && (
+                <span>
+                  {material.department.name}
+                </span>
+              )}
+            </div>
+          </div>
         </div>
       </header>
 
-      <main className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {/* Material Info + Label side by side */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
-          {/* Material Info Card — 2 cols */}
-          <div className="lg:col-span-2 bg-white rounded-xl shadow-sm border border-gray-200 dark:bg-gray-800 dark:border-gray-700 p-6">
-            <div className="flex justify-between items-start mb-6">
+      <main>
+        <div>
+          <div>
+            <div>
               <div>
-                <h2 className="text-2xl font-bold text-gray-900 dark:text-gray-100">{material.name}</h2>
-                <p className="text-gray-500 dark:text-gray-400 font-mono text-sm mt-1">{material.partNumber}</p>
+                <h2>
+                  {material.name}
+                </h2>
+                <p>
+                  {material.partNumber}
+                </p>
                 {material.description && (
-                  <p className="text-gray-600 dark:text-gray-400 mt-2">{material.description}</p>
+                  <p>
+                    {material.description}
+                  </p>
                 )}
               </div>
+
               {canEdit && (
-                <div className="flex gap-2">
-                  <button
-                    onClick={() => setEditMaterial(true)}
-                    className="text-sm font-medium bg-gray-100 text-gray-700 px-4 py-2 rounded-lg hover:bg-gray-200 dark:bg-gray-800 dark:text-gray-200 dark:hover:bg-gray-700 transition-colors"
-                  >
+                <div>
+                  <button>
                     ✏️ Edit
                   </button>
-                  <button
-                    onClick={() => setShowMovement("INBOUND")}
-                    className="text-sm font-medium bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition-colors"
-                  >
+                  <button>
                     + Inbound
                   </button>
-                  <button
-                    onClick={() => setShowMovement("OUTBOUND")}
-                    className="text-sm font-medium bg-orange-500 text-white px-4 py-2 rounded-lg hover:bg-orange-600 transition-colors"
-                  >
-                    − Outbound
+                  <button>
+                    - Outbound
                   </button>
                 </div>
               )}
             </div>
 
-            {/* Info grid */}
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
+            <div>
               <div>
-                <div className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-1">Quantity</div>
-                <span
-                  className={`inline-flex items-center px-3 py-1 rounded-full text-lg font-bold ${
-                    isLowStock ? "bg-orange-100 text-orange-700" : "bg-green-100 text-green-700"
-                  }`}
-                >
+                <div>
+                  Quantity
+                </div>
+                <span>
                   {material.quantity}
                 </span>
                 {isLowStock && (
-                  <div className="text-xs text-orange-600 mt-1">
+                  <div>
                     ⚠ Below minimum ({material.minQuantity ?? 10})
                   </div>
                 )}
               </div>
               <div>
-                <div className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-1">Min Quantity</div>
-                <div className="text-lg font-semibold text-gray-900 dark:text-gray-100">{material.minQuantity ?? 10}</div>
+                <div>
+                  Min Quantity
+                </div>
+                <div>
+                  {material.minQuantity ?? 10}
+                </div>
               </div>
               <div>
-                <div className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-1">Unit</div>
-                <div className="text-lg font-semibold text-gray-900 dark:text-gray-100">{material.unit || "-"}</div>
+                <div>
+                  Unit
+                </div>
+                <div>
+                  {material.unit || "-"}
+                </div>
               </div>
               <div>
-                <div className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-1">Location</div>
-                <div className="text-lg font-semibold text-gray-900 dark:text-gray-100">{material.location || "-"}</div>
+                <div>
+                  Location
+                </div>
+                <div>
+                  {material.location || "-"}
+                </div>
               </div>
             </div>
 
-            {/* Timestamps */}
-            <div className="mt-6 pt-4 border-t border-gray-100 dark:border-gray-700 flex gap-6 text-xs text-gray-400 dark:text-gray-500">
-              {material.createdAt && (
-                <span>Created: {new Date(material.createdAt).toLocaleString()}</span>
-              )}
-              {material.updatedAt && (
-                <span>Updated: {new Date(material.updatedAt).toLocaleString()}</span>
-              )}
+            <div>
+              {material.createdAt && <span>Created: {new Date(material.createdAt).toLocaleString()}</span>}
+              {material.updatedAt && <span>Updated: {new Date(material.updatedAt).toLocaleString()}</span>}
             </div>
           </div>
 
-          {/* Barcode / QR Label Card — 1 col */}
-          <div className="bg-white rounded-xl shadow-sm border border-gray-200 dark:bg-gray-800 dark:border-gray-700 p-6 flex flex-col items-center">
-            <div className="flex items-center justify-between w-full mb-4">
-              <h3 className="text-sm font-semibold text-gray-900 dark:text-gray-100">Label</h3>
-              <button
-                onClick={printLabel}
-                className="text-xs font-medium text-gray-600 dark:text-gray-300 px-2 py-1 rounded border border-gray-300 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
-              >
+          <div>
+            <div>
+              <h3>Label</h3>
+              <button>
                 🖨️ Print
               </button>
             </div>
-            {/* Printable label content */}
-            <div
-              ref={labelRef}
-              className="bg-white border border-dashed border-gray-300 dark:border-gray-600 rounded-lg p-4 w-full flex flex-col items-center gap-3"
-              style={{ maxWidth: 300 }}
-            >
-              {/* QR Code */}
+
+            <div>
               {qrDataUrl ? (
-                <Image
-                  src={qrDataUrl}
-                  alt={`QR: ${material.partNumber}`}
-                  width={140}
-                  height={140}
-                  unoptimized
-                />
+                <Image />
               ) : (
-                <div className="w-35 h-35 bg-gray-100 rounded flex items-center justify-center text-gray-400 text-xs">
+                <div>
                   QR Code
                 </div>
               )}
-              {/* Barcode */}
-              <Barcode128 data={material.partNumber} width={240} height={50} />
-              {/* Material info */}
-              <div className="text-center">
-                <div className="text-sm font-bold text-gray-900" style={{ color: "#000" }}>{material.name}</div>
+
+              <Barcode128 />
+
+              <div>
+                <div>
+                  {material.name}
+                </div>
                 {material.location && (
-                  <div className="text-xs text-gray-500" style={{ color: "#666" }}>📍 {material.location}</div>
+                  <div>
+                    📍 {material.location}
+                  </div>
                 )}
                 {material.department && (
-                  <div className="text-xs mt-0.5" style={{ color: material.department.color }}>
+                  <div>
                     {material.department.name}
                   </div>
                 )}
@@ -325,65 +316,81 @@ export default function MaterialDetailPage() {
           </div>
         </div>
 
-        {/* Movement Summary Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-          <div className="bg-white dark:bg-gray-900 p-5 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700">
-            <div className="text-sm font-medium text-gray-500 dark:text-gray-400 mb-1">Total Movements</div>
-            <div className="text-2xl font-bold text-gray-900 dark:text-gray-100">{movements.length}</div>
+        <div>
+          <div>
+            <div>Total Movements</div>
+            <div>{movements.length}</div>
           </div>
-          <div className="bg-white dark:bg-gray-900 p-5 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700">
-            <div className="text-sm font-medium text-gray-500 dark:text-gray-400 mb-1">Total Inbound</div>
-            <div className="text-2xl font-bold text-green-600 dark:text-green-500">{totalInbound}</div>
+          <div>
+            <div>Total Inbound</div>
+            <div>{totalInbound}</div>
           </div>
-          <div className="bg-white dark:bg-gray-900 p-5 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700">
-            <div className="text-sm font-medium text-gray-500 dark:text-gray-400 mb-1">Total Outbound</div>
-            <div className="text-2xl font-bold text-orange-600 dark:text-orange-500">{totalOutbound}</div>
+          <div>
+            <div>Total Outbound</div>
+            <div>{totalOutbound}</div>
           </div>
         </div>
 
-        {/* Movement History Table */}
-        <div className="bg-white dark:bg-gray-900 rounded-xl shadow-sm border border-gray-200 dark:border-gray-900 overflow-hidden">
-          <div className="p-5 border-b border-gray-200 dark:border-gray-700">
-            <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100">Movement History</h2>
+        <div>
+          <div>
+            <h2>Movement History</h2>
           </div>
-          <div className="overflow-x-auto">
-            <table className="w-full">
+
+          <div>
+            {paginatedMovements.map((mov) => (
+              <div>
+                <div>
+                  <span>
+                    {mov.type}
+                  </span>
+                  <span>{mov.quantity}</span>
+                </div>
+
+                <div>
+                  {new Date(mov.createdAt).toLocaleString()}
+                </div>
+                <div>By: {mov.user.name}</div>
+                <div>
+                  {mov.note || "-"}
+                </div>
+              </div>
+            ))}
+
+            {movements.length === 0 && (
+              <div>No movements recorded yet.</div>
+            )}
+          </div>
+
+          <div>
+            <table>
               <thead>
-                <tr className="bg-gray-50 dark:bg-gray-800 text-left text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                  <th className="px-5 py-3">Date</th>
-                  <th className="px-5 py-3">Type</th>
-                  <th className="px-5 py-3">Qty</th>
-                  <th className="px-5 py-3">Note</th>
-                  <th className="px-5 py-3">By</th>
+                <tr>
+                  <th>Date</th>
+                  <th>Type</th>
+                  <th>Qty</th>
+                  <th>Note</th>
+                  <th>By</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-gray-100 dark:divide-gray-700">
+              <tbody>
                 {paginatedMovements.map((mov) => (
-                  <tr key={mov.id} className="hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors">
-                    <td className="px-5 py-4 text-sm text-gray-500 dark:text-gray-400">
+                  <tr>
+                    <td>
                       {new Date(mov.createdAt).toLocaleString()}
                     </td>
-                    <td className="px-5 py-4">
-                      <span
-                        className={`inline-flex items-center text-xs font-semibold px-2.5 py-1 rounded-full ${
-                          mov.type === "INBOUND"
-                            ? "bg-green-100 text-green-700"
-                            : mov.type === "OUTBOUND"
-                            ? "bg-orange-100 text-orange-700"
-                            : "bg-blue-100 text-blue-700"
-                        }`}
-                      >
+                    <td>
+                      <span>
                         {mov.type}
                       </span>
                     </td>
-                    <td className="px-5 py-4 font-medium text-gray-900 dark:text-gray-100">{mov.quantity}</td>
-                    <td className="px-5 py-4 text-sm text-gray-500 dark:text-gray-400">{mov.note || "-"}</td>
-                    <td className="px-5 py-4 text-sm text-gray-500 dark:text-gray-400">{mov.user.name}</td>
+                    <td>{mov.quantity}</td>
+                    <td>{mov.note || "-"}</td>
+                    <td>{mov.user.name}</td>
                   </tr>
                 ))}
                 {movements.length === 0 && (
                   <tr>
-                    <td colSpan={5} className="px-5 py-12 text-center text-gray-400">
+                    <td>
                       No movements recorded yet.
                     </td>
                   </tr>
@@ -391,37 +398,31 @@ export default function MaterialDetailPage() {
               </tbody>
             </table>
           </div>
+
           {movements.length > movementsPerPage && (
-            <div className="px-5 py-3 border-t border-gray-200 dark:border-gray-700 flex items-center justify-between text-sm">
-              <span className="text-gray-500 dark:text-gray-500">
-                Showing {(movementPage - 1) * movementsPerPage + 1}–
-                {Math.min(movementPage * movementsPerPage, movements.length)} of {movements.length}
-              </span>
-              <div className="flex items-center gap-2">
-                <button
-                  onClick={() => setMovementPage((p) => Math.max(1, p - 1))}
-                  disabled={movementPage === 1}
-                  className="px-3 py-1.5 rounded-lg border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-200 hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed"
-                >
-                  ← Previous
-                </button>
-                <span className="text-gray-700 dark:text-gray-200 font-medium">
-                  Page {movementPage} of {totalPages}
+            <div>
+              <div>
+                <span>
+                  Showing {(movementPage - 1) * movementsPerPage + 1}-
+                  {Math.min(movementPage * movementsPerPage, movements.length)} of {movements.length}
                 </span>
-                <button
-                  onClick={() => setMovementPage((p) => Math.min(totalPages, p + 1))}
-                  disabled={movementPage === totalPages}
-                  className="px-3 py-1.5 rounded-lg border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-200 hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed"
-                >
-                  Next →
-                </button>
+                <div>
+                  <button>
+                    ← Previous
+                  </button>
+                  <span>
+                    Page {movementPage} of {totalPages}
+                  </span>
+                  <button>
+                    Next →
+                  </button>
+                </div>
               </div>
             </div>
           )}
         </div>
       </main>
 
-      {/* Edit Material Modal */}
       {editMaterial && (
         <EditMaterialModal
           material={material}
@@ -434,7 +435,6 @@ export default function MaterialDetailPage() {
         />
       )}
 
-      {/* Movement Modal */}
       {showMovement && (
         <MovementModal
           materialId={material.id}

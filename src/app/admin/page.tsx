@@ -78,7 +78,7 @@ export default function AdminPage() {
   });
 
   const headerActions = (
-    <div className="relative">
+    <div className="relative w-full sm:w-72">
       <svg
         className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400"
         fill="none"
@@ -97,12 +97,13 @@ export default function AdminPage() {
         placeholder="Search users..."
         value={search}
         onChange={(e) => setSearch(e.target.value)}
-        className="pl-10 pr-8 py-2 w-64 border border-gray-300 dark:border-gray-700 rounded-lg text-sm text-gray-900 dark:text-gray-100 bg-white dark:bg-gray-900 placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400"
+        className="w-full pl-10 pr-8 py-2 border border-gray-300 dark:border-gray-700 rounded-lg text-sm text-gray-900 dark:text-gray-100 bg-white dark:bg-gray-900 placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400"
       />
       {search && (
         <button
           onClick={() => setSearch("")}
           className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
+          aria-label="Clear search"
         >
           ✕
         </button>
@@ -110,25 +111,29 @@ export default function AdminPage() {
     </div>
   );
 
-  const shouldCrashAdmin = 
+  const shouldCrashAdmin =
     process.env.NEXT_PUBLIC_E2E_CRASH === "1" &&
-    typeof window !== "undefined" && 
+    typeof window !== "undefined" &&
     new URLSearchParams(window.location.search).has("e2eCrashAdmin");
 
-    if (shouldCrashAdmin) {
-      throw new Error("E2E admin boundary crash");
-    }
+  if (shouldCrashAdmin) {
+    throw new Error("E2E admin boundary crash");
+  }
 
   return (
     <>
-      <SubPageLayout title="👥 User Management" maxWidth="max-w-5xl" actions={headerActions} loading={loading}>
+      <SubPageLayout
+        title="👥 User Management"
+        maxWidth="max-w-5xl"
+        actions={headerActions}
+        loading={loading}
+      >
         {error && (
           <div className="bg-red-50 dark:bg-red-900/30 border border-red-200 dark:border-red-800 text-red-700 dark:text-red-400 p-4 rounded-lg mb-6">
             {error}
           </div>
         )}
 
-        {/* Stats */}
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
           <div className="bg-white dark:bg-gray-800 p-5 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700">
             <div className="text-sm font-medium text-gray-500 dark:text-gray-400 mb-1">Total Users</div>
@@ -154,18 +159,68 @@ export default function AdminPage() {
           </div>
         </div>
 
-        {/* Users Table */}
         <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 overflow-hidden">
-          <div className="p-5 border-b border-gray-200 dark:border-gray-700 flex justify-between items-center">
-            <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100">Users</h2>
-            <button
-              onClick={() => setShowAddUser(true)}
-              className="bg-blue-600 text-white text-sm font-medium px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors shadow-sm"
-            >
-              + Add User
-            </button>
+          <div className="p-5 border-b border-gray-200 dark:border-gray-700">
+            <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+              <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100">Users</h2>
+              <button
+                onClick={() => setShowAddUser(true)}
+                className="bg-blue-600 text-white text-sm font-medium px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors shadow-sm"
+              >
+                + Add User
+              </button>
+            </div>
           </div>
-          <div className="overflow-x-auto">
+
+          <div className="md:hidden p-4 space-y-3">
+            {filteredUsers.map((user) => (
+              <div
+                key={user.id}
+                className="rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 p-4"
+              >
+                <div className="flex items-start justify-between gap-3">
+                  <div className="min-w-0">
+                    <div className="font-semibold text-gray-900 dark:text-gray-100 break-words">
+                      {user.name}
+                      {currentUser?.id === user.id && (
+                        <span className="ml-2 text-xs text-gray-400 font-normal">(you)</span>
+                      )}
+                    </div>
+                    <div className="text-sm text-gray-500 dark:text-gray-400 break-all mt-1">
+                      {user.email}
+                    </div>
+                  </div>
+                  <span
+                    className={`inline-flex items-center text-xs font-semibold px-2.5 py-1 rounded-full ${
+                      roleBadge[user.role] || "bg-gray-100 text-gray-600"
+                    }`}
+                  >
+                    {user.role}
+                  </span>
+                </div>
+
+                <div className="mt-3 flex items-center justify-between gap-3">
+                  <div className="text-xs text-gray-500 dark:text-gray-400">
+                    Created {new Date(user.createdAt).toLocaleDateString()}
+                  </div>
+                  <button
+                    onClick={() => setEditUser(user)}
+                    className="text-sm font-medium bg-gray-100 text-gray-700 px-3 py-1.5 rounded-lg hover:bg-gray-200 dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-600 transition-colors"
+                  >
+                    ✏️ Edit
+                  </button>
+                </div>
+              </div>
+            ))}
+
+            {filteredUsers.length === 0 && (
+              <div className="px-2 py-10 text-center text-gray-400 dark:text-gray-500">
+                {search ? `No users matching "${search}"` : "No users found."}
+              </div>
+            )}
+          </div>
+
+          <div className="hidden md:block overflow-x-auto">
             <table className="w-full">
               <thead>
                 <tr className="bg-gray-50 dark:bg-gray-700/50 text-left text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">
@@ -210,6 +265,7 @@ export default function AdminPage() {
                     </td>
                   </tr>
                 ))}
+
                 {filteredUsers.length === 0 && (
                   <tr>
                     <td colSpan={5} className="px-5 py-12 text-center text-gray-400 dark:text-gray-500">
