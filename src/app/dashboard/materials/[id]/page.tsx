@@ -93,53 +93,56 @@ export default function MaterialDetailPage() {
 
   if (loading) {
     return (
-      <div>
-        <header>
-          <div>
-            <SkeletonText />
-            <div />
-            <SkeletonBox />
+      <div className="min-h-screen bg-gray-100 dark:bg-gray-900">
+        <header className="bg-white shadow-sm border-b border-gray-200 dark:bg-gray-800 dark:border-gray-700">
+          <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex items-center gap-4">
+            <SkeletonText className="h-4 w-24" />
+            <div className="h-5 w-px bg-gray-300 dark:bg-gray-600" />
+            <SkeletonBox className="h-6 w-56 rounded" />
           </div>
         </header>
 
-        <main>
-          <div>
-            <div>
-              <SkeletonBox />
-              <SkeletonBox />
-              <div>
+        <main className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-6">
+          <div className="grid grid-col-1 lg:grid-cols-3 gap-6">
+            <div className="lg:col-span-2 bg-white rounded-xl shadow-sm border border-gray-200 dark:bg-gray-800 dark:border-gray-700 p-6">
+              <SkeletonBox className="h-8 w-64 rounded mb-2" />
+              <SkeletonBox className="h-4 w-40 mb-6" />
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
                 {Array.from({ length: 4 }).map((_, i) => (
-                  <div>
-                    <SkeletonText />
-                    <SkeletonBox />
+                  <div key={i}>
+                    <SkeletonText className="h-3 w-20 mb-2" />
+                    <SkeletonBox className="h-8 w-16 rounded" />
                   </div>
                 ))}
               </div>
             </div>
 
-            <div>
-              <SkeletonText />
-              <SkeletonBox />
-              <SkeletonBox />
+            <div className="bg-white rounded-xl shadow-sm border border-gray-200 dark:bg-gray-800 dark:border-gray-700 p-6">
+              <SkeletonText className="h-4 w-16 mb-4" />
+              <SkeletonBox className="h-40 w-full rounded mb-3" />
+              <SkeletonBox className="h-12 w-full rounded" />
             </div>
           </div>
 
-          <div>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             {Array.from({ length: 3 }).map((_, i) => (
-              <div>
-                <SkeletonText />
-                <SkeletonBox />
+              <div
+                key={i}
+                className="bg-white dark:bg-gray-900 p-5 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700"
+              >
+                <SkeletonText className="h-3 w-24 mb-2" />
+                <SkeletonBox className="h-8 w-14 rounded" />
               </div>
             ))}
           </div>
 
-          <div>
-            <div>
-              <SkeletonText />
+          <div className="bg-white dark:bg-gray-900 rounded-xl shadow-sm border border-gray-200 dark:border-gray-900 overflow-hidden">
+            <div className="p-5 border-b border-gray-200 dark:border-gray-700">
+              <SkeletonText className="h-5 w-40" />
             </div>
-            <div>
+            <div className="p-5 space-y-3">
               {Array.from({ length: 6 }).map((_, i) => (
-                <SkeletonBox />
+                <SkeletonBox key={i} className="h-4 w-full rounded" />
               ))}
             </div>
           </div>
@@ -150,10 +153,13 @@ export default function MaterialDetailPage() {
 
   if (error || !material) {
     return (
-      <div>
-        <div>
-          <div>{}</div>
-          <button>
+      <div className="min-h-screen bg-gray-100 dark:bg-gray-900 flex items-center justify-center">
+        <div className="text-center">
+          <div className="text-red-600 text-lg font-medium mb-4">{error || "Material not found"}</div>
+          <button
+            onClick={() => router.push("/dashboard")}
+            className="text-blue-600 hover:text-blue-800 font-medium"
+          >
             ← Back to Dashboard
           </button>
         </div>
@@ -177,20 +183,26 @@ export default function MaterialDetailPage() {
     .reduce((s, m) => s + m.quantity, 0);
 
   return (
-    <div>
-      <header>
-        <div>
-          <div>
-            <button>
+    <div className="min-h-screen bg-gray-100 dark:bg-gray-900">
+      <header className="bg-white shadow-sm border-b border-gray-200 dark:bg-gray-800 dark:border-gray-700">
+        <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:gap-4">
+            <button
+              onClick={() => router.push("/dashboard")}
+              className="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 font-medium text-sm flex items-center gap-1 shrink-0"
+            >
               ← Dashboard
             </button>
-            <div />
-            <div>
-              <h1>
+            <div className="hidden sm:block h-5 w-px bg-gray-300 dark:bg-gray-600" />
+            <div className="flex items-center gap-2 min-w-0 flex-wrap">
+              <h1 className="text-xl font-bold text-gray-900 dark:text-gray-100 truncate">
                 {material.name}
               </h1>
               {material.department && (
-                <span>
+                <span
+                  className="text-xs font-semibold px-2 py-0.5 rounded-full text-white"
+                  style={{ backgroundColor: material.department.color }}
+                >
                   {material.department.name}
                 </span>
               )}
@@ -199,115 +211,141 @@ export default function MaterialDetailPage() {
         </div>
       </header>
 
-      <main>
-        <div>
-          <div>
-            <div>
+      <main className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
+          <div className="lg:col-span-2 bg-white rounded-xl shadow-sm border border-gray-200 dark:bg-gray-800 dark:border-gray-700 p-6">
+            <div className="flex flex-col gap-4 mb-6">
               <div>
-                <h2>
+                <h2 className="text-2xl font-bold text-gray-900 dark:text-gray-100 wrap-break-word">
                   {material.name}
                 </h2>
-                <p>
+                <p className="text-gray-500 dark:text-gray-400 font-mono text-sm mt-1 break-all">
                   {material.partNumber}
                 </p>
                 {material.description && (
-                  <p>
+                  <p className="text-gray-600 dark:text-gray-400 mt-2 wrap-break-word">
                     {material.description}
                   </p>
                 )}
               </div>
 
               {canEdit && (
-                <div>
-                  <button>
+                <div className="flex flex-wrap gap-2">
+                  <button
+                    onClick={() => setEditMaterial(true)}
+                    className="text-sm font-medium bg-gray-100 text-gray-700 px-4 py-2 rounded-lg hover:bg-gray-200 dark:bg-gray-800 dark:text-gray-200 dark:hover:bg-gray-700 transition-colors"
+                  >
                     ✏️ Edit
                   </button>
-                  <button>
+                  <button
+                    onClick={() => setShowMovement("INBOUND")}
+                    className="text-sm font-medium bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition-colors"
+                  >
                     + Inbound
                   </button>
-                  <button>
+                  <button
+                    onClick={() => setShowMovement("OUTBOUND")}
+                    className="text-sm font-medium bg-orange-500 text-white px-4 py-2 rounded-lg hover:bg-orange-600 transition-colors"
+                  >
                     - Outbound
                   </button>
                 </div>
               )}
             </div>
 
-            <div>
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
               <div>
-                <div>
+                <div className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-1">
                   Quantity
                 </div>
-                <span>
+                <span
+                  className={`inline-flex items-center px-3 py-1 rounded-full text-lg font-bold ${
+                    isLowStock ? "bg-orange-100 text-orange-700" : "bg-green-100 text-green-700"
+                  }`}
+                >
                   {material.quantity}
                 </span>
                 {isLowStock && (
-                  <div>
+                  <div className="text-xs text-orange-600 mt-1">
                     ⚠ Below minimum ({material.minQuantity ?? 10})
                   </div>
                 )}
               </div>
               <div>
-                <div>
+                <div className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-1">
                   Min Quantity
                 </div>
-                <div>
+                <div className="text-lg font-semibold text-gray-900 dark:text-gray-100">
                   {material.minQuantity ?? 10}
                 </div>
               </div>
               <div>
-                <div>
+                <div className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-1">
                   Unit
                 </div>
-                <div>
+                <div className="text-lg font-semibold text-gray-900 dark:text-gray-100">
                   {material.unit || "-"}
                 </div>
               </div>
               <div>
-                <div>
+                <div className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-1">
                   Location
                 </div>
-                <div>
+                <div className="text-lg font-semibold text-gray-900 dark:text-gray-100 wrap-break-word">
                   {material.location || "-"}
                 </div>
               </div>
             </div>
 
-            <div>
+            <div className="mt-6 pt-4 border-t border-gray-100 dark:border-gray-700 flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-6 text-xs text-gray-400 dark:text-gray-500">
               {material.createdAt && <span>Created: {new Date(material.createdAt).toLocaleString()}</span>}
               {material.updatedAt && <span>Updated: {new Date(material.updatedAt).toLocaleString()}</span>}
             </div>
           </div>
 
-          <div>
-            <div>
-              <h3>Label</h3>
-              <button>
+          <div className="bg-white rounded-xl shadow-sm border border-gray-200 dark:bg-gray-800 dark:border-gray-700 p-6 flex flex-col items-center">
+            <div className="flex items-center justify-between w-full mb-4">
+              <h3 className="text-sm font-semibold text-gray-900 dark:text-gray-100">Label</h3>
+              <button
+                onClick={printLabel}
+                className="text-xs font-medium text-gray-600 dark:text-gray-300 px-2 py-1 rounded border border-gray-300 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
+              >
                 🖨️ Print
               </button>
             </div>
 
-            <div>
+            <div
+              ref={labelRef}
+              className="bg-white border border-dashed border-gray-300 dark:border-gray-600 rounded-lg p-4 w-full flex flex-col items-center gap-3"
+              style={{ maxWidth: 300 }}
+            >
               {qrDataUrl ? (
-                <Image />
+                <Image
+                  src={qrDataUrl}
+                  alt={`QR: ${material.partNumber}`}
+                  width={140}
+                  height={140}
+                  unoptimized
+                />
               ) : (
-                <div>
+                <div className="w-35 h-35 bg-gray-100 rounded flex items-center justify-center text-gray-400 text-xs">
                   QR Code
                 </div>
               )}
 
-              <Barcode128 />
+              <Barcode128 data={material.partNumber} width={240} height={50} />
 
-              <div>
-                <div>
+              <div className="text-center">
+                <div className="text-sm font-bold text-gray-900" style={{ color: "#000" }}>
                   {material.name}
                 </div>
                 {material.location && (
-                  <div>
+                  <div className="text-xs text-gray-500" style={{ color: "#555"}}>
                     📍 {material.location}
                   </div>
                 )}
                 {material.department && (
-                  <div>
+                  <div className="text-xs mt-0.5" style={{ color: material.department.color }}>
                     {material.department.name}
                   </div>
                 )}
@@ -316,81 +354,100 @@ export default function MaterialDetailPage() {
           </div>
         </div>
 
-        <div>
-          <div>
-            <div>Total Movements</div>
-            <div>{movements.length}</div>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+          <div className="bg-white dark:bg-gray-900 p-5 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700">
+            <div className="text-sm font-medium text-gray-500 dark:text-gray-400 mb-1">Total Movements</div>
+            <div className="text-2xl font-bold text-gray-900 dark:text-gray-100">{movements.length}</div>
           </div>
-          <div>
-            <div>Total Inbound</div>
-            <div>{totalInbound}</div>
+          <div className="bg-white dark:bg-gray-900 p-5 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700">
+            <div className="text-sm font-medium text-gray-500 dark:text-gray-400 mb-1">Total Inbound</div>
+            <div className="text-2xl font-bold text-green-600 dark:text-green-500">{totalInbound}</div>
           </div>
-          <div>
-            <div>Total Outbound</div>
-            <div>{totalOutbound}</div>
+          <div className="bg-white dark:bg-gray-900 p-5 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700">
+            <div className="text-sm font-medium text-gray-500 dark:text-gray-400 mb-1">Total Outbound</div>
+            <div className="text-2xl font-bold text-orange-600 dark:text-orange-500">{totalOutbound}</div>
           </div>
         </div>
 
-        <div>
-          <div>
-            <h2>Movement History</h2>
+        <div className="bg-white dark:bg-gray-900 rounded-xl shadow-sm border border-gray-200 dark:border-gray-900 overflow-hidden">
+          <div className="p-5 border-b border-gray-200 dark:border-gray-700">
+            <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100">Movement History</h2>
           </div>
 
-          <div>
+          <div className="md:hidden p-4 space-y-3">
             {paginatedMovements.map((mov) => (
-              <div>
-                <div>
-                  <span>
+              <div
+                key={mov.id}
+                className="rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 p-4"
+              >
+                <div className="flex items-start justify-between gap-3">
+                  <span
+                    className={`inline-flex items-center text-xs font-semibold px-2.5 py-1 rounded-full ${
+                      mov.type === "INBOUND"
+                        ? "bg-green-100 text-green-700"
+                        : mov.type === "OUTBOUND"
+                        ? "bg-orange-100 text-orange-700"
+                        : "bg-blue-100 text-blue-700"
+                    }`}
+                  >
                     {mov.type}
                   </span>
-                  <span>{mov.quantity}</span>
+                  <span className="font-semibold text-gray-900 dark:text-gray-100">{mov.quantity}</span>
                 </div>
 
-                <div>
+                <div className="mt-2 text-xs text-gray-500 dark:text-gray-400">
                   {new Date(mov.createdAt).toLocaleString()}
                 </div>
-                <div>By: {mov.user.name}</div>
-                <div>
+                <div className="mt-1 text-sm text-gray-700 dark:text-gray-300">By: {mov.user.name}</div>
+                <div className="mt=1 text-sm text-gray-600 dark:text-gray-400 wrap-break-word">
                   {mov.note || "-"}
                 </div>
               </div>
             ))}
 
             {movements.length === 0 && (
-              <div>No movements recorded yet.</div>
+              <div className="px-2 py-10 text-center text-gray-400">No movements recorded yet.</div>
             )}
           </div>
 
-          <div>
-            <table>
+          <div className="hidden md:block overflow-x-auto">
+            <table className="w-full">
               <thead>
-                <tr>
-                  <th>Date</th>
-                  <th>Type</th>
-                  <th>Qty</th>
-                  <th>Note</th>
-                  <th>By</th>
+                <tr className="bg-gray-50 dark:bg-gray-800 text-left text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                  <th className="px-5 py-3">Date</th>
+                  <th className="px-5 py-3">Type</th>
+                  <th className="px-5 py-3">Qty</th>
+                  <th className="px-5 py-3">Note</th>
+                  <th className="px-5 py-3">By</th>
                 </tr>
               </thead>
-              <tbody>
+              <tbody className="divide-y divide-gray-100 dark:divide-gray-700">
                 {paginatedMovements.map((mov) => (
-                  <tr>
-                    <td>
+                  <tr key={mov.id} className="hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors">
+                    <td className="px-5 py-4 text-sm text-gray-500 dark:text-gray-400">
                       {new Date(mov.createdAt).toLocaleString()}
                     </td>
-                    <td>
-                      <span>
+                    <td className="px-5 py-4">
+                      <span
+                        className={`inline-flex items-center text-xs font-semibold px-2.5 py-1 rounded-full ${
+                          mov.type === "INBOUND"
+                            ? "bg-green-100 text-green-700"
+                            : mov.type === "OUTBOUND"
+                            ? "bg-orange-100 text-orange-700"
+                            : "bg-blue-100 text-blue-700"
+                        }`}
+                      >
                         {mov.type}
                       </span>
                     </td>
-                    <td>{mov.quantity}</td>
-                    <td>{mov.note || "-"}</td>
-                    <td>{mov.user.name}</td>
+                    <td className="px-5 py-4 font-medium text-gray-900 dark:text-gray-100">{mov.quantity}</td>
+                    <td className="px-5 py-4 text-sm text-gray-500 dark:text-gray-400">{mov.note || "-"}</td>
+                    <td className="px-5 py-4 text-sm text-gray-500 dark:text-gray-400">{mov.user.name}</td>
                   </tr>
                 ))}
                 {movements.length === 0 && (
                   <tr>
-                    <td>
+                    <td colSpan={5} className="px-5 py-12 text-center text-gray-400">
                       No movements recorded yet.
                     </td>
                   </tr>
@@ -400,20 +457,28 @@ export default function MaterialDetailPage() {
           </div>
 
           {movements.length > movementsPerPage && (
-            <div>
-              <div>
-                <span>
+            <div className="px-5 py-3 border-t border-gray-200 dark:border-gray-700 text-sm">
+              <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+                <span className="text-gray-500 dark:text-gray-500">
                   Showing {(movementPage - 1) * movementsPerPage + 1}-
                   {Math.min(movementPage * movementsPerPage, movements.length)} of {movements.length}
                 </span>
-                <div>
-                  <button>
+                <div className="flex items-center gap-2">
+                  <button
+                    onClick={() => setMovementPage((p) => Math.max(1, p - 1))}
+                    disabled={movementPage === 1}
+                    className="px-3 py-1.5 rounded-lg border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-200 hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed"
+                  >
                     ← Previous
                   </button>
-                  <span>
+                  <span className="text-gray-700 dark:text-gray-200 font-medium">
                     Page {movementPage} of {totalPages}
                   </span>
-                  <button>
+                  <button
+                    onClick={() => setMovementPage((p) => Math.min(totalPages, p + 1))}
+                    disabled={movementPage === totalPages}
+                    className="px-3 py-1.5 rounded-lg border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-200 hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed"
+                  >
                     Next →
                   </button>
                 </div>
