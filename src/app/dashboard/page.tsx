@@ -20,14 +20,14 @@ import DashboardSkeleton from "@/components/DashboardSkeleton";
 export default function DashboardPage() {
   const d = useDashboard();
 
-  const shouldCrashDashboard = 
+  const shouldCrashDashboard =
     process.env.NEXT_PUBLIC_E2E_CRASH === "1" &&
     typeof window !== "undefined" &&
     new URLSearchParams(window.location.search).has("e2eCrashDashboard");
 
-    if (shouldCrashDashboard) {
-      throw new Error("E2E dashboard boundary crash");
-    }
+  if (shouldCrashDashboard) {
+    throw new Error("E2E dashboard boundary crash");
+  }
 
   if (d.loading) {
     return <DashboardSkeleton />;
@@ -35,7 +35,6 @@ export default function DashboardPage() {
 
   return (
     <div className="min-h-screen bg-gray-100 dark:bg-gray-900">
-      
       <DashboardHeader
         search={d.search}
         setSearchAction={d.setSearch}
@@ -52,67 +51,67 @@ export default function DashboardPage() {
         roleBadge={d.roleBadge}
         canManageUsers={d.canManageUsers}
         setShowScannerAction={d.setShowScanner}
-        onOpenOrdersAction={() => d.router.push("/dashboard/purchase-orders")}
+        onOpenOrdersAction={() => d.router.push("/dashboard/purchase-order")}
         onOpenUsersAction={() => d.router.push("/admin")}
         onLogoutAction={d.handleLogout}
         darkMode={d.darkMode}
         onToggleDarkModeAction={d.toggleDarkMode}
       />
 
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <main className="mx-auto w-full max-w-7xl px-3 py-5 sm:px-6 sm:py-6 lg:px-8 lg:py-8">
         {d.error && (
-          <div className="bg-red-50 dark:bg-red-900/30 border border-red-200 dark:border-red-800 text-red-700 dark:text-red-400 p-4 rounded-lg mb-6">
+          <div className="mb-4 rounded-lg border border-red-200 bg-red-50 p-3 text-sm text-red-700 dark:border-red-800 dark:bg-red-900/30 dark:text-red-400 sm:mb-6 sm:p-4">
             {d.error}
           </div>
         )}
 
-        {/* Read-only banner for viewers */}
         {d.userRole === "VIEWER" && (
-          <div className="bg-blue-50 dark:bg-blue-900/30 border border-blue-200 dark:border-blue-800 text-blue-700 dark:text-blue-300 p-4 rounded-lg mb-6 flex items-center gap-2 text-sm">
-            <span className="text-lg">👁️</span>
+          <div className="mb-4 flex items-start gap-2 rounded-lg border border-blue-200 bg-blue-50 p-3 text-sm text-blue-700 dark:border-blue-800 dark:bg-blue-900/30 dark:text-blue-300 sm:mb-6 sm:items-center sm:p-4">
+            <span className="text-base sm:text-lg">👁️</span>
             <span>
-              You have <strong>view-only</strong> access. Contact an administrator to
-              request edit permissions.
+              You have <strong>view-only</strong> access. Contact an administrator to request edit permissions.
             </span>
           </div>
         )}
 
-        {/* Search results indicator */}
         {d.hasAnyFilter && (
-          <div className="mb-4 text-sm text-gray-500 dark:text-gray-400 flex items-center gap-2">
-            <span>
-              Showing {d.totalMaterials} material
-              {d.totalMaterials !== 1 ? "s" : ""} and{" "}
-              {d.totalMovements} movement
-              {d.totalMovements !== 1 ? "s" : ""}
-              {d.debouncedSearch && (
-                <>
-                  {" "}
-                  matching &ldquo;
-                  <span className="font-medium text-gray-700 dark:text-gray-200">{d.debouncedSearch}</span>
-                  &rdquo;
-                </>
-              )}
-              {d.hasDateFilter && (
-                <span className="text-gray-500 dark:text-gray-400">
-                  {" "}
-                  {d.dateFrom && d.dateTo
-                    ? `from ${d.dateFrom} to ${d.dateTo}`
-                    : d.dateFrom
-                    ? `from ${d.dateFrom}`
-                    : `up to ${d.dateTo}`}
+          <div className="mb-4 rounded-lg border border-gray-200 bg-white p-3 dark:border-gray-700 dark:bg-gray-800 sm:p-4">
+            <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
+              <div className="text-sm text-gray-500 dark:text-gray-400">
+                <span>
+                  Showing {d.totalMaterials} material{d.totalMaterials !== 1 ? "s" : ""} and {d.totalMovements}{" "}
+                  movement{d.totalMovements !== 1 ? "s" : ""}
+                  {d.debouncedSearch && (
+                    <>
+                      {" "}
+                      matching &ldquo;
+                      <span className="font-medium text-gray-700 dark:text-gray-200">{d.debouncedSearch}</span>
+                      &rdquo;
+                    </>
+                  )}
+                  {d.hasDateFilter && (
+                    <span className="text-gray-500 dark:text-gray-400">
+                      {" "}
+                      {d.dateFrom && d.dateTo
+                        ? `from ${d.dateFrom} to ${d.dateTo}`
+                        : d.dateFrom
+                          ? `from ${d.dateFrom}`
+                          : `up to ${d.dateTo}`}
+                    </span>
+                  )}
+                  {d.lowStockOnly && (
+                    <span className="font-medium text-orange-600 dark:text-orange-400"> - low stock only</span>
+                  )}
                 </span>
-              )}
-              {d.lowStockOnly && (
-                <span className="text-orange-600 dark:text-orange-400 font-medium"> — low stock only</span>
-              )}
-            </span>
-            <button
-              onClick={d.clearFilters}
-              className="text-blue-600 hover:text-blue-800 text-xs font-medium ml-2"
-            >
-              Clear all filters
-            </button>
+              </div>
+
+              <button
+                onClick={d.clearFilters}
+                className="inline-flex w-full items-center justify-center rounded-md border border-blue-200 px-3 py-2 text-xs font-medium text-blue-600 hover:bg-blue-50 dark:border-blue-900/40 dark:text-blue-400 dark:hover:bg-blue-900/20 sm:w-auto"
+              >
+                Clear all filters
+              </button>
+            </div>
           </div>
         )}
 
@@ -189,10 +188,8 @@ export default function DashboardPage() {
           getAuditDetailAction={d.getAuditDetail}
           onViewAllAction={() => d.router.push("/dashboard/audit-log")}
         />
-        
       </main>
 
-      {/* Add Material Modal */}
       {d.showAddMaterial && d.canEdit && (
         <AddMaterialModal
           onCloseAction={() => d.setShowAddMaterial(false)}
@@ -204,7 +201,6 @@ export default function DashboardPage() {
         />
       )}
 
-      {/* Edit Material Modal */}
       {d.editMaterial && d.canEdit && (
         <EditMaterialModal
           material={d.editMaterial}
@@ -218,7 +214,6 @@ export default function DashboardPage() {
         />
       )}
 
-      {/* Movement Modal */}
       {d.showMovement && d.canEdit && (
         <MovementModal
           materialId={d.showMovement.replace("out-", "")}
@@ -227,16 +222,11 @@ export default function DashboardPage() {
           onSuccessAction={() => {
             d.setShowMovement(null);
             d.refreshAll();
-            d.addToast(
-              d.showMovement?.startsWith("out-")
-                ? "Outbound recorded"
-                : "Inbound recorded"
-            );
+            d.addToast(d.showMovement?.startsWith("out-") ? "Outbound recorded" : "Inbound recorded");
           }}
         />
       )}
 
-      {/* Transfer Modal */}
       {d.showTransfer && d.canEdit && (
         <TransferModal
           sourceMaterialId={d.showTransfer}
@@ -249,12 +239,8 @@ export default function DashboardPage() {
         />
       )}
 
-      {/* Scanner Modal */}
       {d.showScanner && (
-        <ScannerModal
-          onCloseAction={() => d.setShowScanner(false)}
-          onResultAction={d.handleScanResult}
-        />
+        <ScannerModal onCloseAction={() => d.setShowScanner(false)} onResultAction={d.handleScanResult} />
       )}
 
       <Toast messages={d.toasts} onDismissAction={d.dismissToast} />

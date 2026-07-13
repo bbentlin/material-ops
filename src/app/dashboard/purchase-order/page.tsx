@@ -89,14 +89,10 @@ export default function PurchaseOrdersPage() {
         setTotal(data.total ?? 0);
       } catch (e) {
         if (cancelled) return;
-
-        const message =
-          e instanceof Error ? e.message : "Failed to fetch purchase orders";
+        const message = e instanceof Error ? e.message : "Failed to fetch purchase orders";
         addToast(message, "error");
       } finally {
-        if (!cancelled) {
-          setLoading(false);
-        }
+        if (!cancelled) setLoading(false);
       }
     }
 
@@ -120,7 +116,7 @@ export default function PurchaseOrdersPage() {
   const canEdit = userRole === "ADMIN" || userRole === "OPERATOR";
   const canDelete = userRole === "ADMIN";
   const canApprove = userRole === "ADMIN";
-  const totalPages = Math.ceil(total / limit);
+  const totalPages = Math.max(1, Math.ceil(total / limit));
 
   async function handleStatusChange(orderId: string, newStatus: string) {
     const res = await fetch("/api/purchase-orders/" + orderId, {
@@ -128,6 +124,7 @@ export default function PurchaseOrdersPage() {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ status: newStatus }),
     });
+
     if (res.ok) {
       addToast("Order " + newStatus.toLowerCase() + " successfully");
       setLoading(true);
@@ -144,6 +141,7 @@ export default function PurchaseOrdersPage() {
     const res = await fetch("/api/purchase-orders/" + orderId + "/receive", {
       method: "POST",
     });
+
     if (res.ok) {
       addToast("Order received - stock updated!", "success");
       setLoading(true);
@@ -158,9 +156,11 @@ export default function PurchaseOrdersPage() {
 
   async function handleDelete(orderId: string, orderNumber: string) {
     if (!confirm("Delete " + orderNumber + "? This cannot be undone.")) return;
+
     const res = await fetch("/api/purchase-orders/" + orderId, {
       method: "DELETE",
     });
+
     if (res.ok) {
       addToast("Order deleted");
       setLoading(true);
@@ -217,6 +217,7 @@ export default function PurchaseOrdersPage() {
           {["ALL", "DRAFT", "SUBMITTED", "APPROVED", "RECEIVED"].map((s) => {
             const count = s === "ALL" ? total : orders.filter((o) => o.status === s).length;
             const isActive = s === "ALL" ? !statusFilter : statusFilter === s;
+
             return (
               <button
                 key={s}
@@ -291,14 +292,12 @@ export default function PurchaseOrdersPage() {
                         <div className="font-mono font-medium text-gray-900 dark:text-gray-100">
                           {order.orderNumber}
                         </div>
-                        <div className="text-sm text-gray-600 dark:text-gray-400 mt-1">
-                          {order.supplier}
-                        </div>
+                        <div className="text-sm text-gray-600 dark:text-gray-400 mt-1">{order.supplier}</div>
                       </div>
                       <span
                         className={
                           "inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-semibold " +
-                          (statusColors[order.status] || "")
+                          statusColors[order.status]
                         }
                       >
                         {statusIcons[order.status]} {order.status}
@@ -439,7 +438,7 @@ export default function PurchaseOrdersPage() {
                             <span
                               className={
                                 "inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-semibold " +
-                                (statusColors[order.status] || "")
+                                statusColors[order.status]
                               }
                             >
                               {statusIcons[order.status]} {order.status}
@@ -512,6 +511,7 @@ export default function PurchaseOrdersPage() {
                             </div>
                           </td>
                         </tr>
+
                         {expandedId === order.id && (
                           <tr key={order.id + "-detail"}>
                             <td colSpan={7} className="px-4 py-4 bg-gray-50 dark:bg-gray-800/50">
