@@ -180,7 +180,7 @@ export default function AdminPage() {
               >
                 <div className="flex items-start justify-between gap-3">
                   <div className="min-w-0">
-                    <div className="font-semibold text-gray-900 dark:text-gray-100 break-words">
+                    <div className="font-semibold text-gray-900 dark:text-gray-100 wrap-break-word">
                       {user.name}
                       {currentUser?.id === user.id && (
                         <span className="ml-2 text-xs text-gray-400 font-normal">(you)</span>

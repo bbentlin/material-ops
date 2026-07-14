@@ -382,7 +382,7 @@ export default function PurchaseOrdersPage() {
                               key={item.id}
                               className="flex items-center justify-between gap-2 text-gray-700 dark:text-gray-300"
                             >
-                              <span className="min-w-0 break-words">
+                              <span className="min-w-0 wrap-break-word">
                                 <span className="font-mono text-gray-400 dark:text-gray-500">
                                   {item.material.partNumber}
                                 </span>{" "}

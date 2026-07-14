@@ -41,7 +41,7 @@ export default function DashboardActivityFeed(props: Props) {
                     <div className="min-w-0">
                       <span className={`text-sm ${color}`}>{label}</span>
                       {detail && (
-                        <span className="text-sm text-gray-500 dark:text-gray-400 ml-2 break-words">
+                        <span className="text-sm text-gray-500 dark:text-gray-400 ml-2 wrap-break-word">
                           {detail}
                         </span>
                       )}
@@ -49,7 +49,7 @@ export default function DashboardActivityFeed(props: Props) {
                   </div>
 
                   <div className="flex items-center gap-3 text-xs text-gray-500 dark:text-gray-400 sm:ml-auto">
-                    <span className="truncate max-w-[10rem]">{entry.user?.name || "System"}</span>
+                    <span className="truncate max-w-40">{entry.user?.name || "System"}</span>
                     <span className="text-gray-400 dark:text-gray-500">
                       {new Date(entry.createdAt).toLocaleString(undefined, {
                         month: "short",
