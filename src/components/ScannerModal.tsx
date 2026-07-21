@@ -15,7 +15,7 @@ export default function ScannerModal({
   const [manualEntry, setManualEntry] = useState("");
   const [cameraError, setCameraError] = useState("");
   const [scanning, setScanning] = useState(false);
-  
+
   const [hasBarcodeDetector] = useState(
     () => typeof window !== "undefined" && "BarcodeDetector" in window
   );
@@ -24,7 +24,11 @@ export default function ScannerModal({
     try {
       setCameraError("");
       const stream = await navigator.mediaDevices.getUserMedia({
-        video: { facingMode: "environment", width: { ideal: 1280 }, height: { ideal: 720 } },
+        video: {
+          facingMode: "environment",
+          width: { ideal: 1280 },
+          height: { ideal: 720 },
+        },
       });
       streamRef.current = stream;
       if (videoRef.current) {
@@ -66,7 +70,7 @@ export default function ScannerModal({
           return;
         }
       } catch {
-        // detection frame error, continue  
+        // detection frame error, continue
       }
       if (streamRef.current) {
         requestAnimationFrame(detect);
@@ -79,7 +83,7 @@ export default function ScannerModal({
     return () => stopCamera();
   }, []);
 
-  function handleManualSubmit(e: React.ChangeEvent) {
+  function handleManualSubmit(e: React.FormEvent) {
     e.preventDefault();
     const value = manualEntry.trim();
     if (value) {
@@ -87,63 +91,66 @@ export default function ScannerModal({
     }
   }
 
-  const inputClass = 
-    "w-full border border-gray-300 dark:border-gray-600 rounded-lg px-3 py-2 text-sm text-gray-900 dark:text-gray-100 bg-white dark:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500";
+  const inputClass =
+    "w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 placeholder-gray-400 focus:border-transparent focus:outline-none focus:ring-2 focus:ring-blue-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100 dark:placeholder-gray-500";
 
   return (
     <DraggableModal>
-      <div className="space-y-4">
-        <div className="flex items-center justify-between">
+      <div className="flex flex-col gap-4 p-4 sm:p-6">
+        <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
           <h2 className="text-sm font-semibold text-gray-900 dark:text-gray-100">
             📷 Scan Barcode / QR Code
           </h2>
           <button
             onClick={onCloseAction}
-            className="text-xs px-2 py-1 rounded border border-gray-300 dark:border-gray-600 text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700"
+            className="w-full rounded border border-gray-300 px-2 py-1 text-xs text-gray-600 hover:bg-gray-50 dark:border-gray-600 dark:text-gray-300 dark:hover:bg-gray-700 sm:w-auto"
           >
             Close
           </button>
         </div>
 
         {/* Camera Scanner */}
-        <div className="relative bg-black rounded-lg overflow-hidden" style={{ minHeight: 240 }}>
+        <div
+          className="relative overflow-hidden rounded-lg bg-black"
+          style={{ minHeight: "240px" }}
+        >
           {scanning ? (
             <>
               <video
                 ref={videoRef}
-                className="w-full h-60 object-cover"
+                className="h-60 w-full object-cover sm:h-80"
                 muted
                 playsInline
               />
               {/* Scan overlay */}
-              <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-                <div className="w-48 h-48 border-2 border-green-400 rounded-lg opacity-70" />
+              <div className="pointer-events-none absolute inset-0 flex items-center justify-center">
+                <div className="h-40 w-40 rounded-lg border-2 border-green-400 opacity-70 sm:h-48 sm:w-48" />
               </div>
               <button
                 onClick={stopCamera}
-                className="absolute top-2 right-2 bg-red-600 text-white text-xs px-2 py-1 rounded"
+                className="absolute right-2 top-2 rounded bg-red-600 px-2 py-1 text-xs text-white"
               >
                 Stop
               </button>
             </>
           ) : (
-            <div className="flex flex-col items-center justify-center h-60 text-gray-400">
+            <div className="flex h-60 flex-col items-center justify-center text-gray-400 sm:h-80">
               {cameraError ? (
-                <p className="text-sm text-red-400 text-center px-4">{cameraError}</p>
+                <p className="px-4 text-center text-sm text-red-400">{cameraError}</p>
               ) : (
                 <>
-                  <span className="text-4xl mb-2">📷</span>
-                  <p className="text-sm mb-3">Scan a barcode or QR code</p>
+                  <span className="mb-2 text-4xl">📷</span>
+                  <p className="mb-3 text-sm">Scan a barcode or QR code</p>
                 </>
               )}
               <button
                 onClick={startCamera}
-                className="bg-blue-600 text-white text-sm font-medium px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors"
-              > 
+                className="rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-blue-700"
+              >
                 {cameraError ? "Try Again" : "Start Camera"}
               </button>
               {!hasBarcodeDetector && !cameraError && (
-                <p className="text-xs text-gray-500 mt-2">
+                <p className="mt-2 text-xs text-gray-500">
                   BarcodeDetector API not available - use Chrome or Edge for scanning
                 </p>
               )}
@@ -153,13 +160,13 @@ export default function ScannerModal({
 
         {/* Divider */}
         <div className="flex items-center gap-3">
-          <div className="flex-1 h-px bg-gray-200 dark:bg-gray-700" />
+          <div className="h-px flex-1 bg-gray-200 dark:bg-gray-700" />
           <span className="text-xs text-gray-400">or enter manually</span>
-          <div className="flex-1 h-px bg-gray-200 dark:bg-gray-700" />
+          <div className="h-px flex-1 bg-gray-200 dark:bg-gray-700" />
         </div>
 
         {/* Manual entry */}
-        <form onSubmit={handleManualSubmit} className="flex gap-2">
+        <form onSubmit={handleManualSubmit} className="flex flex-col gap-2 sm:flex-row sm:gap-2">
           <input
             type="text"
             value={manualEntry}
@@ -171,8 +178,8 @@ export default function ScannerModal({
           <button
             type="submit"
             disabled={!manualEntry.trim()}
-            className="bg-blue-600 text-white text-sm font-medium px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-40 shrink-0"
-          > 
+            className="rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-blue-700 disabled:opacity-40 sm:shrink-0"
+          >
             Look Up
           </button>
         </form>

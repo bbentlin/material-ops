@@ -1,14 +1,14 @@
 "use client";
 
 import { useState, useEffect, useTransition } from "react";
-import { SkeletonText } from "@/components/Skeleton";  
+import { SkeletonText } from "@/components/Skeleton";
 import { MaterialBase } from "@/types/domain";
 import DraggableModal from "@/components/DraggableModal";
 
 type TransferMaterial = Pick<MaterialBase, "id" | "name" | "partNumber" | "quantity" | "location">;
 
-const inputClass = 
-  "border border-gray-300 p-2 rounded-md text-gray-900 bg-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 selection:bg-blue-200 selection:text-gray-900 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100 dark:placeholder-gray-500";
+const inputClass =
+  "w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-gray-900 placeholder-gray-400 focus:border-transparent focus:outline-none focus:ring-2 focus:ring-blue-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100 dark:placeholder-gray-500";
 
 export default function TransferModal({
   sourceMaterialId,
@@ -31,7 +31,7 @@ export default function TransferModal({
       .then((r) => (r.ok ? r.json() : []))
       .then((data) => setMaterials(Array.isArray(data) ? data : data.materials ?? []))
       .catch(() => {});
-  },  []);
+  }, []);
 
   const source = materials.find((m) => m.id === sourceMaterialId);
   const destinations = materials.filter((m) => m.id !== sourceMaterialId);
@@ -64,20 +64,22 @@ export default function TransferModal({
   }
 
   return (
-    <DraggableModal className="w-96">
-      <form action={handleSubmit} className="p-6 flex flex-col gap-4">
-        <h2 className="text-lg font-bold text-gray-900 dark:text-gray-100 mb-1">🔄 Transfer Stock</h2>
+    <DraggableModal>
+      <form action={handleSubmit} className="flex flex-col gap-4 p-4 sm:p-6">
+        <h2 className="mb-1 text-lg font-bold text-gray-900 dark:text-gray-100">
+          🔄 Transfer Stock
+        </h2>
 
         {/* Source */}
         <div className="flex flex-col gap-1">
           <label className="text-sm font-medium text-gray-700 dark:text-gray-300">From</label>
-          <div className="border border-gray-200 bg-gray-50 rounded-md p-2 text-sm text-gray-700 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300">
+          <div className="rounded-md border border-gray-200 bg-gray-50 p-3 text-sm text-gray-700 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300">
             {source ? (
-              <>
+              <div className="flex flex-col gap-1 sm:flex-row sm:items-center sm:gap-2">
                 <span className="font-medium">{source.name}</span>
-                <span className="text-gray-400 dark:text-gray-300 ml-2">{source.partNumber}</span>
-                <span className="text-gray-500 dark:text-gray-300 ml-2">Qty: {source.quantity}</span>
-              </>
+                <span className="text-gray-400 dark:text-gray-300">{source.partNumber}</span>
+                <span className="text-gray-500 dark:text-gray-300">Qty: {source.quantity}</span>
+              </div>
             ) : (
               <SkeletonText className="h-4 w-40" />
             )}
@@ -142,20 +144,24 @@ export default function TransferModal({
           />
         </div>
 
-        {error && <div className="text-red-600 text-sm">{error}</div>}
+        {error && (
+          <div className="rounded-md border border-red-200 bg-red-50 p-2 text-sm text-red-700 dark:border-red-900/40 dark:bg-red-900/20 dark:text-red-300">
+            {error}
+          </div>
+        )}
 
-        <div className="flex gap-2 mt-1">
+        <div className="flex gap-2">
           <button
             type="button"
             onClick={onCloseAction}
-            className="flex-1 border border-gray-300 text-gray-700 py-2 rounded hover:bg-gray-50 dark:border-gray-600 dark:text-gray-300 dark:hover:bg-gray-700"
+            className="flex-1 rounded border border-gray-300 py-2 text-gray-700 hover:bg-gray-50 dark:border-gray-600 dark:text-gray-300 dark:hover:bg-gray-700"
           >
             Cancel
           </button>
           <button
             type="submit"
             disabled={isPending}
-            className="flex-1 bg-blue-600 text-white py-2 rounded hover:bg-blue-700 disabled:opacity-50"
+            className="flex-1 rounded bg-blue-600 py-2 text-white hover:bg-blue-700 disabled:opacity-50"
           >
             {isPending ? "Transferring..." : "Transfer"}
           </button>

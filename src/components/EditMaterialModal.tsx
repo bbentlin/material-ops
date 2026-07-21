@@ -5,7 +5,7 @@ import { MaterialBase } from "@/types/domain";
 import DraggableModal from "./DraggableModal";
 
 const inputClass =
-  "border border-gray-300 p-2 rounded-md text-gray-900 bg-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 selection:bg-blue-200 selection:text-gray-900 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100 dark:placeholder-gray-500";
+  "w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-gray-900 placeholder-gray-400 focus:border-transparent focus:outline-none focus:ring-2 focus:ring-blue-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100 dark:placeholder-gray-500";
 
 export default function EditMaterialModal({
   material,
@@ -31,7 +31,10 @@ export default function EditMaterialModal({
   const [isPending, startTransition] = useTransition();
 
   useEffect(() => {
-    fetch("/api/departments").then(r => r.ok ? r.json() : []).then(setDepartments).catch(() => {});
+    fetch("/api/departments")
+      .then((r) => (r.ok ? r.json() : []))
+      .then(setDepartments)
+      .catch(() => {});
   }, []);
 
   function handleSubmit() {
@@ -40,7 +43,16 @@ export default function EditMaterialModal({
       const res = await fetch(`/api/materials/${material.id}`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name, partNumber, description, quantity, unit, location, minQuantity, departmentId: departmentId || null }),
+        body: JSON.stringify({
+          name,
+          partNumber,
+          description,
+          quantity,
+          unit,
+          location,
+          minQuantity,
+          departmentId: departmentId || null,
+        }),
       });
       if (res.ok) {
         onSuccessAction();
@@ -68,9 +80,9 @@ export default function EditMaterialModal({
   }
 
   return (
-    <DraggableModal className="w-96">
-      <form action={handleSubmit} className="p-6 flex flex-col gap-4">
-        <h2 className="text-lg font-bold text-gray-900 mb-1 dark:text-gray-100">Edit Material</h2>
+    <DraggableModal>
+      <form action={handleSubmit} className="flex flex-col gap-4 p-4 sm:p-6">
+        <h2 className="mb-1 text-lg font-bold text-gray-900 dark:text-gray-100">Edit Material</h2>
 
         <div className="flex flex-col gap-1">
           <label htmlFor="edit-name" className="text-sm font-medium text-gray-700 dark:text-gray-300">
@@ -125,13 +137,15 @@ export default function EditMaterialModal({
           >
             <option value="">No department</option>
             {departments.map((dept) => (
-              <option key={dept.id} value={dept.id}>{dept.name}</option>
+              <option key={dept.id} value={dept.id}>
+                {dept.name}
+              </option>
             ))}
           </select>
         </div>
 
-        <div className="flex gap-3">
-          <div className="flex flex-col gap-1 w-1/2">
+        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+          <div className="flex flex-col gap-1">
             <label htmlFor="edit-quantity" className="text-sm font-medium text-gray-700 dark:text-gray-300">
               Quantity
             </label>
@@ -145,7 +159,8 @@ export default function EditMaterialModal({
               onChange={(e) => setQuantity(Number(e.target.value))}
             />
           </div>
-          <div className="flex flex-col gap-1 w-1/2">
+
+          <div className="flex flex-col gap-1">
             <label htmlFor="edit-unit" className="text-sm font-medium text-gray-700 dark:text-gray-300">
               Unit
             </label>
@@ -188,29 +203,35 @@ export default function EditMaterialModal({
           <span className="text-xs text-gray-400 dark:text-gray-500">Alert when stock falls to or below this level</span>
         </div>
 
-        {error && <div className="text-red-600 text-sm">{error}</div>}
-        <div className="flex gap-2 mt-1">
+        {error && (
+          <div className="rounded-md border border-red-200 bg-red-50 p-2 text-sm text-red-700 dark:border-red-900/40 dark:bg-red-900/20 dark:text-red-300">
+            {error}
+          </div>
+        )}
+
+        <div className="flex gap-2">
           <button
             type="button"
             onClick={onCloseAction}
-            className="flex-1 border border-gray-300 text-gray-700 py-2 rounded hover:bg-gray-50 dark:border-gray-600 dark:text-gray-300 dark:hover:bg-gray-700"
+            className="flex-1 rounded border border-gray-300 py-2 text-gray-700 hover:bg-gray-50 dark:border-gray-600 dark:text-gray-300 dark:hover:bg-gray-700"
           >
             Cancel
           </button>
           <button
             type="submit"
             disabled={isPending}
-            className="flex-1 bg-blue-600 text-white py-2 rounded hover:bg-blue-700 disabled:opacity-50"
+            className="flex-1 rounded bg-blue-600 py-2 text-white hover:bg-blue-700 disabled:opacity-50"
           >
             {isPending ? "Saving..." : "Save"}
           </button>
         </div>
+
         {canDelete && (
           <button
             type="button"
             onClick={handleDelete}
             disabled={isPending}
-            className="w-full text-sm text-red-500 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-900/30 py-2 rounded transition-colors disabled:opacity-50 mt-1"
+            className="w-full rounded py-2 text-sm text-red-500 transition-colors hover:bg-red-50 hover:text-red-700 disabled:opacity-50 dark:hover:bg-red-900/30"
           >
             Delete Material
           </button>

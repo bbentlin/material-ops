@@ -4,7 +4,7 @@ import { useState, useTransition } from "react";
 import DraggableModal from "./DraggableModal";
 
 const inputClass =
-  "border border-gray-300 p-2 rounded-md text-gray-900 bg-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 selection:bg-blue-200 selection:text-gray-900 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100 dark:placeholder-gray-500";
+  "w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-gray-900 placeholder-gray-400 focus:border-transparent focus:outline-none focus:ring-2 focus:ring-blue-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100 dark:placeholder-gray-500";
 
 export default function MovementModal({
   materialId,
@@ -42,9 +42,9 @@ export default function MovementModal({
   const isInbound = type === "INBOUND";
 
   return (
-    <DraggableModal className="w-96">
-      <form action={handleSubmit} className="p-6 flex flex-col gap-4">
-        <h2 className="text-lg font-bold text-gray-900 dark:text-gray-100 mb-1">
+    <DraggableModal>
+      <form action={handleSubmit} className="flex flex-col gap-4 p-4 sm:p-6">
+        <h2 className="mb-1 text-lg font-bold text-gray-900 dark:text-gray-100">
           {isInbound ? "📥 Record Inbound" : "📤 Record Outbound"}
         </h2>
 
@@ -77,29 +77,30 @@ export default function MovementModal({
           />
         </div>
 
-        {error && <div className="text-red-600 text-sm">{error}</div>}
-        <div className="flex gap-2 mt-1">
+        {error && (
+          <div className="rounded-md border border-red-200 bg-red-50 p-2 text-sm text-red-700 dark:border-red-900/40 dark:bg-red-900/20 dark:text-red-300">
+            {error}
+          </div>
+        )}
+
+        <div className="flex gap-2">
           <button
             type="button"
             onClick={onCloseAction}
-            className="flex-1 border border-gray-300 text-gray-700 py-2 rounded hover:bg-gray-50 dark:border-gray-600 dark:text-gray-300 dark:hover:bg-gray-700"
+            className="flex-1 rounded border border-gray-300 py-2 text-gray-700 hover:bg-gray-50 dark:border-gray-600 dark:text-gray-300 dark:hover:bg-gray-700"
           >
             Cancel
           </button>
           <button
             type="submit"
             disabled={isPending}
-            className={`flex-1 text-white py-2 rounded disabled:opacity-50 ${
+            className={`flex-1 rounded py-2 text-white disabled:opacity-50 ${
               isInbound
                 ? "bg-green-600 hover:bg-green-700"
                 : "bg-orange-500 hover:bg-orange-600"
             }`}
           >
-            {isPending
-              ? "Recording..."
-              : isInbound
-              ? "Record Inbound"
-              : "Record Outbound"}
+            {isPending ? "Recording..." : isInbound ? "Record Inbound" : "Record Outbound"}
           </button>
         </div>
       </form>

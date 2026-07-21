@@ -16,11 +16,10 @@ export default function DraggableModal({
 
   const handlePointerDown = useCallback(
     (e: React.PointerEvent<HTMLDivElement>) => {
-      // Only drag from the header area (first child or top 40px)
       const rect = modalRef.current?.getBoundingClientRect();
       if (!rect) return;
       const relativeY = e.clientY - rect.top;
-      if (relativeY > 48) return; // Only drag from the top 48px
+      if (relativeY > 48) return;
 
       setIsDragging(true);
       dragStart.current = {
@@ -48,7 +47,7 @@ export default function DraggableModal({
   }, []);
 
   return (
-    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+    <div className="fixed inset-0 flex items-center justify-center bg-black/50 p-4 z-50">
       <div
         ref={modalRef}
         onPointerDown={handlePointerDown}
@@ -56,12 +55,12 @@ export default function DraggableModal({
         onPointerUp={handlePointerUp}
         style={{
           transform: `translate(${position.x}px, ${position.y}px)`,
+          maxHeight: "90vh",
         }}
-        className={`bg-white rounded-lg shadow-lg dark:bg-gray-800 select-none ${className}`}
+        className={`w-full max-w-sm overflow-y-auto rounded-lg bg-white shadow-lg select-none dark:bg-gray-800 sm:max-w-lg ${className}`}
       >
-        {/* Drag handle indicator */}
         <div className="flex justify-center pt-2 pb-0 cursor-grab active:cursor-grabbing">
-          <div className="w-10 h-1 bg-gray-300 rounded-full dark:bg-gray-600" />
+          <div className="h-1 w-10 rounded-full bg-gray-300 dark:bg-gray-600" />
         </div>
         {children}
       </div>
