@@ -84,65 +84,59 @@ export default function DashboardHeader(props: Props) {
   }
 
   return (
-    <header className="bg-white dark:bg-gray-800 shadow-sm border-b border-gray-200 dark:border-gray-700">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex justify-between items-center">
-        <h1 className="hidden lg:block text-xl font-bold text-gray-900 dark:text-gray-100 px-4">
-          📦 LogiCore Inventory Management System 
+    <header className="border-b border-gray-200 bg-white shadow-sm dark:border-gray-700 dark:bg-gray-800">
+      <div className="mx-auto flex max-w-7xl items-center justify-between px-3 py-3 sm:px-6 sm:py-4 lg:px-8">
+        <h1 className="hidden text-xl font-bold text-gray-900 dark:text-gray-100 lg:block">
+          📦 LogiCore Inventory Management System
         </h1>
 
-        <h1 className="lg:hidden text-lg font-bold text-gray-900 dark:text-gray-100">
-          📦 LogiCore IMS
-        </h1>
+        <h1 className="text-lg font-bold text-gray-900 dark:text-gray-100 lg:hidden">📦 IMS</h1>
 
-        <div className="hidden lg:flex items-center gap-4">
+        <div className="hidden items-center gap-3 lg:flex">
           <div className="relative">
             <svg
-              className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400"
+              className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400"
               fill="none"
               stroke="currentColor"
               viewBox="0 0 24 24"
+              aria-hidden="true"
             >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" 
-              />
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
             </svg>
             <input
               type="text"
-              aria-label="Search"
-              placeholder="Search materials, part numbers, locations..."
+              aria-label="Search materials and part numbers"
+              placeholder="Search materials, part numbers..."
               value={props.search}
               onChange={(e) => props.setSearchAction(e.target.value)}
-              className="pl-10 pr-4 py-2 w-80 border border-gray-300 dark:border-gray-600 rounded-lg text-sm text-gray-900 dark:text-gray-100 bg-white dark:bg-gray-700 placeholder-gray-400 dark:placeholder-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              className="rounded-lg border border-gray-300 bg-white py-2 pl-10 pr-4 text-sm text-gray-900 placeholder-gray-400 focus:border-transparent focus:outline-none focus:ring-2 focus:ring-blue-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100 dark:placeholder-gray-500"
             />
             {props.search && (
               <button
                 onClick={() => props.setSearchAction("")}
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 dark:text-gray-200 hover:text-gray-600 dark:hover:text-gray-300"
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 dark:text-gray-200 dark:hover:text-gray-300"
+                aria-label="Clear search"
               >
                 ✕
               </button>
             )}
           </div>
 
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-1">
             <input
               type="date"
-              aria-label="Date range"
+              aria-label="Start date"
               value={props.dateFrom}
               onChange={(e) => props.setDateFromAction(e.target.value)}
-              className="border border-gray-300 dark:border-gray-600 rounded-lg text-sm text-gray-900 dark:text-gray-100 bg-white dark:bg-gray-700 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-              title="From date"
+              className="rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 focus:border-transparent focus:outline-none focus:ring-2 focus:ring-blue-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100"
             />
-            <span className="text-gray-400 dark:text-gray-100 text-sm">→</span>
+            <span className="text-sm text-gray-400 dark:text-gray-100">→</span>
             <input
               type="date"
+              aria-label="End date"
               value={props.dateTo}
               onChange={(e) => props.setDateToAction(e.target.value)}
-              className="border border-gray-300 dark:border-gray-600 rounded-lg text-sm text-gray-900 dark:text-gray-100 bg-white dark:bg-gray-700 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-              title="To date"
+              className="rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 focus:border-transparent focus:outline-none focus:ring-2 focus:ring-blue-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100"
             />
             {props.hasDateFilter && (
               <button
@@ -150,8 +144,8 @@ export default function DashboardHeader(props: Props) {
                   props.setDateFromAction("");
                   props.setDateToAction("");
                 }}
-                className="text-gray-400 hover:text-gray-600 text-sm"
-                title="Clear dates"
+                className="text-sm text-gray-400 hover:text-gray-600 dark:text-gray-300"
+                aria-label="Clear date range"
               >
                 ✕
               </button>
@@ -159,10 +153,10 @@ export default function DashboardHeader(props: Props) {
           </div>
 
           <select
-            aria-label="Department"
+            aria-label="Filter by department"
             value={props.departmentFilter}
             onChange={(e) => props.setDepartmentFilterAction(e.target.value)}
-            className="border border-gray-300 dark:border-gray-600 rounded-lg text-sm text-gray-900 dark:text-gray-100 bg-white dark:bg-gray-800 px-3 py-2 focus:outline-none focus:ring-blue-500"
+            className="rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 focus:border-transparent focus:outline-none focus:ring-2 focus:ring-blue-500 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-100"
           >
             <option value="">All Departments</option>
             {props.departments.map((dept) => (
@@ -172,16 +166,10 @@ export default function DashboardHeader(props: Props) {
             ))}
           </select>
 
-          <div className="flex items-center gap-2 border-l border-gray-200 dark:border-gray-300 pl-4">
-            {props.userName && (
-              <span className="text-sm text-gray-700 dark:text-gray-300 font-medium">{props.userName}</span>
-            )}
+          <div className="flex items-center gap-3 border-l border-gray-200 pl-3 dark:border-gray-600">
+            {props.userName && <span className="text-sm font-medium text-gray-700 dark:text-gray-300">{props.userName}</span>}
             {props.userRole && (
-              <span
-                className={`text-xs font-semibold px-2 py-0.5 rounded-full ${
-                  props.roleBadge[props.userRole] || "bg-gray-200 text-gray-600"
-                }`}
-              >
+              <span className={`rounded-full px-2 py-0.5 text-xs font-semibold ${props.roleBadge[props.userRole] || "bg-gray-200 text-gray-600"}`}>
                 {props.userRole}
               </span>
             )}
@@ -189,7 +177,7 @@ export default function DashboardHeader(props: Props) {
 
           <button
             onClick={() => props.setShowScannerAction(true)}
-            className="text-sm text-gray-600 dark:text-gray-400 hover:text-blue-700 dark:hover:text-blue-300 transition-colors px-3 py-1.5 rounded-md hover:bg-blue-50 dark:hover:bg-blue-900/30 font-medium"
+            className="rounded-md px-3 py-1.5 text-sm font-medium text-gray-600 transition-colors hover:bg-blue-50 hover:text-blue-700 dark:text-gray-400 dark:hover:bg-blue-900/30 dark:hover:text-blue-300"
             title="Scan barcode or QR code"
           >
             📷 Scan
@@ -197,7 +185,7 @@ export default function DashboardHeader(props: Props) {
 
           <button
             onClick={props.onOpenOrdersAction}
-            className="text-sm text-gray-600 dark:text-gray-400 hover:text-blue-700 dark:hover:text-blue-300 transition-colors px-3 py-1.5 rounded-md hover:bg-blue-50 dark:hover:bg-blue-900/30 font-medium"
+            className="rounded-md px-3 py-1.5 text-sm font-medium text-gray-600 transition-colors hover:bg-blue-50 hover:text-blue-700 dark:text-gray-400 dark:hover:bg-blue-900/30 dark:hover:text-blue-300"
             title="Purchase Orders"
           >
             📋 Orders
@@ -206,7 +194,7 @@ export default function DashboardHeader(props: Props) {
           {props.canManageUsers && (
             <button
               onClick={props.onOpenUsersAction}
-              className="text-sm text-gray-600 dark:text-gray-400 hover:text-purple-700 dark:hover:text-purple-200/95 transition-colors px-3 py-1.5 rounded-md hover:bg-purple-50 dark:hover:bg-purple-900/30 font-medium"
+              className="rounded-md px-3 py-1.5 text-sm font-medium text-gray-600 transition-colors hover:bg-purple-50 hover:text-purple-700 dark:text-gray-400 dark:hover:bg-purple-900/30 dark:hover:text-purple-200"
             >
               👥 Users
             </button>
@@ -214,14 +202,14 @@ export default function DashboardHeader(props: Props) {
 
           <button
             onClick={props.onLogoutAction}
-            className="text-sm text-gray-500 dark:text-gray-400 hover:text-red-600 dark:hover:text-red-400 transition-colors px-3 py-1.5 rounded-md hover:bg-red-50 dark:hover:bg-red-900/30"
+            className="rounded-md px-3 py-1.5 text-sm text-gray-500 transition-colors hover:bg-red-50 hover:text-red-600 dark:text-gray-400 dark:hover:bg-red-900/30 dark:hover:text-red-400"
           >
             Sign Out
           </button>
 
           <button
             onClick={props.onToggleDarkModeAction}
-            className="text-sm text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 transition-colors px-2 py-1.5 rounded-md hover:bg-gray-100 dark:hover:bg-gray-700"
+            className="rounded-md px-2 py-1.5 text-sm text-gray-500 transition-colors hover:bg-gray-100 hover:text-gray-700 dark:text-gray-400 dark:hover:bg-gray-700 dark:hover:text-gray-200"
             title={props.darkMode ? "Switch to light mode" : "Switch to dark mode"}
           >
             {props.darkMode ? "☀️" : "🌙"}
@@ -230,7 +218,7 @@ export default function DashboardHeader(props: Props) {
 
         <button
           type="button"
-          className="lg:hidden inline-flex items-center justify-center rounded-md border border-gray-300 dark:border-gray-600 px-3 py-2 text-gray-700 dark:text-gray-100 hover:bg-gray-100 dark:hover:bg-gray-700"
+          className="inline-flex items-center justify-center rounded-md border border-gray-300 px-3 py-2 text-gray-700 hover:bg-gray-100 dark:border-gray-600 dark:text-gray-100 dark:hover:bg-gray-700 lg:hidden"
           aria-label="Open navigation menu"
           aria-expanded={mobileMenuOpen}
           aria-controls="dashboard-mobile-menu"
@@ -252,12 +240,12 @@ export default function DashboardHeader(props: Props) {
             role="dialog"
             aria-modal="true"
             aria-label="Dashboard menu"
-            className="fixed z-50 top-0 right-0 h-full w-[88vw] max-w-sm bg-white dark:bg-gray-800 border-l border-gray-200 dark:border-gray-700 shadow-xl p-4 overflow-y-auto"
+            className="fixed right-0 top-0 z-50 h-full w-[85vw] max-w-sm overflow-y-auto border-l border-gray-200 bg-white p-4 shadow-xl dark:border-gray-700 dark:bg-gray-800 sm:p-5"
           >
-            <div className="flex items-center justify-between mb-4">
+            <div className="mb-4 flex items-center justify-between">
               <h2 className="text-base font-semibold text-gray-900 dark:text-gray-100">Menu</h2>
               <button
-                className="rounded-md px-2 py-1 text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
+                className="rounded-md px-2 py-1 text-gray-600 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-700"
                 onClick={() => setMobileMenuOpen(false)}
                 aria-label="Close menu"
               >
@@ -267,48 +255,41 @@ export default function DashboardHeader(props: Props) {
 
             <div className="space-y-4">
               <div>
-                <label className="block text-xs font-medium text-gray-500 dark:text-gray-300 mb-1">
-                  Search
-                </label>
+                <label className="mb-1 block text-xs font-medium text-gray-500 dark:text-gray-300">Search</label>
                 <input
                   type="text"
-                  placeholder="Search materials, part numbers, locations..."
+                  placeholder="Materials, part numbers..."
                   value={props.search}
                   onChange={(e) => props.setSearchAction(e.target.value)}
-                  className="w-full border border-gray-300 dark:border-gray-600 rounded-lg px-3 py-2 text-sm text-gray-900 dark:text-gray-100 bg-white dark:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 focus:border-transparent focus:outline-none focus:ring-2 focus:ring-blue-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100"
                 />
               </div>
 
               <div>
-                <label className="block text-xs font-medium text-gray-500 dark:text-gray-300 mb-1">
-                  Date range
-                </label>
-
-                <div className="grid grid-cols-1 gap-2">
+                <label className="mb-2 block text-xs font-medium text-gray-500 dark:text-gray-300">Date Range</label>
+                <div className="space-y-2">
                   <input
                     type="date"
                     value={props.dateFrom}
                     onChange={(e) => props.setDateFromAction(e.target.value)}
-                    className="w-full border border-gray-300 dark:border-gray-600 rounded-lg px-3 py-2 text-sm text-gray-900 dark:text-gray-100 bg-white dark:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    title="From date"
+                    className="w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 focus:border-transparent focus:outline-none focus:ring-2 focus:ring-blue-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100"
+                    aria-label="Start date"
                   />
-
                   <input
                     type="date"
                     value={props.dateTo}
                     onChange={(e) => props.setDateToAction(e.target.value)}
-                    className="w-full border border-gray-300 dark:border-gray-600 rounded-lg px-3 py-2 text-sm text-gray-900 dark:text-gray-100 bg-white dark:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    title="To date"
+                    className="w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 focus:border-transparent focus:outline-none focus:ring-2 focus:ring-blue-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100"
+                    aria-label="End date"
                   />
                 </div>
-
                 {props.hasDateFilter && (
                   <button
                     onClick={() => {
                       props.setDateFromAction("");
                       props.setDateToAction("");
                     }}
-                    className="mt-2 w-full text-sm rounded-md border border-gray-300 dark:border-gray-600 px-3 py-2 text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700"
+                    className="mt-2 w-full rounded-md border border-gray-300 px-3 py-2 text-sm text-gray-700 hover:bg-gray-100 dark:border-gray-600 dark:text-gray-200 dark:hover:bg-gray-700"
                   >
                     Clear dates
                   </button>
@@ -316,14 +297,11 @@ export default function DashboardHeader(props: Props) {
               </div>
 
               <div>
-                <label className="block text-xs font-medium text-gray-500 dark:text-gray-300 mb-1">
-                  Department
-                </label>
+                <label className="mb-1 block text-xs font-medium text-gray-500 dark:text-gray-300">Department</label>
                 <select
                   value={props.departmentFilter}
                   onChange={(e) => props.setDepartmentFilterAction(e.target.value)}
-                  className="w-full border border-gray-300 dark:border-gray-600 rounded-lg px-3 py-2 text-sm text-gray-900 dark:text-gray-100 bg-white dark:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
-
+                  className="w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 focus:border-transparent focus:outline-none focus:ring-2 focus:ring-blue-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100"
                 >
                   <option value="">All Departments</option>
                   {props.departments.map((dept) => (
@@ -334,62 +312,56 @@ export default function DashboardHeader(props: Props) {
                 </select>
               </div>
 
-              <div className="border-t border-gray-200 dark:border-gray-700 pt-3">
-                <div className="text-xs text-gray-500 dark:text-gray-300 mb-2">Signed in as</div>
+              <div className="border-t border-gray-200 pt-3 dark:border-gray-700">
+                <div className="mb-2 text-xs text-gray-500 dark:text-gray-400">Signed in as</div>
                 <div className="flex items-center gap-2">
-                  {props.userName && (
-                    <span className="text-sm font-medium text-gray-800 dark:text-gray-100">
-                      {props.userName}
-                    </span>
-                  )}
+                  {props.userName && <span className="text-sm font-medium text-gray-800 dark:text-gray-100">{props.userName}</span>}
                   {props.userRole && (
-                    <span
-                      className={`text-sm font-semibold px-2 py-0.5 rounded-full ${
-                        props.roleBadge[props.userRole] || "bg-gray-200 text-gray-600"
-                      }`}
-                    >
+                    <span className={`rounded-full px-2 py-0.5 text-sm font-semibold ${props.roleBadge[props.userRole] || "bg-gray-200 text-gray-600"}`}>
                       {props.userRole}
                     </span>
                   )}
                 </div>
               </div>
 
-              <button
-                onClick={handleMobileScan}
-                className="w-full text-left text-sm rounded-md border border-gray-300 dark:border-gray-600 px-3 py-2 text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700"
-              >
-                📷 Scan
-              </button>
-
-              <button
-                onClick={handleMobileOrders}
-                className="w-full text-left text-sm rounded-md border border-gray-300 dark:border-gray-600 px-3 py-2 text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700"
-              >
-                📋 Orders
-              </button>
-
-              {props.canManageUsers && (
+              <div className="space-y-2 border-t border-gray-200 pt-3 dark:border-gray-700">
                 <button
-                  onClick={handleMobileUsers}
-                  className="w-full text-left text-sm rounded-md border border-gray-300 dark:border-gray-600 px-3 py-2 text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700"
+                  onClick={handleMobileScan}
+                  className="w-full rounded-md border border-gray-300 px-3 py-2 text-left text-sm text-gray-700 hover:bg-gray-100 dark:border-gray-600 dark:text-gray-200 dark:hover:bg-gray-700"
                 >
-                  👥 Users
+                  📷 Scan
                 </button>
-              )}
 
-              <button
-                onClick={handleMobileToggleTheme}
-                className="w-full text-left text-sm rounded-md border border-gray-300 dark:border-gray-600 px-3 py-2 text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700"
-              >
-                {props.darkMode ? "☀️ Switch to light mode" : "🌙 Switch to dark mode"}
-              </button>
+                <button
+                  onClick={handleMobileOrders}
+                  className="w-full rounded-md border border-gray-300 px-3 py-2 text-left text-sm text-gray-700 hover:bg-gray-100 dark:border-gray-600 dark:text-gray-200 dark:hover:bg-gray-700"
+                >
+                  📋 Orders
+                </button>
 
-              <button
-                onClick={handleMobileLogout}
-                className="w-full text-left text-sm rounded-md border border-red-200 dark:border-red-900 px-3 py-2 text-red-700 dark:text-red-300 hover:bg-red-50 dark:hover:bg-red-900/20"
-              >
-                Sign Out
-              </button>
+                {props.canManageUsers && (
+                  <button
+                    onClick={handleMobileUsers}
+                    className="w-full rounded-md border border-gray-300 px-3 py-2 text-left text-sm text-gray-700 hover:bg-gray-100 dark:border-gray-600 dark:text-gray-200 dark:hover:bg-gray-700"
+                  >
+                    👥 Users
+                  </button>
+                )}
+
+                <button
+                  onClick={handleMobileToggleTheme}
+                  className="w-full rounded-md border border-gray-300 px-3 py-2 text-left text-sm text-gray-700 hover:bg-gray-100 dark:border-gray-600 dark:text-gray-200 dark:hover:bg-gray-700"
+                >
+                  {props.darkMode ? "☀️ Light mode" : "🌙 Dark mode"}
+                </button>
+
+                <button
+                  onClick={handleMobileLogout}
+                  className="w-full rounded-md border border-red-200 px-3 py-2 text-left text-sm text-red-700 hover:bg-red-50 dark:border-red-900 dark:text-red-300 dark:hover:bg-red-900/20"
+                >
+                  Sign Out
+                </button>
+              </div>
             </div>
           </aside>
         </div>
