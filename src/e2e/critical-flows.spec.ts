@@ -1,5 +1,36 @@
 import { test, expect, type Page } from "@playwright/test";
 
+async function clickMaterialAction(page: Page, materialName: string, action: "inbound" | "transfer") {
+  const buttonName =
+    action === "inbound"
+      ? /^(In|Inbound)$/i
+      : /^Transfer$/i;
+
+  const desktopButton = page
+    .locator("tr")
+    .filter({ hasText: materialName })
+    .first()
+    .getByRole("button", { name: buttonName });
+  const mobileButton = page
+    .locator("div.rounded-lg.border")
+    .filter({ has: page.getByText(materialName, { exact: true }) })
+    .first()
+    .getByRole("button", { name: buttonName });
+
+  await expect
+    .poll(async () => (await desktopButton.count()) + (await mobileButton.count()), {
+      timeout: 15000,
+    })
+    .toBeGreaterThan(0);
+
+  if ((await desktopButton.count()) > 0) {
+    await desktopButton.click();
+    return;
+  }
+
+  await mobileButton.click();
+}
+
 async function loginAs(page: Page, email: string, password: string) {
   await page.goto("/login");
   await page.getByLabel("Email").fill(email);
@@ -43,8 +74,7 @@ test.describe.serial("critical inventory flows", () => {
 
     await expect(page.getByText(materialName).first()).toBeVisible();
 
-    const row = page.locator("tr").filter({ hasText: materialName }).first();
-    await row.getByRole("button", { name: /Inbound/i }).click();
+    await clickMaterialAction(page, materialName, "inbound");
 
     await page.getByLabel(/Quantity/i).fill("3");
     await page.getByLabel(/Note/i).fill("e2e inbound");
@@ -103,16 +133,14 @@ test.describe.serial("critical inventory flows", () => {
 
       await expect(modalForm).toHaveCount(0);
 
-      const createdRow = page.locator("tr").filter({ hasText: name }).first();
-      await expect(createdRow).toBeVisible({ timeout: 15000 });
+      const createdMaterial = page.getByText(name, { exact: true }).first();
+      await expect(createdMaterial).toBeVisible({ timeout: 15000 });
     }
 
     await createMaterial(sourceName, sourcePart, "5");
     await createMaterial(destName, destPart, "1");
 
-    const sourceRow = page.locator("tr").filter({ hasText: sourceName }).first();
-    await expect(sourceRow).toBeVisible();
-    await sourceRow.getByRole("button", { name: /\bTransfer$/ }).click();
+    await clickMaterialAction(page, sourceName, "transfer");
 
     const destSelect = page.locator("#transfer-dest");
     await expect(destSelect).toBeVisible();
@@ -129,7 +157,10 @@ test.describe.serial("critical inventory flows", () => {
 
     await page.locator("#transfer-qty").fill("1");
     await page.locator("#transfer-note").fill("e2e transfer");
-    await page.getByRole("button", { name: /^Transfer$/i }).click();
+
+    const transferForm = page.locator("form").filter({ has: page.locator("#transfer-dest") });
+    await expect(transferForm).toBeVisible();
+    await transferForm.getByRole("button", { name: /^Transfer$/i }).click();
 
     await expect(page.getByText(/Transfer completed/i)).toBeVisible();
 
