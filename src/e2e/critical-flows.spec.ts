@@ -31,13 +31,15 @@ test.describe.serial("critical inventory flows", () => {
 
     await page.getByRole("button", { name: /Add Material/i }).click();
 
-    await page.getByLabel(/Name/i).fill(materialName);
-    await page.getByLabel(/Part Number/i).fill(partNumber);
-    await page.getByLabel(/Description/i).fill("Created in e2e critical flow");
-    await page.getByLabel(/Quantity/i).fill("5");
-    await page.getByLabel(/Unit/i).fill("pieces");
-    await page.getByLabel(/Location/i).fill("E2E Rack");
-    await page.getByRole("button", { name: /Add Material/i }).last().click();
+    const modalForm = page.locator("form").filter({ has: page.locator("#add-name") });
+    await expect(modalForm).toBeVisible();
+    await page.locator("#add-name").fill(materialName);
+    await page.locator("#add-partNumber").fill(partNumber);
+    await page.locator("#add-description").fill("Created in e2e critical flow");
+    await page.locator("#add-quantity").fill("5");
+    await page.locator("#add-unit").fill("pieces");
+    await page.locator("#add-location").fill("E2E Rack");
+    await modalForm.getByRole("button", { name: /^Add Material$/i }).click();
 
     await expect(page.getByText(materialName).first()).toBeVisible();
 

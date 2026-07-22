@@ -1,4 +1,6 @@
 import { defineConfig } from "@playwright/test";
+import dotenv from "dotenv";
+dotenv.config({ path: ".env.test" });
 
 export default defineConfig({
   testDir: "./e2e",
@@ -16,6 +18,8 @@ export default defineConfig({
       NEXT_PUBLIC_E2E_CRASH: "1",
       E2E_CRASH: "1",
       E2E_DISABLE_RATE_LIMITS: "1",
+      DATABASE_URL: process.env.DATABASE_URL!,  // ← add this line
+      JWT_SECRET: process.env.JWT_SECRET!,       // ← and this
     },
   },
 });
