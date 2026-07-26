@@ -3,22 +3,23 @@ Material Ops
 MaterialOps is an inventory and material movement platform built with Next.js, Prisma, PostgreSQL, and TypeScript.
 
 Prerequisites
-Node.js 20+
-npm
-PostgreSQL running locally
+• Node.js 20+
+• npm
+• PostgreSQL running locally
+
 Setup
-Install dependencies:
 
-npm install
+1. Install dependencies:
+   npm install
+2. Configure environment files:
+• Development settings in .env
+• Test settings in .env.test
 
-Configure environment files:
-
-Development settings in .env
-Test settings in .env.test
 Important:
 E2E tests must use the test database only, never your real inventory database.
 
 Database
+
 Run migrations and seed development data:
 npx prisma migrate dev
 npx prisma db seed
