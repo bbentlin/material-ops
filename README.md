@@ -1,36 +1,89 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+Material Ops
 
-## Getting Started
+MaterialOps is an inventory and material movement platform built with Next.js, Prisma, PostgreSQL, and TypeScript.
 
-First, run the development server:
+Prerequisites
+Node.js 20+
+npm
+PostgreSQL running locally
+Setup
+Install dependencies:
 
-```bash
+npm install
+
+Configure environment files:
+
+Development settings in .env
+Test settings in .env.test
+Important:
+E2E tests must use the test database only, never your real inventory database.
+
+Database
+Run migrations and seed development data:
+npx prisma migrate dev
+npx prisma db seed
+
+Seeded users include:
+
+∙ admin@materialops.com
+∙ operator@materialops.com
+
+Run Locally
+Start the app:
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Open http://localhost:3000
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+Testing
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+Unit tests:
+npm run test
 
-## Learn More
+E2E tests:
+npm run test:e2e
 
-To learn more about Next.js, take a look at the following resources:
+Reccommended deterministic E2E run:
+npm run test:e2e:clean
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+The clean flow does this:
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+1. Reset test database
+2. Seed test data
+3. Run Playwright E2E tests
 
-## Deploy on Vercel
+Useful Scripts
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+• dev: run Next.js dev server
+• build: create production build
+• start: run production build
+• lint: run ESLint
+• test: run Vitest once
+• test:watch: run Vitest in watch mode
+• test:e2e: run Playwright tests
+• db:test:reset: reset test DB
+• db:test:seed: seed test DB
+• test:e2e:clean: reset + seed + E2E
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+Auth and Roles
+
+Role hierarchy:
+
+• VIEWER
+• OPERATOR
+• ADMIN
+
+Auth and route protection are handled in auth.ts, permissions.ts, and proxy.ts.
+
+Troubleshooting
+
+If E2E affects wrong data:
+
+1. Verify .env.test points to your test database
+
+2. Verify playwright.config.ts loads test env values
+
+3: Run:
+  npm run test:e2e:clean
+
+If login fails in tests, reseed test DB:
+npm run db:test:seed
