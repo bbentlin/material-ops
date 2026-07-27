@@ -139,9 +139,9 @@ export default function PurchaseOrderModal({
   );
 
   return (
-    <DraggableModal>
+    <DraggableModal onCloseAction={onCloseAction} labelledBy="purchase-order-title">
       <form action={handleSubmit} className="flex flex-col gap-4 p-4 sm:p-6">
-        <h2 className="mb-1 text-lg font-bold text-gray-900 dark:text-gray-100">
+        <h2 id="purchase-order-title" className="mb-1 text-lg font-bold text-gray-900 dark:text-gray-100">
           {isEdit ? `Edit ${order!.orderNumber}` : "📋 New Purchase Order"}
         </h2>
 

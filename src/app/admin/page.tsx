@@ -224,11 +224,11 @@ export default function AdminPage() {
             <table className="w-full">
               <thead>
                 <tr className="bg-gray-50 dark:bg-gray-700/50 text-left text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                  <th className="px-5 py-3">Name</th>
-                  <th className="px-5 py-3">Email</th>
-                  <th className="px-5 py-3">Role</th>
-                  <th className="px-5 py-3">Created</th>
-                  <th className="px-5 py-3">Actions</th>
+                  <th scope="col" className="px-5 py-3">Name</th>
+                  <th scope="col" className="px-5 py-3">Email</th>
+                  <th scope="col" className="px-5 py-3">Role</th>
+                  <th scope="col" className="px-5 py-3">Created</th>
+                  <th scope="col" className="px-5 py-3">Actions</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-100 dark:divide-gray-700">

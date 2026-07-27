@@ -167,47 +167,65 @@ export default function DashboardMaterialsTable(props: Props) {
         <table className="w-full">
           <thead>
             <tr className="bg-gray-50 text-left text-xs font-semibold uppercase tracking-wider text-gray-500 dark:bg-gray-700 dark:text-gray-400">
-              <th
-                className="cursor-pointer select-none px-5 py-3 hover:text-gray-700 dark:hover:text-gray-300"
-                onClick={() => props.onToggleSortAction("name")}
-              >
-                Name
-                <SortIndicator s={props.sortIndicatorAction("name")} />
+              <th scope="col" className="px-5 py-3" aria-sort={props.sortIndicatorAction("name") === "asc" ? "ascending" : props.sortIndicatorAction("name") === "desc" ? "descending" : "none"}>
+                <button
+                  type="button"
+                  onClick={() => props.onToggleSortAction("name")}
+                  className="flex items-center hover:text-gray-700 dark:hover:text-gray-300"
+                >
+                  Name
+                  <SortIndicator s={props.sortIndicatorAction("name")} />
+                </button>
               </th>
-              <th
-                className="cursor-pointer select-none px-5 py-3 hover:text-gray-700 dark:hover:text-gray-300"
-                onClick={() => props.onToggleSortAction("partNumber")}
-              >
-                Part Number
-                <SortIndicator s={props.sortIndicatorAction("partNumber")} />
+              <th scope="col" className="px-5 py-3" aria-sort={props.sortIndicatorAction("partNumber") === "asc" ? "ascending" : props.sortIndicatorAction("partNumber") === "desc" ? "descending" : "none"}>
+                <button
+                  type="button"
+                  onClick={() => props.onToggleSortAction("partNumber")}
+                  className="flex items-center hover:text-gray-700 dark:hover:text-gray-300"
+                >
+                  Part Number
+                  <SortIndicator s={props.sortIndicatorAction("partNumber")} />
+                </button>
               </th>
-              <th
-                className="cursor-pointer select-none px-5 py-3 hover:text-gray-700 dark:hover:text-gray-300"
-                onClick={() => props.onToggleSortAction("quantity")}
-              >
-                Quantity
-                <SortIndicator s={props.sortIndicatorAction("quantity")} />
+              <th scope="col" className="px-5 py-3" aria-sort={props.sortIndicatorAction("quantity") === "asc" ? "ascending" : props.sortIndicatorAction("quantity") === "desc" ? "descending" : "none"}>
+                <button
+                  type="button"
+                  onClick={() => props.onToggleSortAction("quantity")}
+                  className="flex items-center hover:text-gray-700 dark:hover:text-gray-300"
+                >
+                  Quantity
+                  <SortIndicator s={props.sortIndicatorAction("quantity")} />
+                </button>
               </th>
-              <th
-                className="cursor-pointer select-none px-5 py-3 hover:text-gray-700 dark:hover:text-gray-300"
-                onClick={() => props.onToggleSortAction("unit")}
-              >
-                Unit
-                <SortIndicator s={props.sortIndicatorAction("unit")} />
+              <th scope="col" className="px-5 py-3" aria-sort={props.sortIndicatorAction("unit") === "asc" ? "ascending" : props.sortIndicatorAction("unit") === "desc" ? "descending" : "none"}>
+                <button
+                  type="button"
+                  onClick={() => props.onToggleSortAction("unit")}
+                  className="flex items-center hover:text-gray-700 dark:hover:text-gray-300"
+                >
+                  Unit
+                  <SortIndicator s={props.sortIndicatorAction("unit")} />
+                </button>
               </th>
-              <th
-                className="cursor-pointer select-none px-5 py-3 hover:text-gray-700 dark:hover:text-gray-300"
-                onClick={() => props.onToggleSortAction("location")}
-              >
-                Location
-                <SortIndicator s={props.sortIndicatorAction("location")} />
+              <th scope="col" className="px-5 py-3" aria-sort={props.sortIndicatorAction("location") === "asc" ? "ascending" : props.sortIndicatorAction("location") === "desc" ? "descending" : "none"}>
+                <button
+                  type="button"
+                  onClick={() => props.onToggleSortAction("location")}
+                  className="flex items-center hover:text-gray-700 dark:hover:text-gray-300"
+                >
+                  Location
+                  <SortIndicator s={props.sortIndicatorAction("location")} />
+                </button>
               </th>
-              <th
-                className="cursor-pointer select-none px-5 py-3 hover:text-gray-700 dark:hover:text-gray-300"
-                onClick={() => props.onToggleSortAction("department")}
-              >
-                Department
-                <SortIndicator s={props.sortIndicatorAction("department")} />
+              <th scope="col" className="px-5 py-3" aria-sort={props.sortIndicatorAction("department") === "asc" ? "ascending" : props.sortIndicatorAction("department") === "desc" ? "descending" : "none"}>
+                <button
+                  type="button"
+                  onClick={() => props.onToggleSortAction("department")}
+                  className="flex items-center hover:text-gray-700 dark:hover:text-gray-300"
+                >
+                  Department
+                  <SortIndicator s={props.sortIndicatorAction("department")} />
+                </button>
               </th>
               {props.canEdit && <th className="px-5 py-3">Actions</th>}
             </tr>

@@ -98,12 +98,12 @@ export default function DashboardMovementsTable(props: Props) {
         <table className="w-full">
           <thead>
             <tr className="bg-gray-50 dark:bg-gray-700 text-left text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide">
-              <th className="px-5 py-3">Date</th>
-              <th className="px-5 py-3">Material</th>
-              <th className="px-5 py-3">Type</th>
-              <th className="px-5 py-3">Qty</th>
-              <th className="px-5 py-3">Note</th>
-              <th className="px-5 py-3">By</th>
+              <th scope="col" className="px-5 py-3">Date</th>
+              <th scope="col" className="px-5 py-3">Material</th>
+              <th scope="col" className="px-5 py-3">Type</th>
+              <th scope="col" className="px-5 py-3">Qty</th>
+              <th scope="col" className="px-5 py-3">Note</th>
+              <th scope="col" className="px-5 py-3">By</th>
             </tr>
           </thead>
 

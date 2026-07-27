@@ -64,10 +64,10 @@ export default function TransferModal({
   }
 
   return (
-    <DraggableModal>
+    <DraggableModal onCloseAction={onCloseAction} labelledBy="transfer-title">
       <form action={handleSubmit} className="flex flex-col gap-4 p-4 sm:p-6">
-        <h2 className="mb-1 text-lg font-bold text-gray-900 dark:text-gray-100">
-          🔄 Transfer Stock
+        <h2 id="transfer-title" className="mb-1 text-lg font-bold text-gray-900 dark:text-gray-100">
+          🔄 Transfer Material
         </h2>
 
         {/* Source */}

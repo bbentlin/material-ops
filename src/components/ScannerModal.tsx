@@ -95,10 +95,10 @@ export default function ScannerModal({
     "w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 placeholder-gray-400 focus:border-transparent focus:outline-none focus:ring-2 focus:ring-blue-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100 dark:placeholder-gray-500";
 
   return (
-    <DraggableModal>
+    <DraggableModal onCloseAction={onCloseAction} labelledBy="scanner-title">
       <div className="flex flex-col gap-4 p-4 sm:p-6">
         <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-          <h2 className="text-sm font-semibold text-gray-900 dark:text-gray-100">
+          <h2 id="scanner-title" className="text-sm font-semibold text-gray-900 dark:text-gray-100">
             📷 Scan Barcode / QR Code
           </h2>
           <button
@@ -136,7 +136,7 @@ export default function ScannerModal({
           ) : (
             <div className="flex h-60 flex-col items-center justify-center text-gray-400 sm:h-80">
               {cameraError ? (
-                <p className="px-4 text-center text-sm text-red-400">{cameraError}</p>
+                <p role="alert" className="px-4 text-center text-sm text-red-400">{cameraError}</p>
               ) : (
                 <>
                   <span className="mb-2 text-4xl">📷</span>

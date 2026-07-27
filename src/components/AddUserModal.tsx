@@ -38,7 +38,7 @@ export default function AddUserModal({
   }
 
   return (
-    <DraggableModal>
+    <DraggableModal onCloseAction={onCloseAction} labelledBy="add-user-title">
       <form action={handleSubmit} className="flex flex-col gap-4 p-4 sm:p-6">
         <h2 className="mb-1 text-lg font-bold text-gray-900 dark:text-gray-100">Add New User</h2>
 
@@ -108,7 +108,7 @@ export default function AddUserModal({
         </div>
 
         {error && (
-          <div className="rounded-md border border-red-200 bg-red-50 p-2 text-sm text-red-700 dark:border-red-900/40 dark:bg-red-900/20 dark:text-red-300">
+          <div role="alert" className="rounded-md border border-red-200 bg-red-50 p-2 text-sm text-red-700 dark:border-red-900/40 dark:bg-red-900/20 dark:text-red-300">
             {error}
           </div>
         )}
