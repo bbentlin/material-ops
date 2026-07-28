@@ -1,12 +1,15 @@
 "use client";
 
+import { useState } from "react";
 import AddMaterialModal from "@/components/AddMaterialModal";
 import MovementModal from "@/components/MovementModal";
 import EditMaterialModal from "@/components/EditMaterialModal";
 import TransferModal from "@/components/TransferModal";
 import ScannerModal from "@/components/ScannerModal";
+import KeyboardShortcutsModal from "@/components/KeyboardShortcutsModal";
 import Toast from "@/components/Toast";
 import { useDashboard } from "@/hooks/useDashboard";
+import { useKeyboardShortcuts } from "@/hooks/useKeyboardShortcuts";
 import DashboardHeader from "@/components/DashboardHeader";
 import DashboardStatsCards from "@/components/DashboardStatsCards";
 import DashboardWidgets from "@/components/DashboardWidgets";
@@ -19,6 +22,7 @@ import DashboardSkeleton from "@/components/DashboardSkeleton";
 
 export default function DashboardPage() {
   const d = useDashboard();
+  const [showShortcutsHelp, setShowShortcutsHelp] = useState(false);
 
   const shouldCrashDashboard =
     process.env.NEXT_PUBLIC_E2E_CRASH === "1" &&
@@ -28,6 +32,23 @@ export default function DashboardPage() {
   if (shouldCrashDashboard) {
     throw new Error("E2E dashboard boundary crash");
   }
+
+  const anyModalOpen = Boolean(
+    d.showAddMaterial || d.editMaterial || d.showMovement || d.showTransfer || d.showScanner
+  );
+
+  useKeyboardShortcuts({
+    enabled: !d.loading && !anyModalOpen && !showShortcutsHelp,
+    onFocusSearch: () => {
+      document.getElementById("dashboard-search")?.focus();
+    },
+    onNewMaterial: d.canEdit ? () => d.setShowAddMaterial(true) : undefined,
+    onOpenScanner: () => d.setShowScanner(true),
+    onOpenOrders: () => d.router.push("/dashboard/purchase-order"),
+    onOpenUsers: d.canManageUsers ? () => d.router.push("/admin") : undefined,
+    onToggleDarkMode: d.toggleDarkMode,
+    onShowHelp: () => setShowShortcutsHelp(true),
+  });
 
   if (d.loading) {
     return <DashboardSkeleton />;
@@ -56,6 +77,7 @@ export default function DashboardPage() {
         onLogoutAction={d.handleLogout}
         darkMode={d.darkMode}
         onToggleDarkModeAction={d.toggleDarkMode}
+        onShowShortcutsAction={() => setShowShortcutsHelp(true)}
       />
 
       <main className="mx-auto w-full max-w-7xl px-3 py-5 sm:px-6 sm:py-6 lg:px-8 lg:py-8">
@@ -241,6 +263,10 @@ export default function DashboardPage() {
 
       {d.showScanner && (
         <ScannerModal onCloseAction={() => d.setShowScanner(false)} onResultAction={d.handleScanResult} />
+      )}
+
+      {showShortcutsHelp && (
+        <KeyboardShortcutsModal onCloseAction={() => setShowShortcutsHelp(false)} />
       )}
 
       <Toast messages={d.toasts} onDismissAction={d.dismissToast} />

@@ -25,6 +25,7 @@ type Props = {
   onLogoutAction: () => void;
   darkMode: boolean;
   onToggleDarkModeAction: () => void;
+  onShowShortcutsAction: () => void;
 };
 
 export default function DashboardHeader(props: Props) {
@@ -126,6 +127,7 @@ export default function DashboardHeader(props: Props) {
               </svg>
               <input
                 type="text"
+                id="dashboard-search"
                 aria-label="Search materials and part numbers"
                 placeholder="Search materials..."
                 value={props.search}
@@ -184,6 +186,16 @@ export default function DashboardHeader(props: Props) {
                 </button>
               )}
 
+              <button
+                type="button"
+                onClick={props.onShowShortcutsAction}
+                aria-label="Keyboard shortcuts"
+                className="rounded-lg border border-gray-200 bg-white/80 p-2.5 text-sm text-gray-600 transition-colors hover:bg-gray-100 hover:text-gray-800 dark:border-gray-700 dark:bg-gray-900/50 dark:text-gray-300 dark:hover:bg-gray-700 dark:hover:text-gray-100"
+                title="Keyboard shortcuts (?)"
+              >
+                ⌨️
+              </button>
+              
               <button
                 type="button"
                 onClick={props.onToggleDarkModeAction}
