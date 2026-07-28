@@ -3,6 +3,7 @@ import { requireAuth } from "@/lib/permissions";
 import { logAudit } from "@/lib/audit";
 import { NextRequest, NextResponse } from "next/server";
 import { updateMaterialSchema } from "@/lib/validations";
+import { broadcastChange } from "@/lib/realtime";
 
 // GET single material
 export async function GET(
@@ -89,6 +90,8 @@ export async function PATCH(
       details: JSON.stringify({ name: material.name, changes }),
     });
 
+    await broadcastChange("materials");
+
     return NextResponse.json(material);
   } catch (err: unknown) {
     const message =
@@ -124,6 +127,8 @@ export async function DELETE(
       userId: user!.id,
       details: JSON.stringify({ name: existing.name, partNumber: existing.partNumber }),
     });
+
+    await broadcastChange("materials");
 
     return NextResponse.json({ success: true });
   } catch (err: unknown) {

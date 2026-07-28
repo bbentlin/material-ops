@@ -2,6 +2,8 @@ import { prisma } from "@/lib/db";
 import { requireAuth } from "@/lib/permissions";
 import { logAudit } from "@/lib/audit";
 import { NextRequest, NextResponse } from "next/server";
+import { broadcastChange } from "@/lib/realtime";
+import PurchaseOrderModal from "@/components/PurchaseOrderModal";
 
 export async function GET(
   req: NextRequest,
@@ -145,6 +147,8 @@ export async function PATCH(
     userId: user!.id,
   });
 
+  await broadcastChange("purchase-orders");
+
   return NextResponse.json(updated);
 }
 
@@ -178,6 +182,8 @@ export async function DELETE(
     details: JSON.stringify({ orderNumber: existing.orderNumber, supplier: existing.supplier }),
     userId: user!.id,
   });
+
+  await broadcastChange("purchase-orders");
 
   return NextResponse.json({ success: true });
 }

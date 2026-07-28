@@ -1,5 +1,6 @@
 import { prisma } from "@/lib/db";
 import { requireAuth } from "@/lib/permissions";
+import { broadcastChange } from "@/lib/realtime";
 import { NextResponse } from "next/server";
 
 export async function POST(
@@ -72,6 +73,10 @@ export async function POST(
       approvedBy: { select: { id: true,  name: true } },
     },
   });
+
+  await broadcastChange("purchase-orders");
+  await broadcastChange("materials");
+  await broadcastChange("movements");
 
   return NextResponse.json(updated);
 }

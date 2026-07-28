@@ -15,6 +15,8 @@ import type {
   WidgetData,
 } from "@/types/dashboard";
 import { useDarkMode } from "./useDarkMode";
+import { useRealtimeSync } from "./useRealtimeSync";
+import type { RealtimeEntity } from "@/lib/realtime";
 
 export function useDashboard() {
   const router = useRouter();
@@ -191,6 +193,28 @@ export function useDashboard() {
     .then(setWidgets)
     .catch(() => {});
   }
+
+  useRealtimeSync((entity: RealtimeEntity) => {
+    switch (entity) {
+      case "materials":
+        fetchMaterials();
+        fetchStats();
+        fetchLowStockAlerts();
+        fetchWidgets();
+        break;
+      case "movements":
+        fetchMovements();
+        fetchMovementTrend();
+        fetchWidgets();
+        break;
+      case "purchase-orders":
+        fetchWidgets();
+        break;
+      case "users":
+        break;
+    }
+    fetchAuditLogs();
+  });
 
   // --- Effects ---
   useEffect(() => { fetchMaterials(); }, [fetchMaterials]);

@@ -3,6 +3,7 @@ import { requireAuth } from "@/lib/permissions";
 import { logAudit } from "@/lib/audit";
 import { NextRequest, NextResponse } from "next/server";
 import { createMovementSchema } from "@/lib/validations";
+import { broadcastChange } from "@/lib/realtime";
 
 // GET movements with server-side pagination and search
 export async function GET(req: NextRequest) {
@@ -201,6 +202,9 @@ export async function POST(req: NextRequest) {
       userId: user!.id,
       details: JSON.stringify({ materialName: material.name, quantity }),
     });
+
+    await broadcastChange("movements");
+    await broadcastChange("materials");
 
     return NextResponse.json(movement, { status: 201 });
   } catch (err: unknown) {

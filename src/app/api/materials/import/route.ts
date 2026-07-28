@@ -2,6 +2,7 @@ import { prisma } from "@/lib/db";
 import { requireAuth } from "@/lib/permissions";
 import { logAudit } from "@/lib/audit";
 import { NextRequest, NextResponse } from "next/server";
+import { broadcastChange } from "@/lib/realtime";
 
 export async function POST(req: NextRequest) {
   const { error, user } = await requireAuth("OPERATOR");
@@ -89,6 +90,10 @@ export async function POST(req: NextRequest) {
     userId: user!.id,
     details: JSON.stringify({ totalRows: materials.length, created, skipped }),
   });
+
+  if (created > 0) {
+    await broadcastChange("materials");
+  }
 
   return NextResponse.json({ created, skipped, results }, { status: 201 });
 }

@@ -3,6 +3,7 @@ import { requireAuth } from "@/lib/permissions";
 import { logAudit } from "@/lib/audit";
 import { NextRequest, NextResponse } from "next/server";
 import { createPurchaseOrderSchema } from "@/lib/validations";
+import { broadcastChange } from "@/lib/realtime";
 
 export async function GET(req: NextRequest) {
   const { error } = await requireAuth("VIEWER");
@@ -134,6 +135,8 @@ export async function POST(req: NextRequest) {
     }),
     userId: user!.id,
   });
+
+  await broadcastChange("purchase-orders");
 
   return NextResponse.json(order, { status: 201 });
 }

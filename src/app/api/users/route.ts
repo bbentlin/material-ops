@@ -4,6 +4,7 @@ import { requireAuth } from "@/lib/permissions";
 import { logAudit } from "@/lib/audit";
 import bcrypt from "bcryptjs";
 import { createUserSchema } from "@/lib/validations";
+import { broadcastChange } from "@/lib/realtime";
 
 // GET all users (ADMIN only)
 export async function GET() {
@@ -72,6 +73,8 @@ export async function POST(req: NextRequest) {
       userId: currentUser!.id,
       details: JSON.stringify({ name, email, role: role || "VIEWER" }),
     });
+
+    await broadcastChange("users");
 
     return NextResponse.json(user, { status: 201 });
   } catch (err: unknown) {

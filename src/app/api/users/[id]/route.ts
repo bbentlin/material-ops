@@ -4,6 +4,7 @@ import { requireAuth } from "@/lib/permissions";
 import { logAudit } from "@/lib/audit";
 import bcrypt from "bcryptjs";
 import { updateUserSchema } from "@/lib/validations";
+import { broadcastChange } from "@/lib/realtime";
 
 // PATCH update user (ADMIN ONLY)
 export async function PATCH(
@@ -70,6 +71,8 @@ export async function PATCH(
       details: JSON.stringify({ name: user.name, changes }),
     });
 
+    await broadcastChange("users");
+
     return NextResponse.json(user);
   } catch (err: unknown) {
     const message = err instanceof Error ? err.message : "Failed to update user";
@@ -109,6 +112,8 @@ export async function DELETE(
     userId: currentUser!.id,
     details: JSON.stringify({ name: existing.name, email: existing.email }),
   });
+
+  await broadcastChange("users");
 
   return NextResponse.json({ success: true });
 }
