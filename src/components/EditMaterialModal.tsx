@@ -80,176 +80,180 @@ export default function EditMaterialModal({
   }
 
   return (
-    <DraggableModal onCloseAction={onCloseAction} labelledBy="edit-material-title">
-      <form action={handleSubmit} className="flex flex-col gap-4 p-4 sm:p-6">
-        <h2 className="mb-1 text-lg font-bold text-gray-900 dark:text-gray-100">Edit Material</h2>
+    <>
+      <DraggableModal onCloseAction={onCloseAction} labelledBy="edit-material-title">
+        <form action={handleSubmit} className="flex flex-col gap-4 p-4 sm:p-6">
+          <h2 className="mb-1 text-lg font-bold text-gray-900 dark:text-gray-100">Edit Material</h2>
 
-        <div className="flex flex-col gap-1">
-          <label htmlFor="edit-name" className="text-sm font-medium text-gray-700 dark:text-gray-300">
-            Name <span className="text-red-500">*</span>
-          </label>
-          <input
-            id="edit-name"
-            placeholder="e.g. Steel Rod"
-            className={inputClass}
-            value={name}
-            onChange={(e) => setName(e.target.value)}
-            required
-          />
-        </div>
-
-        <div className="flex flex-col gap-1">
-          <label htmlFor="edit-partNumber" className="text-sm font-medium text-gray-700 dark:text-gray-300">
-            Part Number <span className="text-red-500">*</span>
-          </label>
-          <input
-            id="edit-partNumber"
-            placeholder="e.g. SR-001"
-            className={inputClass}
-            value={partNumber}
-            onChange={(e) => setPartNumber(e.target.value)}
-            required
-          />
-        </div>
-
-        <div className="flex flex-col gap-1">
-          <label htmlFor="edit-description" className="text-sm font-medium text-gray-700 dark:text-gray-300">
-            Description
-          </label>
-          <input
-            id="edit-description"
-            placeholder="Optional description"
-            className={inputClass}
-            value={description}
-            onChange={(e) => setDescription(e.target.value)}
-          />
-        </div>
-
-        <div className="flex flex-col gap-1">
-          <label htmlFor="edit-department" className="text-sm font-medium text-gray-700 dark:text-gray-300">
-            Department
-          </label>
-          <select
-            id="edit-department"
-            className={inputClass}
-            value={departmentId}
-            onChange={(e) => setDepartmentId(e.target.value)}
-          >
-            <option value="">No department</option>
-            {departments.map((dept) => (
-              <option key={dept.id} value={dept.id}>
-                {dept.name}
-              </option>
-            ))}
-          </select>
-        </div>
-
-        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
           <div className="flex flex-col gap-1">
-            <label htmlFor="edit-quantity" className="text-sm font-medium text-gray-700 dark:text-gray-300">
-              Quantity
+            <label htmlFor="edit-name" className="text-sm font-medium text-gray-700 dark:text-gray-300">
+              Name <span className="text-red-500">*</span>
             </label>
             <input
-              id="edit-quantity"
+              id="edit-name"
+              placeholder="e.g. Steel Rod"
+              className={inputClass}
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              required
+            />
+          </div>
+
+          <div className="flex flex-col gap-1">
+            <label htmlFor="edit-partNumber" className="text-sm font-medium text-gray-700 dark:text-gray-300">
+              Part Number <span className="text-red-500">*</span>
+            </label>
+            <input
+              id="edit-partNumber"
+              placeholder="e.g. SR-001"
+              className={inputClass}
+              value={partNumber}
+              onChange={(e) => setPartNumber(e.target.value)}
+              required
+            />
+          </div>
+
+          <div className="flex flex-col gap-1">
+            <label htmlFor="edit-description" className="text-sm font-medium text-gray-700 dark:text-gray-300">
+              Description
+            </label>
+            <input
+              id="edit-description"
+              placeholder="Optional description"
+              className={inputClass}
+              value={description}
+              onChange={(e) => setDescription(e.target.value)}
+            />
+          </div>
+
+          <div className="flex flex-col gap-1">
+            <label htmlFor="edit-department" className="text-sm font-medium text-gray-700 dark:text-gray-300">
+              Department
+            </label>
+            <select
+              id="edit-department"
+              className={inputClass}
+              value={departmentId}
+              onChange={(e) => setDepartmentId(e.target.value)}
+            >
+              <option value="">No department</option>
+              {departments.map((dept) => (
+                <option key={dept.id} value={dept.id}>
+                  {dept.name}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+            <div className="flex flex-col gap-1">
+              <label htmlFor="edit-quantity" className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                Quantity
+              </label>
+              <input
+                id="edit-quantity"
+                type="number"
+                min={0}
+                placeholder="0"
+                className={inputClass}
+                value={quantity}
+                onChange={(e) => setQuantity(Number(e.target.value))}
+              />
+            </div>
+
+            <div className="flex flex-col gap-1">
+              <label htmlFor="edit-unit" className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                Unit
+              </label>
+              <input
+                id="edit-unit"
+                placeholder="e.g. pieces"
+                className={inputClass}
+                value={unit}
+                onChange={(e) => setUnit(e.target.value)}
+              />
+            </div>
+          </div>
+
+          <div className="flex flex-col gap-1">
+            <label htmlFor="edit-location" className="text-sm font-medium text-gray-700 dark:text-gray-300">
+              Location
+            </label>
+            <input
+              id="edit-location"
+              placeholder="e.g. Warehouse A"
+              className={inputClass}
+              value={location}
+              onChange={(e) => setLocation(e.target.value)}
+            />
+          </div>
+
+          <div className="flex flex-col gap-1">
+            <label htmlFor="edit-minQuantity" className="text-sm font-medium text-gray-700 dark:text-gray-300">
+              Low Stock Threshold
+            </label>
+            <input
+              id="edit-minQuantity"
               type="number"
               min={0}
-              placeholder="0"
+              placeholder="10"
               className={inputClass}
-              value={quantity}
-              onChange={(e) => setQuantity(Number(e.target.value))}
+              value={minQuantity}
+              onChange={(e) => setMinQuantity(Number(e.target.value))}
             />
+            <span className="text-xs text-gray-400 dark:text-gray-500">
+              Alert when stock falls to or below this level
+            </span>
           </div>
 
-          <div className="flex flex-col gap-1">
-            <label htmlFor="edit-unit" className="text-sm font-medium text-gray-700 dark:text-gray-300">
-              Unit
-            </label>
-            <input
-              id="edit-unit"
-              placeholder="e.g. pieces"
-              className={inputClass}
-              value={unit}
-              onChange={(e) => setUnit(e.target.value)}
-            />
+          {error && (
+            <div role="alert" className="rounded-md border border-red-200 bg-red-50 p-2 text-sm text-red-700 dark:border-red-900/40 dark:bg-red-900/20 dark:text-red-300">
+              {error}
+            </div>
+          )}
+
+          <div className="flex gap-2">
+            <button
+              type="button"
+              onClick={onCloseAction}
+              className="flex-1 rounded border border-gray-300 py-2 text-gray-700 hover:bg-gray-50 dark:border-gray-600 dark:text-gray-300 dark:hover:bg-gray-700"
+            >
+              Cancel
+            </button>
+            <button
+              type="submit"
+              disabled={isPending}
+              className="flex-1 rounded bg-blue-600 py-2 text-white hover:bg-blue-700 disabled:opacity-50"
+            >
+              {isPending ? "Saving..." : "Save"}
+            </button>
           </div>
-        </div>
 
-        <div className="flex flex-col gap-1">
-          <label htmlFor="edit-location" className="text-sm font-medium text-gray-700 dark:text-gray-300">
-            Location
-          </label>
-          <input
-            id="edit-location"
-            placeholder="e.g. Warehouse A"
-            className={inputClass}
-            value={location}
-            onChange={(e) => setLocation(e.target.value)}
-          />
-        </div>
+          {canDelete && (
+            <button
+              type="button"
+              onClick={handleDelete}
+              disabled={isPending}
+              className="w-full rounded py-2 text-sm text-red-500 transition-colors hover:bg-red-50 hover:text-red-700 disabled:opacity-50 dark:hover:bg-red-900/30"
+            >
+              Delete Material
+            </button>
+          )}
+        </form>
+      </DraggableModal>
 
-        <div className="flex flex-col gap-1">
-          <label htmlFor="edit-minQuantity" className="text-sm font-medium text-gray-700 dark:text-gray-300">
-            Low Stock Threshold
-          </label>
-          <input
-            id="edit-minQuantity"
-            type="number"
-            min={0}
-            placeholder="10"
-            className={inputClass}
-            value={minQuantity}
-            onChange={(e) => setMinQuantity(Number(e.target.value))}
-          />
-          <span className="text-xs text-gray-400 dark:text-gray-500">Alert when stock falls to or below this level</span>
-        </div>
-
-        {error && (
-          <div role="alert" className="rounded-md border border-red-200 bg-red-50 p-2 text-sm text-red-700 dark:border-red-900/40 dark:bg-red-900/20 dark:text-red-300">
-            {error}
-          </div>
-        )}
-
-        <div className="flex gap-2">
-          <button
-            type="button"
-            onClick={onCloseAction}
-            className="flex-1 rounded border border-gray-300 py-2 text-gray-700 hover:bg-gray-50 dark:border-gray-600 dark:text-gray-300 dark:hover:bg-gray-700"
-          >
-            Cancel
-          </button>
-          <button
-            type="submit"
-            disabled={isPending}
-            className="flex-1 rounded bg-blue-600 py-2 text-white hover:bg-blue-700 disabled:opacity-50"
-          >
-            {isPending ? "Saving..." : "Save"}
-          </button>
-        </div>
-
-        {canDelete && (
-          <button
-            type="button"
-            onClick={handleDelete}
-            disabled={isPending}
-            className="w-full rounded py-2 text-sm text-red-500 transition-colors hover:bg-red-50 hover:text-red-700 disabled:opacity-50 dark:hover:bg-red-900/30"
-          >
-            Delete Material
-          </button>
-        )}
-      </form>
-    </DraggableModal>
+      {showDeleteConfirm && (
+        <ConfirmDialog
+          title="Delete Material"
+          message={`Are you sure you want to delete "${material.name}"? This cannot be undone.`}
+          details={[
+            `Part Number: ${material.partNumber}`,
+            `Current quantity: ${material.quantity} ${material.unit ?? ""}`.trim(),
+          ]}
+          onConfirmAction={confirmDelete}
+          onCloseAction={() => setShowDeleteConfirm(false)}
+        />
+      )}
+    </>
   );
-
-  {showDeleteConfirm && (
-    <ConfirmDialog
-      title="Delete Material"
-      message={`Are you sure you want to delete "${material.name}"? This cannot be undone.`}
-      details={[
-        `Part Number: ${material.partNumber}`,
-        `Current quantity: ${material.quantity} ${material.unit ?? ""}`.trim(),
-      ]}
-      onConfirmAction={confirmDelete}
-      onCloseAction={() => setShowDeleteConfirm(false)}
-    />
-  )}
 }
