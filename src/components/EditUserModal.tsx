@@ -2,6 +2,7 @@
 
 import { useState, useTransition } from "react";
 import DraggableModal from "./DraggableModal";
+import ConfirmDialog from "./ConfirmDialog";
 
 const inputClass =
   "w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-gray-900 placeholder-gray-400 focus:border-transparent focus:outline-none focus:ring-2 focus:ring-blue-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100 dark:placeholder-gray-500";
@@ -29,6 +30,7 @@ export default function EditUserModal({
   const [role, setRole] = useState(user.role);
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [isPending, startTransition] = useTransition();
 
   const isSelf = user.id === currentUserId;
@@ -54,19 +56,17 @@ export default function EditUserModal({
   }
 
   function handleDelete() {
-    if (!confirm(`Are you sure you want to delete user "${user.name}"?`)) return;
-    startTransition(async () => {
-      setError("");
-      const res = await fetch(`/api/users/${user.id}`, {
-        method: "DELETE",
-      });
-      if (res.ok) {
-        onSuccessAction();
-      } else {
-        const data = await res.json();
-        setError(data.error || "Failed to delete user");
-      }
-    });
+    setShowDeleteConfirm(true);
+  }
+
+  async function confirmDelete() {
+    const res = await fetch(`/api/users/${user.id}`, { method: "DELETE" });
+    if (res.ok) {
+      onSuccessAction();
+    } else {
+      const data = await res.json();
+      throw new Error(data.error || "Failed to delete user");
+    }
   }
 
   return (
@@ -173,4 +173,14 @@ export default function EditUserModal({
       </form>
     </DraggableModal>
   );
+
+  {showDeleteConfirm && (
+    <ConfirmDialog
+      title="Delete User"
+      message={`Are you sure you want to delete "${user.name}"? This cannot be undone.`}
+      details={[`Email: ${user.email}`, `Role: ${user.role}`]}
+      onConfirmAction={confirmDelete}
+      onCloseAction={() => setShowDeleteConfirm(false)}
+    />
+  )}
 }

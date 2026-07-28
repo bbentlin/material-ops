@@ -8,6 +8,7 @@ import PurchaseOrderModal from "@/components/PurchaseOrderModal";
 import Toast, { ToastMessage } from "@/components/Toast";
 import SubPageLayout from "@/components/SubPageLayout";
 import { useRealtimeSync } from "@/hooks/useRealtimeSync";
+import ConfirmDialog from "@/components/ConfirmDialog";
 
 const statusColors: Record<PurchaseOrderStatus, string> = {
   DRAFT: "bg-gray-100 text-gray-700 dark:bg-gray-700 dark:text-gray-300",
@@ -39,6 +40,7 @@ export default function PurchaseOrdersPage() {
   const [editOrder, setEditOrder] = useState<PurchaseOrder | null>(null);
   const [expandedId, setExpandedId] = useState<string | null>(null);
   const [toasts, setToasts] = useState<ToastMessage[]>([]);
+  const [deleteTarget, setDeleteTarget] = useState<{ id: string; orderNumber: string } | null>(null);
   const debounceRef = useRef<ReturnType<typeof setTimeout>>(null);
   const limit = 15;
 
@@ -159,13 +161,13 @@ export default function PurchaseOrdersPage() {
     }
   }
 
-  async function handleDelete(orderId: string, orderNumber: string) {
-    if (!confirm("Delete " + orderNumber + "? This cannot be undone.")) return;
+  function handleDelete(orderId: string, orderNumber: string) {
+    setDeleteTarget({ id: orderId, orderNumber });
+  }
 
-    const res = await fetch("/api/purchase-orders/" + orderId, {
-      method: "DELETE",
-    });
-
+  async function confirmDeleteOrder() {
+    if (!deleteTarget) return;
+    const res = await fetch("/api/purchase-orders/" + deleteTarget.id, { method: "DELETE" });
     if (res.ok) {
       addToast("Order deleted");
       setLoading(true);
@@ -174,7 +176,7 @@ export default function PurchaseOrdersPage() {
       setTotal(data.total ?? 0);
     } else {
       const data = await res.json();
-      addToast(data.error || "Failed to delete", "error");
+      throw new Error(data.error || "Failed to delete")
     }
   }
 
@@ -668,6 +670,15 @@ export default function PurchaseOrdersPage() {
             setOrders(data.orders ?? []);
             setTotal(data.total ?? 0);
           }}
+        />
+      )}
+
+      {deleteTarget && (
+        <ConfirmDialog
+          title="Delete Purchase Order"
+          message={`Delete ${deleteTarget.orderNumber}? This cannot be undone.`}
+          onConfirmAction={confirmDeleteOrder}
+          onCloseAction={() => setDeleteTarget(null)}
         />
       )}
     </>
