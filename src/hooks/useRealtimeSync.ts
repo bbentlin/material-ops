@@ -1,27 +1,28 @@
 "use client";
 
 import { useEffect, useRef } from "react";
-import * as Ably from "ably";
+import type * as Ably from "ably";
 import type { RealtimeEntity } from "@/lib/realtime";
+import { getAblyClient } from "@/lib/ablyClient";
 
 export function useRealtimeSync(onChangeAction: (entity: RealtimeEntity) => void) {
   const callbackRef = useRef(onChangeAction);
   callbackRef.current = onChangeAction;
 
   useEffect(() => {
-    if (!process.env.NEXT_PUBLIC_ABLY_KEY) return;
+    const client = getAblyClient();
+    if (!client) return;
 
-    const client = new Ably.Realtime({ key: process.env.NEXT_PUBLIC_ABLY_KEY });
     const channel = client.channels.get("dashboard");
-
-    channel.subscribe("data-changed", (message) => {
+    const listener = (message: Ably.Message) => {
       const payload = message.data as { entity: RealtimeEntity };
       callbackRef.current(payload.entity);
-    });
+    };
+
+    channel.subscribe("data-changed", listener);
 
     return () => {
-      channel.unsubscribe();
-      client.close();
+      channel.unsubscribe("data-changed", listener);
     };
   }, []);
 }
