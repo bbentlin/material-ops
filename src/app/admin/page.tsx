@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import AddUserModal from "@/components/AddUserModal";
 import EditUserModal from "@/components/EditUserModal";
 import SubPageLayout from "@/components/SubPageLayout";
+import { useRealtimeSync } from "@/hooks/useRealtimeSync";
 
 type User = {
   id: string;
@@ -61,6 +62,10 @@ export default function AdminPage() {
       .then(setCurrentUser)
       .catch(() => {});
   }
+
+  useRealtimeSync((entity) => {
+    if (entity === "users") fetchUsers();
+  });
 
   useEffect(() => {
     fetchUsers();

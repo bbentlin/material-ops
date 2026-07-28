@@ -7,6 +7,7 @@ import { PurchaseOrder, PurchaseOrderStatus } from "@/types/domain";
 import PurchaseOrderModal from "@/components/PurchaseOrderModal";
 import Toast, { ToastMessage } from "@/components/Toast";
 import SubPageLayout from "@/components/SubPageLayout";
+import { useRealtimeSync } from "@/hooks/useRealtimeSync";
 
 const statusColors: Record<PurchaseOrderStatus, string> = {
   DRAFT: "bg-gray-100 text-gray-700 dark:bg-gray-700 dark:text-gray-300",
@@ -76,6 +77,10 @@ export default function PurchaseOrdersPage() {
 
     return res.json();
   }, [page, limit, debouncedSearch, statusFilter]);
+
+  useRealtimeSync((entity) => {
+    if (entity === "purchase-orders") fetchOrders();
+  });
 
   useEffect(() => {
     let cancelled = false;
