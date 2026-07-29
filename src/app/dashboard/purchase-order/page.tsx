@@ -41,6 +41,7 @@ export default function PurchaseOrdersPage() {
   const [expandedId, setExpandedId] = useState<string | null>(null);
   const [toasts, setToasts] = useState<ToastMessage[]>([]);
   const [deleteTarget, setDeleteTarget] = useState<{ id: string; orderNumber: string } | null>(null);
+  const [cancelTarget, setCancelTarget] = useState<{ id: string; orderNumber: string } | null>(null);
   const debounceRef = useRef<ReturnType<typeof setTimeout>>(null);
   const limit = 15;
 
@@ -178,6 +179,11 @@ export default function PurchaseOrdersPage() {
       const data = await res.json();
       throw new Error(data.error || "Failed to delete")
     }
+  }
+
+  async function confirmCancelOrder() {
+    if (!cancelTarget) return;
+    await handleStatusChange(cancelTarget.id, "CANCELLED");
   }
 
   const headerActions = (
@@ -356,7 +362,7 @@ export default function PurchaseOrdersPage() {
                       )}
                       {canEdit && order.status !== "RECEIVED" && order.status !== "CANCELLED" && (
                         <button
-                          onClick={() => handleStatusChange(order.id, "CANCELLED")}
+                          onClick={() => setCancelTarget({ id: order.id, orderNumber: order.orderNumber })}
                           className="text-xs px-2 py-1 rounded text-red-600 hover:bg-red-50 dark:text-red-400 dark:hover:bg-red-900/30"
                         >
                           Cancel
@@ -501,7 +507,7 @@ export default function PurchaseOrdersPage() {
                               )}
                               {canEdit && order.status !== "RECEIVED" && order.status !== "CANCELLED" && (
                                 <button
-                                  onClick={() => handleStatusChange(order.id, "CANCELLED")}
+                                  onClick={() => setCancelTarget({ id: order.id, orderNumber: order.orderNumber })}
                                   className="text-xs px-2 py-1 rounded text-red-600 hover:bg-red-50 dark:text-red-400 dark:hover:bg-red-900/30 font-medium"
                                 >
                                   Cancel
@@ -670,6 +676,16 @@ export default function PurchaseOrdersPage() {
             setOrders(data.orders ?? []);
             setTotal(data.total ?? 0);
           }}
+        />
+      )}
+
+      {cancelTarget && (
+        <ConfirmDialog
+          title="Cancel Purchase Order"
+          message={`Cancel ${cancelTarget.orderNumber}? This action cannot be undone.`}
+          confirmLabel="Cancel Order"
+          onConfirmAction={confirmCancelOrder}
+          onCloseAction={() => setCancelTarget(null)}
         />
       )}
 

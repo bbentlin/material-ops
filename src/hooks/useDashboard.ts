@@ -18,6 +18,17 @@ import { useDarkMode } from "./useDarkMode";
 import { useRealtimeSync } from "./useRealtimeSync";
 import type { RealtimeEntity } from "@/lib/realtime";
 
+type ImportMaterialRow = {
+  name: string;
+  partNumber: string;
+  description: string;
+  quantity: string;
+  minQuantity: string;
+  unit: string;
+  location: string;
+  department: string;
+};
+
 export function useDashboard() {
   const router = useRouter();
 
@@ -52,6 +63,7 @@ export function useDashboard() {
   const [showAlerts, setShowAlerts] = useState(true);
   const [lowStockOnly, setLowStockOnlyState] = useState(false);
   const [showScanner, setShowScanner] = useState(false);
+  const [importPreview, setImportPreview] = useState<ImportMaterialRow[] | null>(null);
   const debounceRef = useRef<ReturnType<typeof setTimeout>>(null);
   const [widgets, setWidgets] = useState<WidgetData | null>(null);
   
@@ -368,7 +380,7 @@ export function useDashboard() {
     if (!file) return;
 
     const reader = new FileReader();
-    reader.onload = async (event) => {
+    reader.onload = (event) => {
       const text = event.target?.result as string;
       const lines = text.split("\n").filter((line) => line.trim());
       if (lines.length < 2) {
@@ -395,7 +407,7 @@ export function useDashboard() {
 
       const importMaterials = lines.slice(1).map((line) => {
         const cols = line.match(/(".*?"|[^",]+|(?<=,)(?=,))/g)?.map((c) => c.trim().replace(/^"|"$/g, "")) ?? [];
-        return {
+        return{
           name: cols[nameIdx] ?? "",
           partNumber: cols[pnIdx] ?? "",
           description: descIdx >= 0 ? cols[descIdx] ?? "" : "",
@@ -407,30 +419,28 @@ export function useDashboard() {
         };
       });
 
-      if (!confirm(`Import ${importMaterials.length} material(s) from CSV?`)) return;
-
-      try {
-        const res = await fetch("/api/materials/import", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ materials: importMaterials }),
-        });
-
-        if (!res.ok) {
-          const data = await res.json();
-          addToast(data.error || "Import failed", "error");
-          return;
-        }
-
-        const data = await res.json();
-        addToast(`Import complete: ${data.created} created, ${data.skipped} skipped.`);
-        refreshAll();
-      } catch {
-        addToast("Import failed. Please try again.", "error");
-      }
+      setImportPreview(importMaterials);
     };
     reader.readAsText(file);
     e.target.value = "";
+  }
+
+  async function confirmImportCSV() {
+    if (!importPreview) return;
+    const res = await fetch("/api/materials/import", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ materials: importPreview }),
+    });
+
+    if (!res.ok) {
+      const data = await res.json();
+      throw new Error(data.error || "Import failed");
+    }
+
+    const data = await res.json();
+    addToast(`Import complete: ${data.created} created, ${data.skipped} skipped.`);
+    refreshAll();
   }
 
   function formatAuditAction(entry: AuditEntry): { icon: string; label: string; color: string } {
@@ -523,6 +533,7 @@ export function useDashboard() {
     toggleSort, sortIndicator,
     handleLogout, handleScanResult,
     clearFilters, exportCSV, handleImportCSV,
+    importPreview, setImportPreview, confirmImportCSV,
     refreshAll, 
     formatAuditAction, getAuditDetail,
     router,

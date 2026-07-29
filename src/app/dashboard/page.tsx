@@ -19,6 +19,7 @@ import DashboardMaterialsTable from "@/components/DashboardMaterialsTable";
 import DashboardMovementsTable from "@/components/DashboardMovementsTable";
 import DashboardActivityFeed from "@/components/DashboardActivityFeed";
 import DashboardSkeleton from "@/components/DashboardSkeleton";
+import ConfirmDialog from "@/components/ConfirmDialog";
 
 export default function DashboardPage() {
   const d = useDashboard();
@@ -211,6 +212,17 @@ export default function DashboardPage() {
           onViewAllAction={() => d.router.push("/dashboard/audit-log")}
         />
       </main>
+
+      {d.importPreview && (
+        <ConfirmDialog
+          title="Import Materials"
+          message={`Import ${d.importPreview.length} material(s) from CSV?`}
+          confirmLabel="Import"
+          danger={false}
+          onConfirmAction={d.confirmImportCSV}
+          onCloseAction={() => d.setImportPreview(null)}
+        />
+      )}
 
       {d.showAddMaterial && d.canEdit && (
         <AddMaterialModal
