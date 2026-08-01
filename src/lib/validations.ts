@@ -1,9 +1,28 @@
 import { z } from "zod";
+import { COMMON_PASSWORDS, countCharacterClasses } from "./passwordStrength";
 
 export const loginSchema = z.object({
   email: z.string().email("Invalid email"),
   password: z.string().min(1, "Password is required"),
 });
+
+export const strongPasswordSchema = z
+  .string()
+  .min(8, "Password must be at least 8 characters")
+  .superRefine((password, ctx) => {
+    if (countCharacterClasses(password) < 3) {
+      ctx.addIssue({
+        code: "custom",
+        message: "Password must include at least 3 of: lowercase, uppercase, numbers, symbols",
+      });
+    }
+    if (COMMON_PASSWORDS.has(password.toLowerCase())) {
+      ctx.addIssue({
+        code: "custom",
+        message: "This password is too common / appears in known breaches. Choose a different one.",
+      });
+    }
+  });
 
 export const createMaterialSchema = z.object({
   name: z.string().min(1).max(200),
@@ -29,14 +48,14 @@ export const createMovementSchema = z.object({
 export const createUserSchema = z.object({
   name: z.string().min(1).max(200),
   email: z.string().email(),
-  password: z.string().min(8, "Password must be at least 8 characters"),
+  password: strongPasswordSchema,
   role: z.enum(["ADMIN", "OPERATOR", "VIEWER"]).optional().default("VIEWER"),
 });
 
 export const updateUserSchema = z.object({
   name: z.string().min(1).max(200).optional(),
   email: z.string().email().optional(),
-  password: z.string().min(8).optional(),
+  password: strongPasswordSchema.optional(),
   role: z.enum(["ADMIN", "OPERATOR", "VIEWER"]).optional(),
 });
 
