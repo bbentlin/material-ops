@@ -24,19 +24,33 @@ enum MovementType {
 }
 
 model User {
-  id              String          @id @default(cuid())
-  email           String          @unique
-  name            String
-  password        String
-  role            Role            @default(VIEWER)
-  createdAt       DateTime        @default(now())
-  updatedAt       DateTime        @updatedAt
-  movements       Movement[]
-  auditLogs       AuditLog[]
-  createdOrders   PurchaseOrder[] @relation("CreatedOrders")
-  approvedOrders  PurchaseOrder[] @relation("ApprovedOrders")
+  id                  String          @id @default(cuid())
+  email               String          @unique
+  name                String
+  password            String
+  role                Role            @default(VIEWER)
+  createdAt           DateTime        @default(now())
+  updatedAt           DateTime        @updatedAt
+  movements           Movement[]
+  auditLogs           AuditLog[]
+  createdOrders       PurchaseOrder[] @relation("CreatedOrders")
+  approvedOrders      PurchaseOrder[] @relation("ApprovedOrders")
+  passwordResetTokens PasswordResetToken[] 
 }
 
+model PasswordResetToken {
+  id        String   @id @default(cuid())
+  userId     String
+  tokenHash String   @unique
+  expiresAt DateTime
+  usedAt    DateTime?
+  createdAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, createdAt])
+  @@index([expiresAt])
+}
 model Department {
   id          String     @id @default(cuid())
   name        String     @unique

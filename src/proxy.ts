@@ -8,7 +8,7 @@ const SECRET = new TextEncoder().encode(process.env.JWT_SECRET);
 
 const apiHits = new Map<string, number[]>();
 
-const publicPaths = ["/login", "/api/auth"];
+const publicPaths = ["/login", "/forgot-password", "/reset-password", "/api/auth"];
 
 const disableRateLimits = process.env.E2E_DISABLE_RATE_LIMITS === "1";
 

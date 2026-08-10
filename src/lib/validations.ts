@@ -24,6 +24,15 @@ export const strongPasswordSchema = z
     }
   });
 
+  export const forgotPasswordSchema = z.object({
+    email: z.string().email("Invalid email"),
+  });
+
+  export const resetPasswordSchema = z.object({
+    token: z.string().min(1, "Reset token is required"),
+    password: strongPasswordSchema,
+  });
+
 export const createMaterialSchema = z.object({
   name: z.string().min(1).max(200),
   partNumber: z.string().min(1).max(100),
