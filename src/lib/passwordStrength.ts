@@ -12,8 +12,8 @@ export function countCharacterClasses(password: string): number {
   return [/[a-z]/, /[A-Z]/, /[0-9]/, /[^a-zA-Z0-9]/].filter((re) => re.test(password)).length;
 }
 
-export function isCommonPassword(passsword: string): boolean {
-  return COMMON_PASSWORDS.has(passsword.toLowerCase());
+export function isCommonPassword(password: string): boolean {
+  return COMMON_PASSWORDS.has(password.toLowerCase());
 }
 
 export type PasswordChecks = {
@@ -39,7 +39,8 @@ export function getPasswordStrength(password: string): StrengthLevel {
   if (password.length >= 8) score++;
   if (password.length >=12) score++;
   if (countCharacterClasses(password) >= 3) score++;
-  if (countCharacterClasses(password) === 4 && password.length < 8) score = 0;
+  if (countCharacterClasses(password) === 4 && password.length < 12) score++;
+  if (isCommonPassword(password) || password.length < 8) score = 0;
 
   const levels: StrengthLevel[] = [
     { score: 0, label: "Weak", color: "bg-red-500" },
