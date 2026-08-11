@@ -2,6 +2,7 @@
 
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 
 export default function LoginPage() {
   const [email, setEmail] = useState("");
@@ -89,6 +90,12 @@ export default function LoginPage() {
                 autoComplete="current-password"
                 required 
               />
+            </div>
+
+            <div className="mt-2 text-right">
+              <Link href="/forgot-password" className="text-sm text-blue-600 hover:underline dark:text-blue-400">
+                Forgot password?
+              </Link>
             </div>
           </div>
 
