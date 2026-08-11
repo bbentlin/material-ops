@@ -3,7 +3,6 @@ import { logAudit } from "@/lib/audit";
 import { NextRequest, NextResponse } from "next/server";
 import { rateLimit } from "@/lib/rate-limit";
 import { loginSchema } from "@/lib/validations";
-import { success } from "zod";
 
 export async function POST(req: NextRequest) {
   const disableRateLimits = process.env.E2E_DISABLE_RATE_LIMITS === "1";
