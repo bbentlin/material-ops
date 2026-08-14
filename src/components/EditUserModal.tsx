@@ -70,6 +70,27 @@ export default function EditUserModal({
     }
   }
 
+  async function issuePasswordResetLink() {
+    const res = await fetch(`/api/admin/users/${user.id}/recover`, {
+      method: "POST",
+    });
+
+    const data = await res.json();
+    if (!res.ok) {
+      setError(data.error || "Failed to issue reset link");
+      return;
+    }
+
+    if (data.resetLink) {
+      await navigator.clipboard.writeText(data.resetLink);
+      setError("");
+      alert("Reset link copied to clipboard");
+      return;
+    }
+
+    alert("Reset link issued");
+  }
+
   return (
     <>
       <DraggableModal onCloseAction={onCloseAction} labelledBy="edit-user-title">
@@ -161,7 +182,15 @@ export default function EditUserModal({
             >
               {isPending ? "Saving..." : "Save"}
             </button>
+            <button
+              type="button"
+              onClick={issuePasswordResetLink}
+              className="w-full rounded py-2 text-sm text-blue-600 transition-colors hover:bg-blue-50 hover:text-blue-700 disabled:opacity-50 dark:hover:bg-blue-900/20"
+            >
+              Issue Reset Link
+            </button>
           </div>
+
 
           {!isSelf && (
             <button
