@@ -33,6 +33,39 @@ export const strongPasswordSchema = z
     password: strongPasswordSchema,
   });
 
+  export const selfProfileUpdateSchema = z  
+    .object({
+      name: z.string().min(1, "Name is required").max(200).optional(),
+      currentPassword: z.string().min(1, "Current password is required").optional(),
+      newPassword: strongPasswordSchema.optional(),
+    })
+    .superRefine((data, ctx) => {
+      const wantsPasswordChange = !!data.currentPassword || !!data.newPassword;
+
+      if (data.newPassword && !data.currentPassword) {
+        ctx.addIssue({
+          code: "custom",
+          path: ["currentPassword"],
+          message: "Current password is required to set new password",
+        });
+      }
+
+      if (data.currentPassword && !data.newPassword) {
+        ctx.addIssue({
+          code: "custom",
+          path: ["newPassword"],
+          message: "New password is required",
+        });
+      }
+
+      if (!data.name && !wantsPasswordChange) {
+        ctx.addIssue({
+          code: "custom",
+          message: "No changes submitted",
+        });
+      }
+    });
+
 export const createMaterialSchema = z.object({
   name: z.string().min(1).max(200),
   partNumber: z.string().min(1).max(100),
