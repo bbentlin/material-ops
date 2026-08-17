@@ -26,6 +26,7 @@ type Props = {
   darkMode: boolean;
   onToggleDarkModeAction: () => void;
   onShowShortcutsAction: () => void;
+  onOpenProfileActon: () => void;
 };
 
 export default function DashboardHeader(props: Props) {
@@ -76,6 +77,11 @@ export default function DashboardHeader(props: Props) {
   function handleMobileUsers() {
     closeMobileMenu();
     props.onOpenUsersAction();
+  }
+
+  function handleMobileProfile() {
+    closeMobileMenu();
+    props.onOpenProfileActon();
   }
 
   function handleMobileLogout() {
@@ -172,6 +178,15 @@ export default function DashboardHeader(props: Props) {
                 title="Purchase Orders"
               >
                 📋
+              </button>
+              <button
+                type="button"
+                onClick={props.onOpenProfileActon}
+                aria-label="Profile"
+                className="rounded-lg border border-gray-200 bg-white/80 px-2.5 py-2 text-sm font-medium text-gray-600 transition-colors hover:border-indigo-200 hover:bg-indigo-50 hover:text-indigo-700 dark:border-gray-700 dark:bg-gray-900/50 dark:text-gray-300 dark:hover:border-indigo-800 dark:hover:bg-indigo-900/30 dark:hover:text-indigo-300"
+                title="Profile"
+              >
+                ⚙️
               </button>
 
               {props.canManageUsers && (
@@ -398,6 +413,14 @@ export default function DashboardHeader(props: Props) {
                     👥 Users
                   </button>
                 )}
+
+                <button
+                  type="button"
+                  onClick={handleMobileProfile}
+                  className="rounded-xl border border-slate-200 px-3 py-2 text-left text-sm text-slate-700 transition hover:bg-slate-50 dark:border-slate-700 dark:text-slate-200 dark:hover:bg-slate-800"
+                >
+                  ⚙️ Profile
+                </button>
 
                 <button
                   type="button"

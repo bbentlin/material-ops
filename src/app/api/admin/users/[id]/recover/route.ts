@@ -42,7 +42,7 @@ export async function POST(
       usedAt: null,
     },
     data: {
-      useAt: new Date(),
+      usedAt: new Date(),
     },
   });
 

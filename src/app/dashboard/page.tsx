@@ -79,6 +79,7 @@ export default function DashboardPage() {
         darkMode={d.darkMode}
         onToggleDarkModeAction={d.toggleDarkMode}
         onShowShortcutsAction={() => setShowShortcutsHelp(true)}
+        onOpenProfileActon={() => d.router.push("/dashboard/profile")}
       />
 
       <main className="mx-auto w-full max-w-7xl px-3 py-5 sm:px-6 sm:py-6 lg:px-8 lg:py-8">
