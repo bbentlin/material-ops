@@ -80,6 +80,11 @@ export async function POST(req: NextRequest) {
   // Verify material exists
   const material = await prisma.material.findUnique({
     where: { id: materialId },
+    include: {
+      department: {
+        select: { name: true },
+      },
+    },
   });
 
   if (!material) {
@@ -114,6 +119,11 @@ export async function POST(req: NextRequest) {
     }
     destination = await prisma.material.findUnique({
       where: { id: destinationMaterialId },
+      include: {
+        department: {
+          select: { name: true },
+        },
+      },
     });
     if (!destination) {
       return NextResponse.json(
@@ -125,79 +135,6 @@ export async function POST(req: NextRequest) {
       return NextResponse.json(
         { error: `Insufficient stock. Available: ${material.quantity}` },
       );
-    }
-  }
-
-  const nextSourceQuantity =
-    type === "TRANSFER"
-      ? material.quantity - quantity
-      : type === "OUTBOUND"
-        ? material.quantity - quantity
-        : material.quantity + quantity;
-
-  const sourceNeedsAlert =
-    type !== "INBOUND" &&
-    nextSourceQuantity <= (material.minQuantity ?? 0);
-
-  if (sourceNeedsAlert) {
-    await sendLowStockAlert({
-      materialId: material.id,
-      materialName: material.name,
-      partNumber: material.partNumber,
-      quantity: nextSourceQuantity,
-      minQuantity: material.minQuantity ?? 0,
-      location: material.location ?? null,
-      department: material.departmentId ?? null,
-    });
-  }
-
-  if (type === "INBOUND") {
-    const nextQuantity = material.quantity + quantity;
-    if (nextQuantity <= (material.minQuantity ?? 0)) {
-      await sendLowStockAlert({
-        materialId: material.id,
-        materialName: material.name,
-        partNumber: material.partNumber,
-        quantity: nextQuantity,
-        minQuantity: material.minQuantity ?? 0,
-        location: material.location ?? null,
-        department: material.departmentId ?? null,
-      });
-    }
-  }
-
-  if (type === "TRANSFER") {
-    if (!destination) {
-      return NextResponse.json(
-        { error: "Destination material not found" },
-        { status: 404 }
-      );
-    }
-
-    const sourceAfter = material.quantity - quantity;
-    if (sourceAfter <= (material.minQuantity ?? 0)) {
-      await sendLowStockAlert({
-        materialId: material.id,
-        materialName: material.name,
-        partNumber: material.partNumber,
-        quantity: sourceAfter,
-        minQuantity: material.minQuantity ?? 0,
-        location: material.location ?? null,
-        department: material.departmentId ?? null,
-      });
-    }
-
-    const destinationAfter = destination.quantity + quantity;
-    if (destinationAfter <= (destination.minQuantity ?? 0)) {
-      await sendLowStockAlert({
-        materialId: destination.id,
-        materialName: destination.name,
-        partNumber: destination.partNumber,
-        quantity: destinationAfter,
-        minQuantity: destination.minQuantity ?? 0,
-        location: destination.location ?? null,
-        department: destination.departmentId ?? null,
-      });
     }
   }
 
@@ -228,6 +165,60 @@ export async function POST(req: NextRequest) {
           data: { quantity: { increment: quantity } },
         }),
       ]);
+
+      const [updatedSource, updatedDestination] = await Promise.all([
+        prisma.material.findUnique({
+          where: { id: materialId },
+          include: {
+            department: {
+              select: { name: true },
+            },
+          },
+        }),
+        prisma.material.findUnique({
+          where: { id: destinationMaterialId },
+          include: {
+            department: {
+              select: { name: true },
+            },
+          },
+        }),
+      ]);
+
+      if (
+        updatedSource &&
+        material.quantity > material.minQuantity &&
+        updatedSource.quantity <= updatedSource.minQuantity
+      ) {
+        await sendLowStockAlert({
+          materialId: updatedSource.id,
+          materialName: updatedSource.name,
+          partNumber: updatedSource.partNumber,
+          quantity: updatedSource.quantity,
+          minQuantity: updatedSource.minQuantity,
+          unit: updatedSource.unit,
+          location: updatedSource.location,
+          department: updatedSource.department?.name ?? null,
+        });
+      }
+
+      if (
+        updatedDestination &&
+        destination && 
+        destination.quantity > destination.minQuantity &&
+        updatedDestination.quantity <= updatedDestination.minQuantity
+      ) {
+        await sendLowStockAlert({
+          materialId: updatedDestination.id,
+          materialName: updatedDestination.name,
+          partNumber: updatedDestination.partNumber,
+          quantity: updatedDestination.quantity,
+          minQuantity: updatedDestination.minQuantity,
+          unit: updatedDestination.unit,
+          location: updatedDestination.location,
+          department: updatedDestination.department?.name ?? null,
+        });
+      }
 
       const destMaterial = await prisma.material.findUnique({
         where: { id: destinationMaterialId },
@@ -269,6 +260,32 @@ export async function POST(req: NextRequest) {
         },
       }),
     ]);
+
+    const updatedMaterial = await prisma.material.findUnique({
+      where: { id: materialId },
+      include: {
+        department: {
+          select: { name: true },
+        },
+      },
+    });
+
+    if (
+      updatedMaterial &&
+      material.quantity > material.minQuantity &&
+      updatedMaterial.quantity <= updatedMaterial.minQuantity
+    ) {
+      await sendLowStockAlert({
+        materialId: updatedMaterial.id,
+        materialName: updatedMaterial.name,
+        partNumber: updatedMaterial.partNumber,
+        quantity: updatedMaterial.quantity,
+        minQuantity: updatedMaterial.minQuantity,
+        unit: updatedMaterial.unit,
+        location: updatedMaterial.location,
+        department: updatedMaterial.department?.name ?? null,
+      });
+    }
 
     await logAudit({
       action: type,

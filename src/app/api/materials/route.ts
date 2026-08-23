@@ -127,7 +127,7 @@ export async function POST(req: NextRequest) {
     const material = await prisma.material.create({
       data: {
         name,
-        partNumber, 
+        partNumber,
         description: description ?? "",
         quantity: quantity ?? 0,
         minQuantity: minQuantity !== undefined ? minQuantity : 10,
@@ -135,7 +135,11 @@ export async function POST(req: NextRequest) {
         unit: unit ?? "pieces",
         location: location ?? "",
       },
-      include: { department: { select: { name: true } } },
+      include: {
+        department: {
+          select: { name: true },
+        },
+      },
     });
 
     // Log the creation as an inbound movement
@@ -145,7 +149,7 @@ export async function POST(req: NextRequest) {
         quantity: quantity ?? 0,
         note: `Initial creation by ${user!.email}`,
         materialId: material.id,
-        userId: user!.id
+        userId: user!.id,
       },
     });
 
@@ -157,14 +161,15 @@ export async function POST(req: NextRequest) {
       details: JSON.stringify({ name, partNumber }),
     });
 
-    if (material.quantity <= (material.minQuantity ?? 0)) {
+    if (material.quantity <= material.minQuantity) {
       await sendLowStockAlert({
         materialId: material.id,
         materialName: material.name,
         partNumber: material.partNumber,
         quantity: material.quantity,
-        minQuantity: material.minQuantity ?? 0,
-        location: material.location ?? null,
+        minQuantity: material.minQuantity,
+        unit: material.unit,
+        location: material.location,
         department: material.department?.name ?? null,
       });
     }

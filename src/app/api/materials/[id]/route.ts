@@ -67,9 +67,14 @@ export async function PATCH(
         description: body.description ?? existing.description,
         quantity: body.quantity !== undefined ? body.quantity : existing.quantity,
         minQuantity: body.minQuantity !== undefined ? body.minQuantity : existing.minQuantity,
-        departmentId: body.departmentId !== undefined ? (body.departmentId || null) : existing.departmentId,
+        departmentId: body.departmentId !== undefined ? body.departmentId || null : existing.departmentId,
         unit: body.unit ?? existing.unit,
         location: body.location ?? existing.location,
+      },
+      include: {
+        department: {
+          select: { name: true },
+        },
       },
     });
 
@@ -82,6 +87,23 @@ export async function PATCH(
     if (body.unit && body.unit !== existing.unit) changes.push(`unit: "${existing.unit}" → "${body.unit}"`);
     if (body.location !== undefined && body.location !== existing.location) changes.push(`location`);
     if (body.departmentId !== undefined && body.departmentId !== existing.departmentId) changes.push(`department`);
+
+    const becameLowStock = 
+      existing.quantity > existing.minQuantity && 
+      material.quantity <= material.minQuantity;
+
+      if (becameLowStock) {
+        await sendLowStockAlert({
+          materialId: material.id,
+          materialName: material.name,
+          partNumber: material.partNumber,
+          quantity: material.quantity,
+          minQuantity: material.minQuantity,
+          unit: material.unit,
+          location: material.location,
+          department: material.department?.name ?? null,
+        });
+      }
 
     await logAudit({
       action: "UPDATE_MATERIAL",
