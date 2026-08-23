@@ -4,6 +4,7 @@ import { logAudit } from "@/lib/audit";
 import { NextRequest, NextResponse } from "next/server";
 import { createMovementSchema } from "@/lib/validations";
 import { broadcastChange } from "@/lib/realtime";
+import { sendLowStockAlert } from "@/lib/notifications";
 
 // GET movements with server-side pagination and search
 export async function GET(req: NextRequest) {
@@ -97,6 +98,7 @@ export async function POST(req: NextRequest) {
   }
 
   // For transfer, validate destination and check sufficient stock
+  let destination: typeof material | null = null;
   if (type === "TRANSFER") {
     if (!destinationMaterialId) {
       return NextResponse.json(
@@ -110,7 +112,7 @@ export async function POST(req: NextRequest) {
         { status: 400 }
       );
     }
-    const destination = await prisma.material.findUnique({
+    destination = await prisma.material.findUnique({
       where: { id: destinationMaterialId },
     });
     if (!destination) {
@@ -123,6 +125,79 @@ export async function POST(req: NextRequest) {
       return NextResponse.json(
         { error: `Insufficient stock. Available: ${material.quantity}` },
       );
+    }
+  }
+
+  const nextSourceQuantity =
+    type === "TRANSFER"
+      ? material.quantity - quantity
+      : type === "OUTBOUND"
+        ? material.quantity - quantity
+        : material.quantity + quantity;
+
+  const sourceNeedsAlert =
+    type !== "INBOUND" &&
+    nextSourceQuantity <= (material.minQuantity ?? 0);
+
+  if (sourceNeedsAlert) {
+    await sendLowStockAlert({
+      materialId: material.id,
+      materialName: material.name,
+      partNumber: material.partNumber,
+      quantity: nextSourceQuantity,
+      minQuantity: material.minQuantity ?? 0,
+      location: material.location ?? null,
+      department: material.departmentId ?? null,
+    });
+  }
+
+  if (type === "INBOUND") {
+    const nextQuantity = material.quantity + quantity;
+    if (nextQuantity <= (material.minQuantity ?? 0)) {
+      await sendLowStockAlert({
+        materialId: material.id,
+        materialName: material.name,
+        partNumber: material.partNumber,
+        quantity: nextQuantity,
+        minQuantity: material.minQuantity ?? 0,
+        location: material.location ?? null,
+        department: material.departmentId ?? null,
+      });
+    }
+  }
+
+  if (type === "TRANSFER") {
+    if (!destination) {
+      return NextResponse.json(
+        { error: "Destination material not found" },
+        { status: 404 }
+      );
+    }
+
+    const sourceAfter = material.quantity - quantity;
+    if (sourceAfter <= (material.minQuantity ?? 0)) {
+      await sendLowStockAlert({
+        materialId: material.id,
+        materialName: material.name,
+        partNumber: material.partNumber,
+        quantity: sourceAfter,
+        minQuantity: material.minQuantity ?? 0,
+        location: material.location ?? null,
+        department: material.departmentId ?? null,
+      });
+    }
+
+    const destinationAfter = destination.quantity + quantity;
+    if (destinationAfter <= (destination.minQuantity ?? 0)) {
+      await sendLowStockAlert({
+        materialId: destination.id,
+        materialName: destination.name,
+        partNumber: destination.partNumber,
+        quantity: destinationAfter,
+        minQuantity: destination.minQuantity ?? 0,
+        location: destination.location ?? null,
+        department: destination.departmentId ?? null,
+      });
     }
   }
 

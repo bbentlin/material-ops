@@ -4,6 +4,7 @@ import { logAudit } from "@/lib/audit";
 import { NextRequest, NextResponse } from "next/server";
 import { createMaterialSchema } from "@/lib/validations";
 import { broadcastChange } from "@/lib/realtime";
+import { sendLowStockAlert } from "@/lib/notifications";
 
 // GET materials with server-side pagination, search, sort, and filtering
 export async function GET(req: NextRequest) {
@@ -134,6 +135,7 @@ export async function POST(req: NextRequest) {
         unit: unit ?? "pieces",
         location: location ?? "",
       },
+      include: { department: { select: { name: true } } },
     });
 
     // Log the creation as an inbound movement
@@ -154,6 +156,18 @@ export async function POST(req: NextRequest) {
       userId: user!.id,
       details: JSON.stringify({ name, partNumber }),
     });
+
+    if (material.quantity <= (material.minQuantity ?? 0)) {
+      await sendLowStockAlert({
+        materialId: material.id,
+        materialName: material.name,
+        partNumber: material.partNumber,
+        quantity: material.quantity,
+        minQuantity: material.minQuantity ?? 0,
+        location: material.location ?? null,
+        department: material.department?.name ?? null,
+      });
+    }
 
     await broadcastChange("materials");
 

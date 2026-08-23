@@ -4,6 +4,7 @@ import { logAudit } from "@/lib/audit";
 import { NextRequest, NextResponse } from "next/server";
 import { updateMaterialSchema } from "@/lib/validations";
 import { broadcastChange } from "@/lib/realtime";
+import { sendLowStockAlert } from "@/lib/notifications";
 
 // GET single material
 export async function GET(
