@@ -1,19 +1,28 @@
 import Ably from "ably";
 
-if (!process.env.ABLY_API_KEY) {
-  throw new Error("ABLY_API_KEY environment variable is required");
-}
+let ably: InstanceType<typeof Ably.rest> | null = null;
 
-const ably = new Ably.Rest(process.env.ABLY_API_KEY);
+function getAblyClient() {
+  const apiKey = process.env.ABLY_API_KEY;
+  if (!apiKey) return null;
+
+  if (!ably) {
+    ably = new Ably.Rest(apiKey);
+  }
+
+  return ably;
+}
 
 export type RealtimeEntity = "materials" | "movements" | "users" | "purchase-orders";
 
 export async function broadcastChange(entity: RealtimeEntity) {
+  const client = getAblyClient();
+  if (!client) return;
+
   try {
-    const channel = ably.channels.get("dashboard");
+    const channel = client.channels.get("dashboard");
     await channel.publish("data-changed", { entity, at: Date.now() });
   } catch (err) {
-    // Never let a broadcast failure break the actual mutation response.
     console.error("Failed to broadcast realtime changes:", err);
   }
 }
