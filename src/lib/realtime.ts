@@ -1,6 +1,6 @@
 import Ably from "ably";
 
-let ably: InstanceType<typeof Ably.rest> | null = null;
+let ably: InstanceType<typeof Ably.Rest> | null = null;
 
 function getAblyClient() {
   const apiKey = process.env.ABLY_API_KEY;
