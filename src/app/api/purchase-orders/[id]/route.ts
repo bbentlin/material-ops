@@ -3,7 +3,7 @@ import { requireAuth } from "@/lib/permissions";
 import { logAudit } from "@/lib/audit";
 import { NextRequest, NextResponse } from "next/server";
 import { broadcastChange } from "@/lib/realtime";
-import PurchaseOrderModal from "@/components/PurchaseOrderModal";
+import { sendPurchaseOrderStatusAlert } from "@/lib/notifications";
 
 export async function GET(
   req: NextRequest,
@@ -146,6 +146,17 @@ export async function PATCH(
     }),
     userId: user!.id,
   });
+
+  if (status && status !== existing.status) {
+    await sendPurchaseOrderStatusAlert({
+      orderId: updated.id,
+      orderNumber: updated.orderNumber,
+      supplier: updated.supplier,
+      previousStatus: updated.status,
+      newStatus: updated.status,
+      actorName: user?.name ?? "System",
+    });
+  }
 
   await broadcastChange("purchase-orders");
 

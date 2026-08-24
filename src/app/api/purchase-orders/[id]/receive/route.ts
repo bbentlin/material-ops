@@ -2,6 +2,7 @@ import { prisma } from "@/lib/db";
 import { requireAuth } from "@/lib/permissions";
 import { broadcastChange } from "@/lib/realtime";
 import { NextResponse } from "next/server";
+import { sendPurchaseOrderStatusAlert } from "@/lib/notifications";
 
 export async function POST(
   _req: Request,
@@ -72,6 +73,15 @@ export async function POST(
       createdBy: { select: { id: true, name: true } },
       approvedBy: { select: { id: true,  name: true } },
     },
+  });
+
+  await sendPurchaseOrderStatusAlert({
+    orderId: updated.id,
+    orderNumber: updated.orderNumber,
+    supplier: updated.supplier,
+    previousStatus: updated.status,
+    newStatus: updated.status,
+    actorName: user?.name ?? "System",
   });
 
   await broadcastChange("purchase-orders");
