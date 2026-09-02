@@ -31,15 +31,20 @@ export async function verifyToken(token: string): Promise<JWTPayload | null> {
 }
 
 export async function authenticate(email: string, password: string) {
-  const user = await prisma.user.findUnique({ where: { email }});
+  const user = await prisma.user.findFirst({
+    where: { email, deletedAt: null },
+  });
+
   if (!user || !compareSync(password, user.password)) {
     return null;
   }
-  const token = await signToken({
+
+  const  token = await signToken({
     userId: user.id,
     email: user.email,
     role: user.role,
   });
+
   return { user, token };
 }
 
@@ -51,8 +56,17 @@ export async function getCurrentUser() {
   const payload = await verifyToken(token);
   if (!payload) return null;
 
-  return prisma.user.findUnique({
+  const user = await prisma.user.findUnique({
     where: { id: payload.userId },
-    select: { id: true, email: true, name: true, role: true },
+    select: { id: true, email: true, name: true, role: true, deletedAt: true },
   });
+
+  if (!user || user.deletedAt) return null;
+
+  return {
+    id: user.id,
+    email: user.email,
+    name: user.name,
+    role: user.role,
+  };
 }
