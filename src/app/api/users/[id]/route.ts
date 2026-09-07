@@ -6,7 +6,7 @@ import bcrypt from "bcryptjs";
 import { updateUserSchema } from "@/lib/validations";
 import { broadcastChange } from "@/lib/realtime";
 
-// PATCH update user (ADMIN ONLY)
+
 export async function PATCH(
   req: NextRequest,
   { params }: { params: Promise<{ id: string }> }
@@ -23,14 +23,14 @@ export async function PATCH(
       { status: 400 }
     );
   }
+
   const body = parsed.data;
 
   const existing = await prisma.user.findUnique({ where: { id } });
-  if (!existing) {
+  if (!existing || existing.deletedAt) {
     return NextResponse.json({ error: "User not found" }, { status: 404 });
   }
 
-  // Prevent admin from demoting themselves
   if (id === currentUser!.id && body.role && body.role !== "ADMIN") {
     return NextResponse.json(
       { error: "You cannot change your own role" },
@@ -58,10 +58,10 @@ export async function PATCH(
     });
 
     const changes: string[] = [];
-    if (body.name && body.name !== existing.name) changes.push(`name: "${existing.name}" → "${body.name}"`);
-    if (body.email && body.email !== existing.email) changes.push(`email: "${existing.email}" → "${body.email}"`);
-    if (body.role && body.role !== existing.role) changes.push(`role: ${existing.role} → ${body.role}`);
-    if (body.password) changes.push("password changed");
+    if (body.name && body.name !== existing.name) changes.push("name");
+    if (body.email && body.email !== existing.email) changes.push("email");
+    if (body.role && body.role !== existing.role) changes.push("role");
+    if (body.password) changes.push("password");
 
     await logAudit({
       action: "UPDATE_USER",
@@ -80,7 +80,6 @@ export async function PATCH(
   }
 }
 
-// DELETE user (ADMIN ONLY)
 export async function DELETE(
   _req: NextRequest,
   { params }: { params: Promise<{ id: string }> }
@@ -90,7 +89,6 @@ export async function DELETE(
 
   const { id } = await params;
 
-  // Prevent admin from deleting themselves
   if (id === currentUser!.id) {
     return NextResponse.json(
       { error: "You cannot delete your own account" },
@@ -103,17 +101,27 @@ export async function DELETE(
     return NextResponse.json({ error: "User not found" }, { status: 404 });
   }
 
-  await prisma.user.delete({ where: { id } });
+  if (existing.deletedAt) {
+    return NextResponse.json({ error: "User is already archived" }, { status: 409 });
+  }
+
+  await prisma.user.update({
+    where: { id },
+    data: {
+      deletedAt: new Date(),
+      deleteById: currentUser!.id,
+    },
+  });
 
   await logAudit({
     action: "DELETE_USER",
     entity: "USER",
     entityId: id,
     userId: currentUser!.id,
-    details: JSON.stringify({ name: existing.name, email: existing.email }),
+    details: JSON.stringify({ name: existing.name, email: existing.email, softDelete: true }),
   });
 
   await broadcastChange("users");
 
-  return NextResponse.json({ success: true });
+  return NextResponse.json({ success: true, undoAvailable: true });
 }
