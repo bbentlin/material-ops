@@ -16,8 +16,8 @@ export async function GET(
 
   const { id } = await params;
 
-  const material = await prisma.material.findUnique({
-    where: { id },
+  const material = await prisma.material.findFirst({
+    where: { id, deletedAt: null },
     include: {
       department: { select: { id: true, name: true, color: true } },
       movements: {
@@ -47,14 +47,15 @@ export async function PATCH(
   const parsed = updateMaterialSchema.safeParse(raw);
   if (!parsed.success) {
     return NextResponse.json(
-      { error: parsed.error.issues[0].message},
+      { error: parsed.error.issues[0].message },
       { status: 400 }
     );
   }
+
   const body = parsed.data;
 
   const existing = await prisma.material.findUnique({ where: { id } });
-  if (!existing) {
+  if (!existing || existing.deletedAt) {
     return NextResponse.json({ error: "Material not found" }, { status: 404 });
   }
 
@@ -78,32 +79,31 @@ export async function PATCH(
       },
     });
 
-    // Build a list of what changed for the audit log
     const changes: string[] = [];
-    if (body.name && body.name !== existing.name) changes.push(`name: "${existing.name}" → "${body.name}"`);
-    if (body.partNumber && body.partNumber !== existing.partNumber) changes.push(`partNumber: "${existing.partNumber}" → "${body.partNumber}"`);
-    if (body.quantity !== undefined && body.quantity !== existing.quantity) changes.push(`quantity: ${existing.quantity} → ${body.quantity}`);
-    if (body.minQuantity !== undefined && body.minQuantity !== existing.minQuantity) changes.push(`minQuantity: ${existing.minQuantity} → ${body.minQuantity}`);
-    if (body.unit && body.unit !== existing.unit) changes.push(`unit: "${existing.unit}" → "${body.unit}"`);
-    if (body.location !== undefined && body.location !== existing.location) changes.push(`location`);
-    if (body.departmentId !== undefined && body.departmentId !== existing.departmentId) changes.push(`department`);
+    if (body.name && body.name !== existing.name) changes.push("name");
+    if (body.partNumber && body.partNumber !== existing.partNumber) changes.push("partNumber");
+    if (body.quantity !== undefined && body.quantity !== existing.quantity) changes.push("quantity");
+    if (body.minQuantity !== undefined && body.minQuantity !== existing.minQuantity) changes.push("minQuantity");
+    if (body.unit && body.unit !== existing.unit) changes.push("unit");
+    if (body.location !== undefined && body.location !== existing.location) changes.push("location");
+    if (body.departmentId !== undefined && body.departmentId !== existing.departmentId) changes.push("department");
 
-    const becameLowStock = 
-      existing.quantity > existing.minQuantity && 
+    const becameLowStock =
+      existing.quantity > existing.minQuantity &&
       material.quantity <= material.minQuantity;
 
-      if (becameLowStock) {
-        await sendLowStockAlert({
-          materialId: material.id,
-          materialName: material.name,
-          partNumber: material.partNumber,
-          quantity: material.quantity,
-          minQuantity: material.minQuantity,
-          unit: material.unit,
-          location: material.location,
-          department: material.department?.name ?? null,
-        });
-      }
+    if (becameLowStock) {
+      await sendLowStockAlert({
+        materialId: material.id,
+        materialName: material.name,
+        partNumber: material.partNumber,
+        quantity: material.quantity,
+        minQuantity: material.minQuantity,
+        unit: material.unit,
+        location: material.location,
+        department: material.department?.name ?? null,
+      });
+    }
 
     await logAudit({
       action: "UPDATE_MATERIAL",
@@ -117,8 +117,7 @@ export async function PATCH(
 
     return NextResponse.json(material);
   } catch (err: unknown) {
-    const message =
-      err instanceof Error ? err.message : "Failed to update material";
+    const message = err instanceof Error ? err.message : "Failed to update material";
     return NextResponse.json({ error: message }, { status: 500 });
   }
 }
@@ -138,25 +137,32 @@ export async function DELETE(
     return NextResponse.json({ error: "Material not found" }, { status: 404 });
   }
 
+  if (existing.deletedAt) {
+    return NextResponse.json({ error: "Material is already archived" }, { status: 409 });
+  }
+
   try {
-    // Delete related movements first
-    await prisma.movement.deleteMany({ where: { materialId: id } });
-    await prisma.material.delete({ where: { id } });
+    await prisma.material.update({
+      where: { id },
+      data: {
+        deletedAt: new Date(),
+        deletedById: user!.id,
+      },
+    });
 
     await logAudit({
       action: "DELETE_MATERIAL",
       entity: "MATERIAL",
       entityId: id,
       userId: user!.id,
-      details: JSON.stringify({ name: existing.name, partNumber: existing.partNumber }),
+      details: JSON.stringify({ name: existing.name, partNumber: existing.partNumber, softDelete: true }),
     });
 
     await broadcastChange("materials");
 
-    return NextResponse.json({ success: true });
+    return NextResponse.json({ success: true, undoAvailable: true });
   } catch (err: unknown) {
-    const message =
-      err instanceof Error ? err.message : "Failed to delete material";
+    const message = err instanceof Error ? err.message : "Failed to delete material";
     return NextResponse.json({ error: message }, { status: 500 });
   }
 }

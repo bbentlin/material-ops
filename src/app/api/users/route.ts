@@ -12,6 +12,7 @@ export async function GET() {
   if (error) return error;
 
   const users = await prisma.user.findMany({
+    where: { deletedAt: null },
     select: {
       id: true,
       name: true,
@@ -43,7 +44,7 @@ export async function POST(req: NextRequest) {
   const existing = await prisma.user.findUnique({ where: { email } });
   if (existing) {
     return NextResponse.json(
-      { error: "A user with this email already exists" },
+      { error: existing.deletedAt ? "A user with this email is archived. Restore that user instead." : "A user with this email already exists." },
       { status: 409 }
     );
   }
