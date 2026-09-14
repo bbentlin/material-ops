@@ -28,7 +28,7 @@ export async function POST(
   }
 
   if (!existing.deletedAt) {
-    return NextResponse.json({ "Material not archived" }, { status: 400 });
+    return NextResponse.json({ error: "Material not archived" }, { status: 400 });
   }
 
   const restored = await prisma.material.update({

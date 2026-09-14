@@ -12,22 +12,23 @@ export async function GET(req: NextRequest) {
     return NextResponse.json({ error: "partNumber is required" }, { status: 400 });
   }
 
-  // Try exact match first
-  let material = await prisma.material.findUnique({
-    where: { partNumber },
+  let material = await prisma.material.findFirst({
+    where: { partNumber, deletedAt: null },
     include: { department: { select: { id: true, name: true, color: true } } },
   });
 
-  // If not found, try case-insensitive partial match
   if (!material) {
     material = await prisma.material.findFirst({
-      where: { partNumber: { contains: partNumber, mode: "insensitive" } },
+      where: {
+        deletedAt: null,
+        partNumber: { contains: partNumber, mode: "insensitive" },
+      },
       include: { department: { select: { id: true, name: true, color: true } } },
     });
   }
 
   if (!material) {
-    return NextResponse.json({ error: "Material not found" }, { status: 404 });
+    return NextResponse.json({ error: "Material not found" }, { status: 404 })
   }
 
   return NextResponse.json(material);

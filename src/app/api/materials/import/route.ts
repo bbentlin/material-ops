@@ -32,7 +32,14 @@ export async function POST(req: NextRequest) {
     try {
       const existing = await prisma.material.findUnique({ where: { partNumber } });
       if (existing) {
-        results.push({ row: i + 1, name, status: "skipped", error: "Part number already exists" });
+        results.push({
+          row: i + 1,
+          name,
+          status: "skipped",
+          error: existing.deletedAt
+            ? "Part number exists on an archived material. Restore it instead."
+            : "Part number already exists",
+        });
         continue;
       }
 

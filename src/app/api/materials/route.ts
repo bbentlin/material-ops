@@ -24,7 +24,7 @@ export async function GET(req: NextRequest) {
   const lowStock = searchParams.get("lowStock") === "true";
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const where: any = {};
+  const where: any = { deletedAt: null };
   
   // Text search
   if (search) {
