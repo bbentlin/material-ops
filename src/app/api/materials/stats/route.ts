@@ -7,8 +7,9 @@ export async function GET() {
   if (error) return error;
 
   const [totalMaterials, allMaterials] = await Promise.all([
-    prisma.material.count(),
+    prisma.material.count({ where: { deletedAt: null } }),
     prisma.material.findMany({
+      where: { deletedAt: null },
       select: { quantity: true, minQuantity: true, departmentId: true },
     }),
   ]);

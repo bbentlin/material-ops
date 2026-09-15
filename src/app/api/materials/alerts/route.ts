@@ -7,6 +7,7 @@ export async function GET() {
   if (error) return error;
 
   const materials = await prisma.material.findMany({
+    where: { deletedAt: null },
     include: {
       department: { select: { id: true, name: true, color: true } },
     },
