@@ -6,7 +6,6 @@ import { createMovementSchema } from "@/lib/validations";
 import { broadcastChange } from "@/lib/realtime";
 import { sendLowStockAlert } from "@/lib/notifications";
 
-// GET movements with server-side pagination and search
 export async function GET(req: NextRequest) {
   const { error } = await requireAuth("VIEWER");
   if (error) return error;
@@ -18,13 +17,14 @@ export async function GET(req: NextRequest) {
   const dateFrom = searchParams.get("dateFrom") || "";
   const dateTo = searchParams.get("dateTo") || "";
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const where: any = {};
+  const where: any = {
+    material: { is: { deletedAt: null } },
+  };
 
   if (search) {
     where.OR = [
-      { material: { name: { contains: search, mode: "insensitive" } } },
-      { material: { partNumber: { contains: search, mode: "insensitive" } } },
+      { material: { is: { name: { contains: search, mode: "insensitive" } } } },
+      { material: { is: { partNumber: { contains: search, mode: "insensitive" } } } },
       { type: { contains: search, mode: "insensitive" } },
       { note: { contains: search, mode: "insensitive" } },
       { user: { name: { contains: search, mode: "insensitive" } } },
