@@ -62,7 +62,6 @@ export async function GET(req: NextRequest) {
   return NextResponse.json({ movements, total, page, limit });
 }
 
-// POST create a movement (INBOUND or OUTBOUND)
 export async function POST(req: NextRequest) {
   const { error, user } = await requireAuth("OPERATOR");
   if (error) return error;
@@ -75,35 +74,29 @@ export async function POST(req: NextRequest) {
       { status: 400 }
     );
   }
+
   const { type, quantity, note, materialId, destinationMaterialId } = parsed.data;
 
-  // Verify material exists
-  const material = await prisma.material.findUnique({
-    where: { id: materialId },
+  const material = await prisma.material.findFirst({
+    where: { id: materialId, deletedAt: null },
     include: {
-      department: {
-        select: { name: true },
-      },
+      department: { select: { name: true } },
     },
   });
 
   if (!material) {
-    return NextResponse.json(
-      { error: "Material not found" },
-      { status: 404 }
-    );
+    return NextResponse.json({ error: "Material not found" }, { status: 404 });
   }
 
-  // For outbound, check sufficient stock
   if (type === "OUTBOUND" && material.quantity < quantity) {
     return NextResponse.json(
-      { error: `Insufficient stock. Available: ${material.quantity}` },
+      { error: "Insufficient stock. Available: " + material.quantity },
       { status: 400 }
     );
   }
 
-  // For transfer, validate destination and check sufficient stock
   let destination: typeof material | null = null;
+
   if (type === "TRANSFER") {
     if (!destinationMaterialId) {
       return NextResponse.json(
@@ -111,29 +104,29 @@ export async function POST(req: NextRequest) {
         { status: 400 }
       );
     }
+
     if (destinationMaterialId === materialId) {
       return NextResponse.json(
         { error: "Source and destination must be different materials" },
         { status: 400 }
       );
     }
-    destination = await prisma.material.findUnique({
-      where: { id: destinationMaterialId },
+
+    destination = await prisma.material.findFirst({
+      where: { id: destinationMaterialId, deletedAt: null },
       include: {
-        department: {
-          select: { name: true },
-        },
+        department: { select: { name: true } },
       },
     });
+
     if (!destination) {
-      return NextResponse.json(
-        { error: "Destination material not found" },
-        { status: 404 }
-      );
+      return NextResponse.json({ error: "Destination material not found" }, { status: 404 });
     }
+
     if (material.quantity < quantity) {
       return NextResponse.json(
-        { error: `Insufficient stock. Available: ${material.quantity}` },
+        { error: "Insufficient stock. Available: " + material.quantity },
+        { status: 400 }
       );
     }
   }
@@ -154,89 +147,30 @@ export async function POST(req: NextRequest) {
             user: { select: { name: true, email: true } },
           },
         }),
-        // Decrement source
         prisma.material.update({
           where: { id: materialId },
           data: { quantity: { decrement: quantity } },
         }),
-        // Increment destination
         prisma.material.update({
           where: { id: destinationMaterialId },
           data: { quantity: { increment: quantity } },
         }),
       ]);
 
-      const [updatedSource, updatedDestination] = await Promise.all([
-        prisma.material.findUnique({
-          where: { id: materialId },
-          include: {
-            department: {
-              select: { name: true },
-            },
-          },
-        }),
-        prisma.material.findUnique({
-          where: { id: destinationMaterialId },
-          include: {
-            department: {
-              select: { name: true },
-            },
-          },
-        }),
-      ]);
-
-      if (
-        updatedSource &&
-        material.quantity > material.minQuantity &&
-        updatedSource.quantity <= updatedSource.minQuantity
-      ) {
-        await sendLowStockAlert({
-          materialId: updatedSource.id,
-          materialName: updatedSource.name,
-          partNumber: updatedSource.partNumber,
-          quantity: updatedSource.quantity,
-          minQuantity: updatedSource.minQuantity,
-          unit: updatedSource.unit,
-          location: updatedSource.location,
-          department: updatedSource.department?.name ?? null,
-        });
-      }
-
-      if (
-        updatedDestination &&
-        destination && 
-        destination.quantity > destination.minQuantity &&
-        updatedDestination.quantity <= updatedDestination.minQuantity
-      ) {
-        await sendLowStockAlert({
-          materialId: updatedDestination.id,
-          materialName: updatedDestination.name,
-          partNumber: updatedDestination.partNumber,
-          quantity: updatedDestination.quantity,
-          minQuantity: updatedDestination.minQuantity,
-          unit: updatedDestination.unit,
-          location: updatedDestination.location,
-          department: updatedDestination.department?.name ?? null,
-        });
-      }
-
-      const destMaterial = await prisma.material.findUnique({
-        where: { id: destinationMaterialId },
-        select: { name: true },
-      });
-
       await logAudit({
         action: "TRANSFER",
         entity: "MOVEMENT",
         entityId: movement.id,
         userId: user!.id,
-        details: JSON.stringify({ from: material.name, to: destMaterial?.name, quantity }),
+        details: JSON.stringify({ from: material.name, to: destination?.name, quantity }),
       });
+
+      await broadcastChange("movements");
+      await broadcastChange("materials");
 
       return NextResponse.json(movement, { status: 201 });
     }
 
-    // INBOUND / OUTBOUND
     const [movement] = await prisma.$transaction([
       prisma.movement.create({
         data: {
@@ -263,11 +197,7 @@ export async function POST(req: NextRequest) {
 
     const updatedMaterial = await prisma.material.findUnique({
       where: { id: materialId },
-      include: {
-        department: {
-          select: { name: true },
-        },
-      },
+      include: { department: { select: { name: true } } },
     });
 
     if (
@@ -300,8 +230,7 @@ export async function POST(req: NextRequest) {
 
     return NextResponse.json(movement, { status: 201 });
   } catch (err: unknown) {
-    const message =
-      err instanceof Error ? err.message : "Failed to create movement";
+    const message = err instanceof Error ? err.message : "Failed to create movement";
     return NextResponse.json({ error: message }, { status: 500 });
   }
 }

@@ -69,7 +69,10 @@ export async function POST(req: NextRequest) {
   // Validate all materialIds exist
   const materialIds = items.map((i: { materialId: string }) => i.materialId);
   const materials = await prisma.material.findMany({
-    where: { id: { in: materialIds } },
+    where: {
+      id: { in: materialIds },
+      deletedAt: null,
+    },
     select: { id: true },
   });
   const validIds = new Set(materials.map((m) => m.id));
