@@ -70,13 +70,26 @@ export default function EditMaterialModal({
   }
 
   async function confirmDelete() {
-    const res = await fetch(`/api/materials/${material.id}`, { method: "DELETE" });
+    const res = await fetch("/api/materials/" + material.id, { method: "DELETE" });
+    const data = await res.json();
+
     if (res.ok) {
-      onSuccessAction();
-    } else {
-      const data = await res.json();
-      throw new Error(data.error || "Failed to delete material");
+      throw new Error(data.error || "Failed to archive material");
     }
+
+    const shouldUndo = window.confirm(
+      "Material archived. Click OK to undo now, or Cancel to keep archived."
+    );
+
+    if (shouldUndo) {
+      const restoreRes = await fetch("/api/materials/" + material.id + "/restore", { method: "POST" });
+      const restoreData = await restoreRes.json();
+      if (!restoreRes.ok) {
+        throw new Error(restoreData.error || "Failed to restore material");
+      }
+    }
+
+    onSuccessAction();
   }
 
   return (
@@ -236,7 +249,7 @@ export default function EditMaterialModal({
               disabled={isPending}
               className="w-full rounded py-2 text-sm text-red-500 transition-colors hover:bg-red-50 hover:text-red-700 disabled:opacity-50 dark:hover:bg-red-900/30"
             >
-              Delete Material
+              Delete Material to Archive Material
             </button>
           )}
         </form>
@@ -245,7 +258,7 @@ export default function EditMaterialModal({
       {showDeleteConfirm && (
         <ConfirmDialog
           title="Delete Material"
-          message={`Are you sure you want to delete "${material.name}"? This cannot be undone.`}
+          message={`Are you sure you want to delete "${material.name}"? This cannot be undone. You can undo immediately after archiving.`}
           details={[
             `Part Number: ${material.partNumber}`,
             `Current quantity: ${material.quantity} ${material.unit ?? ""}`.trim(),

@@ -4,6 +4,7 @@ import { useState, useTransition } from "react";
 import DraggableModal from "./DraggableModal";
 import ConfirmDialog from "./ConfirmDialog";
 import PasswordStrengthMeter from "./PasswordStrengthMeter";
+import { DELETE } from "@/app/api/auth/route";
 
 const inputClass =
   "w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-gray-900 placeholder-gray-400 focus:border-transparent focus:outline-none focus:ring-2 focus:ring-blue-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100 dark:placeholder-gray-500";
@@ -61,13 +62,26 @@ export default function EditUserModal({
   }
 
   async function confirmDelete() {
-    const res = await fetch(`/api/users/${user.id}`, { method: "DELETE" });
-    if (res.ok) {
-      onSuccessAction();
-    } else {
-      const data = await res.json();
-      throw new Error(data.error || "Failed to delete user");
+    const res = await fetch("/api/users/" + user.id, { method: "DELETE" });
+    const data = await res.json();
+
+    if (!res.ok) {
+      throw new Error(data.error || "Failed to archive user");
     }
+
+    const shouldUndo = window.confirm(
+      "User archived. Click OK to undo now, or cancel to keep archived."
+    );
+
+    if (shouldUndo) {
+      const restoreRes = await fetch("/api/users/" + user.id + "/restore", { method: "POST" });
+      const restoreData = await restoreRes.json();
+      if (!restoreRes.ok) {
+        throw new Error(restoreData.error || "Failed to restore user");
+      }
+    }
+
+    onSuccessAction();
   }
 
   async function issuePasswordResetLink() {
@@ -199,7 +213,7 @@ export default function EditUserModal({
               disabled={isPending}
               className="w-full rounded py-2 text-sm text-red-500 transition-colors hover:bg-red-50 hover:text-red-700 disabled:opacity-50 dark:hover:bg-red-900/30"
             >
-              Delete User
+              Delete User to Archive User
             </button>
           )}
         </form>
@@ -208,7 +222,7 @@ export default function EditUserModal({
       {showDeleteConfirm && (
         <ConfirmDialog
           title="Delete User"
-          message={`Are you sure you want to delete "${user.name}"? This cannot be undone.`}
+          message={`Are you sure you want to delete "${user.name}"? This cannot be undone. You can undo immediately after archiving.`}
           details={[`Email: ${user.email}`, `Role: ${user.role}`]}
           onConfirmAction={confirmDelete}
           onCloseAction={() => setShowDeleteConfirm(false)}

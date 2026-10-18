@@ -18,7 +18,7 @@ export async function POST(
     include: {
       items: {
         include: {
-          material: { select: { id: true, name: true, partNumber: true } },
+          material: { select: { id: true, name: true, partNumber: true, deletedAt: true } },
         },
       },
     },
@@ -31,6 +31,14 @@ export async function POST(
   if (order.status !== "APPROVED") {
     return NextResponse.json(
       { error: "Only APPROVED orders can be received" },
+      { status: 400 }
+    );
+  }
+
+  const archivedItem = order.items.find((i) => i.material.deletedAt);
+  if (archivedItem) {
+    return NextResponse.json(
+      { error: "Cannot receive PO with archived material " + archivedItem.material.partNumber },
       { status: 400 }
     );
   }
