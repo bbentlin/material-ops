@@ -73,7 +73,7 @@ export default function EditMaterialModal({
     const res = await fetch("/api/materials/" + material.id, { method: "DELETE" });
     const data = await res.json();
 
-    if (res.ok) {
+    if (!res.ok) {
       throw new Error(data.error || "Failed to archive material");
     }
 

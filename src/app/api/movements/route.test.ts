@@ -12,6 +12,7 @@ vi.mock("@/lib/audit", () => ({
 vi.mock("@/lib/db", () => ({
   prisma: {
     material: {
+      findFirst: vi.fn(),
       findUnique: vi.fn(),
       update: vi.fn(),
     },
@@ -47,7 +48,7 @@ describe("api movements route POST", () => {
   });
 
   it("returns 400 for outbound when stock is insufficient", async () => {
-    vi.mocked(prisma.material.findUnique).mockResolvedValue({
+    vi.mocked(prisma.material.findFirst).mockResolvedValue({
       id: "m1",
       name: "Steel",
       quantity: 2,
@@ -67,7 +68,7 @@ describe("api movements route POST", () => {
   });
 
   it("returns 400 for transfer when destination is missing", async () => {
-    vi.mocked(prisma.material.findUnique).mockResolvedValue({
+    vi.mocked(prisma.material.findFirst).mockResolvedValue({
       id: "m1",
       name: "Steel",
       quantity: 10,
@@ -87,7 +88,7 @@ describe("api movements route POST", () => {
   });
 
   it("returns 400 for transfer when source and destination are the same", async () => {
-    vi.mocked(prisma.material.findUnique).mockResolvedValue({
+    vi.mocked(prisma.material.findFirst).mockResolvedValue({
       id: "m1",
       name: "Steel",
       quantity: 10,
@@ -106,7 +107,7 @@ describe("api movements route POST", () => {
   });
 
   it("processes transfer and logs audit", async () => {
-    vi.mocked(prisma.material.findUnique)
+    vi.mocked(prisma.material.findFirst)
       .mockResolvedValueOnce({
         id: "m1",
         name: "Source Material",
@@ -155,7 +156,7 @@ describe("api movements route POST", () => {
   });
 
   it("processes inbound and logs audit", async () => {
-    vi.mocked(prisma.material.findUnique).mockResolvedValue({
+    vi.mocked(prisma.material.findFirst).mockResolvedValue({
       id: "m1",
       name: "Steel",
       quantity: 10,

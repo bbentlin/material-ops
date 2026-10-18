@@ -11,6 +11,7 @@ const actionStyle: Record<string, { icon: string; label: string; bg: string }> =
   CREATE_MATERIAL: { icon: "📦", label: "Create Material", bg: "bg-green-100 text-green-700 dark:bg-green-900 dark:text-green-300" },
   UPDATE_MATERIAL: { icon: "✏️", label: "Update Material", bg: "bg-yellow-100 text-yellow-700 dark:bg-yellow-900 dark:text-yellow-300" },
   DELETE_MATERIAL: { icon: "🗑️", label: "Delete Material", bg: "bg-red-100 text-red-700 dark:bg-red-900 dark:text-red-300" },
+  RESTORE_MATERIAL: { icon: "♻️", label: "Restore Material", bg: "bg-emerald-100 text-emerald-700 dark:bg-emerald-900 dark:text-emerald-300"},
   IMPORT_MATERIALS: { icon: "📥", label: "Import Materials", bg: "bg-purple-100 text-purple-700 dark:bg-purple-900 dark:text-purple-300" },
   INBOUND: { icon: "📈", label: "Inbound", bg: "bg-green-100 text-green-700 dark:bg-green-900 dark:text-green-300" },
   OUTBOUND: { icon: "📉", label: "Outbound", bg: "bg-orange-100 text-orange-700 dark:bg-orange-900 dark:text-orange-300" },
@@ -18,6 +19,7 @@ const actionStyle: Record<string, { icon: string; label: string; bg: string }> =
   CREATE_USER: { icon: "👤➕", label: "Create User", bg: "bg-green-100 text-green-700 dark:bg-green-900 dark:text-green-300" },
   UPDATE_USER: { icon: "👤✏️", label: "Update User", bg: "bg-yellow-100 text-yellow-700 dark:bg-yellow-900 dark:text-yellow-300" },
   DELETE_USER: { icon: "👤❌", label: "Delete User", bg: "bg-red-100 text-red-700 dark:bg-red-900 dark:text-red-300" },
+  RESTORE_USER: { icon: "♻️", label: "Restore User", bg: "bg-emerald-100 text-emerald-700 dark:bg-emerald-900 dark:text-emerald-300"},
 };
 
 const entities = ["AUTH", "MATERIAL", "MOVEMENT", "USER"];
