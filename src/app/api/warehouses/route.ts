@@ -75,7 +75,7 @@ export async function POST(req: NextRequest) {
       return NextResponse.json(
         { error: "A warehouse with this name already exists" },
         { status: 409 },
-      ),
+      );
     }
 
     return NextResponse.json(

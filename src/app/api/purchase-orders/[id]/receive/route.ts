@@ -35,28 +35,38 @@ export async function POST(
     );
   }
 
-  const archivedItem = order.items.find((i) => i.material.deletedAt);
+  const archivedItem = order.items.find(
+    (item) => item.material?.deletedAt,
+  );
+
   if (archivedItem) {
     return NextResponse.json(
-      { error: "Cannot receive PO with archived material " + archivedItem.material.partNumber },
-      { status: 400 }
+      {
+        error: `Cannot receive PO with archived material ${
+          archivedItem.material?.partNumber ?? "unknown"
+        }`,
+      },
+      { status: 400 },
     );
   }
 
   // Create inbound movements and update stock for each item
   for (const item of order.items) {
+    const materialId = item.materialId;
+    if (!materialId) continue;
+
     await prisma.movement.create({
       data: {
         type: "INBOUND",
         quantity: item.quantity,
         note: `Received from PO ${order.orderNumber}`,
-        materialId: item.materialId,
+        materialId,
         userId: user!.id,
       },
     });
 
     await prisma.material.update({
-      where: { id: item.materialId },
+      where: { id: materialId },
       data: { quantity: { increment: item.quantity } },
     });
 
