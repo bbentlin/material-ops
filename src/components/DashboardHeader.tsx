@@ -220,6 +220,14 @@ export default function DashboardHeader(props: Props) {
               >
                 {props.darkMode ? "☀️" : "🌙"}
               </button>
+
+              <button
+                type="button"
+                onClick={props.onLogoutAction}
+                className="rounded-lg border border-red-200 bg-white/80 px-3 py-2 text-sm font-medium text-red-700 transition-colors hover:bg-red-50 dark:border-red-900 dark:bg-gray-900/50 dark:text-red-300 dark:hover:bg-red-950/40"
+              >
+                Log Out
+              </button>
             </div>
           </div>
 

@@ -24,35 +24,36 @@ enum MovementType {
 }
 
 model User {
-  id                  String          @id @default(cuid())
-  email               String          @unique
+  id                  String               @id @default(cuid())
+  email               String               @unique
   name                String
   password            String
-  role                Role            @default(VIEWER)
-  createdAt           DateTime        @default(now())
-  updatedAt           DateTime        @updatedAt
-  deletedAt       DateTime?
-  deleteById     String?
+  role                Role                 @default(VIEWER)
+  createdAt           DateTime             @default(now())
+  updatedAt           DateTime             @updatedAt
+  deletedAt           DateTime?
+  deleteById          String?
   movements           Movement[]
   auditLogs           AuditLog[]
-  createdOrders       PurchaseOrder[] @relation("CreatedOrders")
-  approvedOrders      PurchaseOrder[] @relation("ApprovedOrders")
-  passwordResetTokens PasswordResetToken[] 
+  createdOrders       PurchaseOrder[]      @relation("CreatedOrders")
+  approvedOrders      PurchaseOrder[]      @relation("ApprovedOrders")
+  passwordResetTokens PasswordResetToken[]
 }
 
 model PasswordResetToken {
-  id        String   @id @default(cuid())
-  userId     String
-  tokenHash String   @unique
+  id        String    @id @default(cuid())
+  userId    String
+  tokenHash String    @unique
   expiresAt DateTime
   usedAt    DateTime?
-  createdAt DateTime @default(now())
+  createdAt DateTime  @default(now())
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([userId, createdAt])
   @@index([expiresAt])
 }
+
 model Department {
   id          String     @id @default(cuid())
   name        String     @unique
@@ -63,22 +64,22 @@ model Department {
 }
 
 model Material {
-  id                  String      @id @default(cuid())
-  name                String
-  partNumber          String      @unique
-  description         String?
-  quantity            Int         @default(0)
-  minQuantity         Int         @default(10)
-  unit                String      @default("ea")
-  location            String?
-  departmentId        String?
-  department          Department? @relation(fields: [departmentId], references: [id])
-  createdAt           DateTime    @default(now())
-  updatedAt           DateTime    @updatedAt
-  deletedAt       DateTime?
-  deletedById   String?
-  movements           Movement[]
-  purchaseOrderItems  PurchaseOrderItem[]
+  id                 String              @id @default(cuid())
+  name               String
+  partNumber         String              @unique
+  description        String?
+  quantity           Int                 @default(0)
+  minQuantity        Int                 @default(10)
+  unit               String              @default("ea")
+  location           String?
+  departmentId       String?
+  department         Department?         @relation(fields: [departmentId], references: [id])
+  createdAt          DateTime            @default(now())
+  updatedAt          DateTime            @updatedAt
+  deletedAt          DateTime?
+  deletedById        String?
+  movements          Movement[]
+  purchaseOrderItems PurchaseOrderItem[]
 }
 
 model Movement {
@@ -94,18 +95,18 @@ model Movement {
 }
 
 model AuditLog {
-  id        String    @id @default(cuid())
-  action    String    // LOGIN, LOGOUT, CREATE_MATERIAL, UPDATE_MATERIAL, DELETE_MATERIAL, IMPORT_MATERIALS, INBOUND, OUTBOUND, TRANSFER, CREATE_USER, UPDATE_USER, DELETE_USER
-  entity    String    // AUTH, MATERIAL, MOVEMENT, USER 
+  id        String   @id @default(cuid())
+  action    String // LOGIN, LOGOUT, CREATE_MATERIAL, UPDATE_MATERIAL, DELETE_MATERIAL, IMPORT_MATERIALS, INBOUND, OUTBOUND, TRANSFER, CREATE_USER, UPDATE_USER, DELETE_USER
+  entity    String // AUTH, MATERIAL, MOVEMENT, USER 
   entityId  String?
-  details   String?   // JSON string with context
-  userId    String? 
-  user      User?     @relation(fields: [userId], references: [id], onDelete: SetNull)
-  createdAt DateTime  @default(now())
+  details   String? // JSON string with context
+  userId    String?
+  user      User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
+  createdAt DateTime @default(now())
 
   @@index([entity])
   @@index([createdAt])
-  @@index([userId])  
+  @@index([userId])
 }
 
 enum PurchaseOrderStatus {
@@ -117,21 +118,24 @@ enum PurchaseOrderStatus {
 }
 
 model PurchaseOrder {
-  id             String              @id @default(cuid())
-  orderNumber    String              @unique
-  status         PurchaseOrderStatus @default(DRAFT)
-  supplier       String
-  notes          String?
-  expectedDate   DateTime?
-  totalItems     Int                 @default(0)
-  createdById    String
-  createdBy      User                @relation("CreatedOrders", fields: [createdById], references: [id])
-  approvedById   String?
-  approvedBy     User?               @relation("ApprovedOrders", fields: [approvedById], references: [id])
-  receivedAt     DateTime?
-  createdAt      DateTime            @default(now())
-  updatedAt      DateTime            @updatedAt
-  items          PurchaseOrderItem[]
+  id               String              @id @default(cuid())
+  orderNumber      String              @unique
+  status           PurchaseOrderStatus @default(DRAFT)
+  supplier         String
+  notes            String?
+  expectedDate     DateTime?
+  totalItems       Int                 @default(0)
+  createdById      String
+  createdBy        User                @relation("CreatedOrders", fields: [createdById], references: [id])
+  approvedById     String?
+  approvedBy       User?               @relation("ApprovedOrders", fields: [approvedById], references: [id])
+  receivedAt       DateTime?
+  createdAt        DateTime            @default(now())
+  updatedAt        DateTime            @updatedAt
+  items            PurchaseOrderItem[]
+  warehouseId      String?
+  warehouse        Warehouse?          @relation(fields: [warehouseId], references: [id])
+  deliveryLocation String?
 
   @@index([status])
   @@index([createdAt])
@@ -139,12 +143,24 @@ model PurchaseOrder {
 }
 
 model PurchaseOrderItem {
-  id              String        @id @default(cuid())
-  purchaseOrderId String
-  purchaseOrder   PurchaseOrder @relation(fields: [purchaseOrderId], references: [id], onDelete: Cascade)
-  materialId      String
-  material        Material      @relation(fields: [materialId], references: [id])
-  quantity        Int
-  unitPrice       Float?
-  receivedQty     Int           @default(0)
+  id                    String        @id @default(cuid())
+  purchaseOrderId       String
+  purchaseOrder         PurchaseOrder @relation(fields: [purchaseOrderId], references: [id], onDelete: Cascade)
+  materialId            String?
+  material              Material?     @relation(fields: [materialId], references: [id])
+  newMaterialName       String?
+  newMaterialPartNumber String?
+  newMaterialUnit       String?
+  quantity              Int
+  unitPrice             Float?
+  receivedQty           Int           @default(0)
+}
+
+model Warehouse {
+  id             String          @id @default(cuid())
+  name           String          @unique
+  address        String?
+  createdAt      DateTime        @default(now())
+  updatedAt      DateTime        @updatedAt
+  purchaseOrders PurchaseOrder[]
 }

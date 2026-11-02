@@ -14,11 +14,20 @@ export async function GET() {
     );
   }
 
-  const ably = new Ably.Rest(key);
-  const tokenRequest = await ably.auth.createTokenRequest({
-    clientId: user!.id,
-    capability: JSON.stringify({ dashboard: ["subscribe"] }),
-  });
+  try {
+    const ably = new Ably.Rest(key);
+    const tokenRequest = await ably.auth.createTokenRequest({
+      clientId: user!.id,
+      capability: JSON.stringify({
+        dashboard: ["message-subscribe"],
+      }),
+    });
 
-  return NextResponse.json(tokenRequest);
+    return NextResponse.json(tokenRequest);
+  } catch {
+    return NextResponse.json(
+      { error: "Unable to authorize realtime connection" },
+      { status: 503 },
+    );
+  }
 }
