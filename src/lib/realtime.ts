@@ -3,7 +3,7 @@ import Ably from "ably";
 let ably: InstanceType<typeof Ably.Rest> | null = null;
 
 function getAblyClient() {
-  const apiKey = process.env.ABLY_API_KEY;
+  const apiKey = process.env.ABLY_PUBLISH_API_KEY;
   if (!apiKey) return null;
 
   if (!ably) {

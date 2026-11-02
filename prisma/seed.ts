@@ -7,6 +7,10 @@ const prisma = new PrismaClient({
 });
 
 async function main() {
+  if (process.env.NODE_ENV === "production") {
+    throw new Error("Refusing to run the development seed in production.");
+  }
+
   // Create admin user
   const admin = await prisma.user.upsert({
     where: { email: "admin@materialops.com" },

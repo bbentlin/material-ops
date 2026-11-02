@@ -9,7 +9,10 @@ export function getAblyClient(): Ably.Realtime | null {
   if (!process.env.NEXT_PUBLIC_ABLY_KEY) return null;
 
   if (!client) {
-    client = new Ably.Realtime({ key: process.env.NEXT_PUBLIC_ABLY_KEY });
+    client = new Ably.Realtime({
+      authUrl: "/api/ably/token",
+      authMethod: "GET",
+    });
   }
   return client;
 }
