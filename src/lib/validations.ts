@@ -24,47 +24,47 @@ export const strongPasswordSchema = z
     }
   });
 
-  export const forgotPasswordSchema = z.object({
-    email: z.string().email("Invalid email"),
+export const forgotPasswordSchema = z.object({
+  email: z.string().email("Invalid email"),
+});
+
+export const resetPasswordSchema = z.object({
+  token: z.string().min(1, "Reset token is required"),
+  password: strongPasswordSchema,
+});
+
+export const selfProfileUpdateSchema = z  
+  .object({
+    name: z.string().min(1, "Name is required").max(200).optional(),
+    currentPassword: z.string().min(1, "Current password is required").optional(),
+    newPassword: strongPasswordSchema.optional(),
+  })
+  .superRefine((data, ctx) => {
+    const wantsPasswordChange = !!data.currentPassword || !!data.newPassword;
+
+    if (data.newPassword && !data.currentPassword) {
+      ctx.addIssue({
+        code: "custom",
+        path: ["currentPassword"],
+        message: "Current password is required to set new password",
+      });
+    }
+
+    if (data.currentPassword && !data.newPassword) {
+      ctx.addIssue({
+        code: "custom",
+        path: ["newPassword"],
+        message: "New password is required",
+      });
+    }
+
+    if (!data.name && !wantsPasswordChange) {
+      ctx.addIssue({
+        code: "custom",
+        message: "No changes submitted",
+      });
+    }
   });
-
-  export const resetPasswordSchema = z.object({
-    token: z.string().min(1, "Reset token is required"),
-    password: strongPasswordSchema,
-  });
-
-  export const selfProfileUpdateSchema = z  
-    .object({
-      name: z.string().min(1, "Name is required").max(200).optional(),
-      currentPassword: z.string().min(1, "Current password is required").optional(),
-      newPassword: strongPasswordSchema.optional(),
-    })
-    .superRefine((data, ctx) => {
-      const wantsPasswordChange = !!data.currentPassword || !!data.newPassword;
-
-      if (data.newPassword && !data.currentPassword) {
-        ctx.addIssue({
-          code: "custom",
-          path: ["currentPassword"],
-          message: "Current password is required to set new password",
-        });
-      }
-
-      if (data.currentPassword && !data.newPassword) {
-        ctx.addIssue({
-          code: "custom",
-          path: ["newPassword"],
-          message: "New password is required",
-        });
-      }
-
-      if (!data.name && !wantsPasswordChange) {
-        ctx.addIssue({
-          code: "custom",
-          message: "No changes submitted",
-        });
-      }
-    });
 
 export const createMaterialSchema = z.object({
   name: z.string().min(1).max(200),
@@ -101,27 +101,52 @@ export const updateUserSchema = z.object({
   role: z.enum(["ADMIN", "OPERATOR", "VIEWER"]).optional(),
 });
 
-export const createPurchaseOrderSchema = z.object({
-  supplier: z.string().min(1).max(300),
-  notes: z.string().max(1000).optional(),
-  expectedDate: z.string().optional(), 
-  items: z.array(z.object({
+const expectedDateSchema = z
+  .string()
+  .regex(/^\d{4}-\d{2}-\d{2}$/, "Expected date must be YYYY-MM-DD")
+  .refine((value) => {
+    const date = new Date(`${value}T00:00:00.000Z`);
+    return !Number.isNaN(date.getTime()) &&
+      date.toISOString().slice(0, 10) === value;
+  }, "Expected date is invalid");
+
+const purchaseOrderItemFields = {
+  quantity: z.number().int().positive("Quantity must be positive"),
+  unitPrice: z.number().min(0).nullable().optional(),
+};
+
+export const purchaseOrderItemSchema = z.discriminatedUnion("kind", [
+  z.object({
+    kind: z.literal("catalog"),
+    ...purchaseOrderItemFields,
     materialId: z.string().min(1),
-    quantity: z.number().int().positive(),
-    unitPrice: z.number().min(0).nullable().optional(),
-  })).min(1, "At least one item is required"),
+  }),
+  z.object({
+    kind: z.literal("new"),
+    ...purchaseOrderItemFields,
+    newMaterialName: z.string().trim().min(1).max(200),
+    newMaterialPartNumber: z.string().trim().min(1).max(100),
+    newMaterialUnit: z.string().trim().min(1).max(50),
+  }),
+]);
+
+export const createPurchaseOrderSchema = z.object({
+  supplier: z.string().trim().min(1).max(300),
+  warehouseId: z.string().min(1, "Warehouse is required"),
+  deliveryLocation: z.string().trim().max(500).nullable().optional(),
+  notes: z.string().trim().max(1000).nullable().optional(),
+  expectedDate: expectedDateSchema.nullable().optional(),
+  items: z.array(purchaseOrderItemSchema).min(1, "At least one item is required"),
 });
 
 export const updatePurchaseOrderSchema = z.object({
   status: z.enum(["DRAFT", "SUBMITTED", "APPROVED", "RECEIVED", "CANCELLED"]).optional(),
-  supplier: z.string().min(1).max(300).optional(),
-  notes: z.string().max(1000).nullable().optional(),
-  expectedDate: z.string().nullable().optional(),
-  items: z.array(z.object({
-    materialId: z.string().min(1),
-    quantity: z.number().int().positive(),
-    unitPrice: z.number().min(0).nullable().optional(),
-  })).optional(),
+  supplier: z.string().trim().min(1).max(300).optional(),
+  warehouseId: z.string().min(1).nullable().optional(),
+  deliveryLocation: z.string().trim().max(500).nullable().optional(),
+  notes: z.string().trim().max(1000).nullable().optional(),
+  expectedDate: expectedDateSchema.nullable().optional(),
+  items: z.array(purchaseOrderItemSchema).min(1).optional(),
 });
 
 export const importMaterialSchema = z.object({

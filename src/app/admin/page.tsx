@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import AddUserModal from "@/components/AddUserModal";
 import EditUserModal from "@/components/EditUserModal";
 import SubPageLayout from "@/components/SubPageLayout";
+import WarehouseManagement from "@/components/WarehouseManagement";
 import { useRealtimeSync } from "@/hooks/useRealtimeSync";
 
 type User = {
@@ -282,6 +283,7 @@ export default function AdminPage() {
             </table>
           </div>
         </div>
+        <WarehouseManagement />
       </SubPageLayout>
 
       {showAddUser && (
